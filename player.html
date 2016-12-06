@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-	<title>MIDI.js - Sequencing in Javascript.</title>
+	<title>sequence</title>
 	<!-- css -->
 	<link href="css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
 	<link href="css/jquery-ui.css" rel="stylesheet" type="text/css" />
@@ -121,10 +121,11 @@
 						if (data.message === 144) {
 							var map = colorMap[data.note - 27];
 							if (map) d.style.background = map.hex;
-							d.style.color = "#fff";
+							console.log(map + " " + data.note + " " + map.hex);
+							//d.style.color = "#fff";
 						} else {
 							d.style.background = "";
-							d.style.color = "";
+							//d.style.color = "";
 						}
 					}
 				});

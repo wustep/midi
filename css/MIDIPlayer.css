@@ -16,8 +16,7 @@ body {
 div#playerdiv {
 	opacity: 0.7;
 	cursor: move;
-	margin: 50px; 
-	border: 1px solid #000; 
+	margin: 50px 90px; 
 	background: rgba(255,255,255,0.5); 
 	border-radius: 11px; 
 	width: 200px; 
@@ -142,7 +141,7 @@ h1 {
     text-align: center;
     display: inline-block;
     line-height: 14.3vh;
-	opacity: .85;
+	opacity: .75;
 }
 [draggable=true] {
     cursor: move;

@@ -40,41 +40,59 @@
 	<div style="position: absolute; top: 0; left: 0; z-index: 5; overflow: hidden; display: flex; flex-wrap: wrap;" id="colors"></div>
 	<div id = "playerdiv">
 		<div class="player">
-			<div style="margin: 0 auto; width: 160px; float: right;">
-				<input type="image" src="img/pause.png" align="absmiddle" value="pause" onclick="pausePlayStop()" id="pausePlayStop">
-				<input type="image" src="img/stop.png" align="absmiddle" value="stop" onclick="pausePlayStop(true)">
-				<input type="image" src="img/backward.png" align="absmiddle" value="stop" onclick="player.getNextSong(-1);">
-				<input type="image" src="img/forward.png" align="absmiddle" value="stop" onclick="player.getNextSong(+1);">
-			</div>
-			<!--<div class="time-controls" style="float: left; margin: 0; position: relative; top: 5px;">
-				<span id="time1" class="time">0:00</span>
-				<span id="capsule">
-					<span id="cursor"></span>
-				</span>
-				<span id="time2" class="time" style="text-align: left;">-0:00</span>
-			</div>-->
+				<button id="playPauseStop" onclick="pausePlayStop()"></button>
+				<button id="getNextSong" value="stop" onclick="pausePlayStop(true)"></button>
+				<button id="backward" value="stop" onclick="player.getNextSong(-1);"></button>
+				<button id="forward" value="stop" onclick="player.getNextSong(+1);"></button>
+				<button id="scheme">1</button>
 		</div>
 	</div>
 
 <script type="text/javascript">
 	$(function() {
-		$( "#playerdiv" ).draggable();
+		$("#playerdiv" ).draggable();
+		$("#playPauseStop").button( {
+			icon: "ui-icon-play",
+			showLabel: false
+		});
+		$("#getNextSong").button( {
+			icon: "ui-icon-stop",
+			showLabel: false
+		});
+		$("#backward").button({
+			icon: "ui-icon-seek-prev",
+			showLabel: false
+		});
+		$("#forward").button({
+			icon: "ui-icon-seek-next",
+			showLabel: false
+		});
+		$("#scheme").button({
+			icon: "ui-icon-arrowreturnthick-1-n",
+			showLabel: false
+		});
 	});
 	if (typeof (console) === "undefined") var console = {
 		log: function() {}
 	};
+	
+	var colorMap2 = new Array(89);
+	var starryNightColors = ["#02092B", "#374F74", "#6D96BE", "#616C67", "#91AEAA", "#766B3C", "#A0A778", "#A28A31", "#C6C267", "#CFAA28", "#EDDC57", "#FDF66F"];
+	for (var i = 0; i < colorMap2.length; i++) {
+		colorMap2[i] = starryNightColors[i % 12];
+	}
 
 	// Toggle between Pause and Play modes.
 	var pausePlayStop = function(stop) {
-		var d = document.getElementById("pausePlayStop");
+		var d = $("#playPauseStop")
 		if (stop) {
+			d.button( { icon: "ui-icon-play" } );
 			MIDI.Player.stop();
-			d.src = "./img/play.png";
 		} else if (MIDI.Player.playing) {
-			d.src = "./img/play.png";
+			d.button( { icon: "ui-icon-play" } );
 			MIDI.Player.pause(true);
 		} else {
-			d.src = "./img/pause.png";
+			d.button( { icon: "ui-icon-pause" } );
 			MIDI.Player.resume();
 		}
 	};
@@ -119,9 +137,11 @@
 					var d = colorElements[pianoKey];
 					if (d) {
 						if (data.message === 144) {
-							var map = colorMap[data.note - 27];
-							if (map) d.style.background = map.hex;
-							console.log(map + " " + data.note + " " + map.hex);
+							/*var map = colorMap[data.note - 27];
+							if (map) d.style.background = map.hex;*/
+							d.style.background = colorMap2[data.note - 27];
+							//console.log(pianoKey + " " + colorMap2[data.note] + " " + data.note);
+							//console.log(colorMap);
 							//d.style.color = "#fff";
 						} else {
 							d.style.background = "";

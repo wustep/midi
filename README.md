@@ -3,7 +3,7 @@ Starry Night Sequencer - Visualizing MIDI files with Starry Night colors and bac
 
 Uses [MIDI.js](https://galactic.ink/midi-js/) and [jQueryUI](https://jqueryui.com/)! 
 
-[Demo](https://wustep.github.io/midi/player.html) - Works best in Chrome and on Desktop!
+[Demo](https://wustep.github.io/midi/player.html) - Works best in Chrome and on Desktop! Press the 5th button from the left for notes to "stick", creating an alternate portrait of the song.
 
 ![Visualization of Gymnopedie](http://wustep.me/assets/img/portfolio/starrynight.png)
 *Erik Satie - Gymnopedie No. 1*

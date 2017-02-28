@@ -51,12 +51,19 @@
 		<p><span class="ui-icon ui-icon-play"></span> Now playing: <span id="nowplaying"></span><br>
 		<span class="ui-icon ui-icon-heart"></span> <a href="https://github.com/wustep/midi">See on GitHub</a></p>
 	</div>
+	<div id="titler" unselectable="on">
+		<h1>Starry Night Synthesizer</h1><p>by Stephen Wu</p>
+	</div>
 
 <script type="text/javascript">
 	var songid = 0; // Current song
 	
 	// Set up Jquery buttons
 	$(function() {
+		$("#titler").fadeIn(5000,function(){
+			$("#titler").fadeOut(3000);
+		});
+
 		$("#playerdiv" ).draggable();
 		$("#playPauseStop").button( {
 			icon: "ui-icon-pause",

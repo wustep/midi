@@ -5,7 +5,7 @@ Uses [MIDI.js](https://galactic.ink/midi-js/) and [jQueryUI](https://jqueryui.co
 
 [Demo](https://wustep.github.io/starry-sequencer/player.html) - Works best in Chrome and on Desktop! Press the 5th button from the left for notes to "stick", creating an alternate portrait of the song.
 
-![Visualization of Gymnopedie](https://wustep.me/content/images/2019/05/starrynight.jpgg)
+![Visualization of Gymnopedie](https://wustep.me/content/images/2019/05/starrynight.jpg)
 *Erik Satie - Gymnopedie No. 1*
 
 # info

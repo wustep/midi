@@ -1159,7 +1159,7 @@
     "category": "hardware",
     "description": "Firmware for Mutable Instruments modules, including MIDI interfaces.",
     "license": null,
-    "stars": 3206,
+    "stars": 3208,
     "pushedAt": "2026-10-11",
     "archived": false,
     "verifiedAt": "2026-10-12"
@@ -2386,18 +2386,6 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "go-audio/midi",
-    "repo": "go-audio/midi",
-    "language": "Go",
-    "category": "smf",
-    "description": "MIDI file encoder and decoder for Go.",
-    "license": "Apache-2.0",
-    "stars": 62,
-    "pushedAt": "2024-10-28",
-    "archived": true,
-    "verifiedAt": "2026-10-12"
-  },
-  {
     "name": "midi-json-parser",
     "repo": "chrisguttandin/midi-json-parser",
     "language": "TypeScript",
@@ -2445,18 +2433,6 @@
     "pushedAt": "2026-09-19",
     "archived": false,
     "homepage": "https://musicpy.readthedocs.io/en/latest/",
-    "verifiedAt": "2026-10-12"
-  },
-  {
-    "name": "EasyMIDI",
-    "repo": "algoGuy/EasyMIDI",
-    "language": "Go",
-    "category": "smf",
-    "description": "Simple Go package for creating and reading MIDI files.",
-    "license": "MIT",
-    "stars": 42,
-    "pushedAt": "2018-03-22",
-    "archived": false,
     "verifiedAt": "2026-10-12"
   },
   {
@@ -2628,18 +2604,6 @@
     "license": "MIT",
     "stars": 196,
     "pushedAt": "2026-03-05",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
-    "name": "go-midi (scgolang)",
-    "repo": "scgolang/midi",
-    "language": "Go",
-    "category": "realtime",
-    "description": "Go package for MIDI device I/O.",
-    "license": null,
-    "stars": 13,
-    "pushedAt": "2023-09-10",
     "archived": false,
     "verifiedAt": "2026-10-12"
   },
@@ -2844,18 +2808,6 @@
     "pushedAt": "2026-07-28",
     "archived": false,
     "homepage": "https://cardinal.kx.studio/",
-    "verifiedAt": "2026-10-12"
-  },
-  {
-    "name": "OB-Xd",
-    "repo": "2DaT/Obxd",
-    "language": "C++",
-    "category": "synthesis",
-    "description": "Virtual analog synth plugin modeled on the Oberheim OB-X.",
-    "license": "GPL-3.0",
-    "stars": 137,
-    "pushedAt": "2014-10-27",
-    "archived": false,
     "verifiedAt": "2026-10-12"
   },
   {
@@ -3332,18 +3284,6 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "Godot MIDI Player",
-    "repo": "arlez80/godot-midi-player",
-    "language": "GDScript",
-    "category": "daw",
-    "description": "MIDI file player with SoundFont support for the Godot engine.",
-    "license": "MIT",
-    "stars": 5,
-    "pushedAt": "2025-12-19",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
     "name": "MidiAnimationTrack",
     "repo": "keijiro/MidiAnimationTrack",
     "language": "C#",
@@ -3421,11 +3361,11 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "amidiminder",
+    "name": "midiminder",
     "repo": "mzero/midiminder",
     "language": "C++",
     "category": "utilities",
-    "description": "Keeps ALSA MIDI connections made across device replugs and reboots.",
+    "description": "Keeps ALSA MIDI connections in place across device replugs and reboots.",
     "license": null,
     "stars": 53,
     "pushedAt": "2026-08-26",
@@ -3791,18 +3731,6 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "learnfm",
-    "repo": "bwhitman/learnfm",
-    "language": "Python",
-    "category": "ml",
-    "description": "ML experiments with DX7 patches and a DX7 synth engine.",
-    "license": null,
-    "stars": 41,
-    "pushedAt": "2022-07-05",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
     "name": "Lakh MIDI tools",
     "repo": "craffel/midi-dataset",
     "language": "Python",
@@ -4000,18 +3928,6 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "MIDI2_CPP",
-    "repo": "starfishmod/MIDI2_CPP",
-    "language": "C++",
-    "category": "midi2",
-    "description": "MIDI 2.0 library aimed at embedded and Arduino devices.",
-    "license": "MIT",
-    "stars": 19,
-    "pushedAt": "2024-04-08",
-    "archived": true,
-    "verifiedAt": "2026-10-12"
-  },
-  {
     "name": "uapmd",
     "repo": "atsushieno/uapmd",
     "language": "C++",
@@ -4049,30 +3965,6 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "mbed-os USB MIDI 2.0",
-    "repo": "kshoji/mbed-os-USB-MIDI-2.0",
-    "language": "C++",
-    "category": "midi2",
-    "description": "USB MIDI 2.0 device implementation for Mbed OS 6.",
-    "license": "Apache-2.0",
-    "stars": 3,
-    "pushedAt": "2021-05-02",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
-    "name": "net-midi-vd",
-    "repo": "oscaracena/net-midi-vd",
-    "language": "Kotlin",
-    "category": "midi2",
-    "description": "Network MIDI 2.0 virtual device.",
-    "license": "GPL-3.0",
-    "stars": 11,
-    "pushedAt": "2025-02-21",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
     "name": "AAP (Android Audio Plugin)",
     "repo": "atsushieno/aap-core",
     "language": "C++",
@@ -4096,18 +3988,6 @@
     "pushedAt": "2024-10-11",
     "archived": false,
     "homepage": "https://arxiv.org/abs/2410.00210",
-    "verifiedAt": "2026-10-12"
-  },
-  {
-    "name": "web-midi-test-api",
-    "repo": "mohayonao/web-midi-test-api",
-    "language": "JavaScript",
-    "category": "web",
-    "description": "Mock Web MIDI API for testing MIDI web apps in CI.",
-    "license": null,
-    "stars": 8,
-    "pushedAt": "2018-08-29",
-    "archived": true,
     "verifiedAt": "2026-10-12"
   },
   {
@@ -4172,18 +4052,6 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "midi_proto",
-    "repo": "jimsynz/midi_proto",
-    "language": "Elixir",
-    "category": "smf",
-    "description": "Parsing and encoding of MIDI messages for Elixir, transport-agnostic.",
-    "license": "Other",
-    "stars": 1,
-    "pushedAt": "2026-09-28",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
     "name": "midi_synth",
     "repo": "fhunleth/midi_synth",
     "language": "Elixir",
@@ -4220,18 +4088,6 @@
     "pushedAt": "2026-07-26",
     "archived": false,
     "homepage": "https://burnsomni.net/manual/pagan",
-    "verifiedAt": "2026-10-12"
-  },
-  {
-    "name": "fluidsynth-midi-service-j",
-    "repo": "atsushieno/fluidsynth-midi-service-j",
-    "language": "Kotlin",
-    "category": "synthesis",
-    "description": "Android MIDI device service backed by FluidSynth via JNA.",
-    "license": "MIT",
-    "stars": 28,
-    "pushedAt": "2021-07-31",
-    "archived": false,
     "verifiedAt": "2026-10-12"
   },
   {

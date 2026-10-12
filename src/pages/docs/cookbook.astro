@@ -824,6 +824,7 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
               <button
                 type="button"
                 role="tab"
+                data-lang={s.lang}
                 id={`${r.id}-tab-${s.lang}`}
                 aria-controls={`${r.id}-panel-${s.lang}`}
                 aria-selected={k === 0 ? 'true' : 'false'}
@@ -856,6 +857,19 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
 
 <script>
   // Tabs: progressive enhancement. Without JS every panel is shown stacked.
+  // Picking a language switches every recipe that has it, and is remembered per browser.
+  const KEY = 'cookbook-lang';
+  const groups: { tabs: HTMLButtonElement[]; select: (i: number, focus?: boolean) => void }[] = [];
+  const selectLang = (lang: string) => {
+    for (const g of groups) {
+      const i = g.tabs.findIndex((t) => t.dataset.lang === lang);
+      if (i >= 0) g.select(i);
+    }
+    try {
+      localStorage.setItem(KEY, lang);
+    } catch {}
+  };
+
   for (const root of document.querySelectorAll<HTMLElement>('[data-tabs]')) {
     const list = root.querySelector<HTMLElement>('[role="tablist"]')!;
     const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
@@ -873,8 +887,15 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
       });
       if (focus) tabs[i].focus();
     };
+    groups.push({ tabs, select });
     tabs.forEach((t, i) => {
-      t.addEventListener('click', () => select(i));
+      t.addEventListener('click', () => {
+        // Keep the clicked tab in place while every other recipe switches above it.
+        const top = t.getBoundingClientRect().top;
+        selectLang(t.dataset.lang ?? '');
+        select(i);
+        window.scrollBy(0, t.getBoundingClientRect().top - top);
+      });
       t.addEventListener('keydown', (e) => {
         const n = tabs.length;
         let next = -1;
@@ -890,6 +911,10 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
     });
     select(0);
   }
+  try {
+    const saved = localStorage.getItem(KEY);
+    if (saved) selectLang(saved);
+  } catch {}
 
   // Copy buttons.
   const status = document.querySelector<HTMLElement>('#copy-status');

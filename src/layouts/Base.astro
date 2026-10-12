@@ -146,6 +146,44 @@ const nav = [
         } catch {}
         sync();
       });
+
+      // Wide tables and code blocks scroll sideways on small screens. Make the ones that
+      // actually overflow keyboard-focusable, labelled by their caption or nearest heading.
+      const usedLabels = new Map<string, number>();
+      const labelFor = (el: HTMLElement) => {
+        const kind = el.tagName === 'PRE' ? 'Code' : 'Table';
+        let ctx = el.querySelector('caption')?.textContent?.trim();
+        for (let n: Element | null = el; !ctx && n && n !== document.body; n = n.previousElementSibling ?? n.parentElement) {
+          if (/^H[2-4]$/.test(n.tagName) && n !== el) ctx = n.textContent?.trim();
+        }
+        const base = ctx ? `${kind}: ${ctx}` : kind;
+        const count = (usedLabels.get(base) ?? 0) + 1;
+        usedLabels.set(base, count);
+        return count > 1 ? `${base} (${count})` : base;
+      };
+      const update = (el: HTMLElement) => {
+        const scrolls = el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight;
+        const auto = 'autoFocusable' in el.dataset;
+        if (scrolls && !auto && !el.hasAttribute('tabindex')) {
+          el.dataset.autoFocusable = '';
+          el.tabIndex = 0;
+          el.setAttribute('role', 'region');
+          el.setAttribute('aria-label', el.dataset.label ??= labelFor(el));
+        } else if (!scrolls && auto) {
+          delete el.dataset.autoFocusable;
+          el.removeAttribute('tabindex');
+          el.removeAttribute('role');
+          el.removeAttribute('aria-label');
+        }
+      };
+      const observer = new ResizeObserver((entries) => entries.forEach((e) => update(e.target as HTMLElement)));
+      const boxes = [...document.querySelectorAll<HTMLElement>('.table-wrap, pre')].filter(
+        // Leave boxes that already manage their own focus (e.g. the note table widget).
+        (el) => !el.hasAttribute('tabindex') || 'autoFocusable' in el.dataset,
+      );
+      for (const el of boxes) observer.observe(el);
+      // Web fonts change content width without resizing the box, so check again once they load.
+      document.fonts?.ready.then(() => boxes.forEach(update));
     </script>
   </body>
 </html>

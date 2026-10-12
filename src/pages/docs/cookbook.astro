@@ -1,0 +1,1013 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+
+type Lang = 'js' | 'py' | 'cpp' | 'rs';
+interface Snippet {
+  lang: Lang;
+  /** Library shown in the tab label, linked to the catalog */
+  lib: string;
+  libQuery: string;
+  code: string;
+  note?: string;
+}
+interface Recipe {
+  id: string;
+  title: string;
+  intro: string;
+  docs?: { label: string; href: string }[];
+  snippets: Snippet[];
+}
+
+const LANG: Record<Lang, string> = { js: 'JavaScript', py: 'Python', cpp: 'C++', rs: 'Rust' };
+
+const installs = [
+  { lang: 'JavaScript (browser)', lib: 'Web MIDI API', cmd: 'nothing to install (Chromium browsers, Firefox 108+, HTTPS only)' },
+  { lang: 'JavaScript (Node)', lib: '@tonejs/midi, midi-file', cmd: 'npm i @tonejs/midi midi-file' },
+  { lang: 'Python', lib: 'mido + python-rtmidi backend', cmd: 'pip install mido python-rtmidi' },
+  { lang: 'C++', lib: 'RtMidi', cmd: 'brew install rtmidi · apt install librtmidi-dev · vcpkg install rtmidi' },
+  { lang: 'Rust', lib: 'midir, midly', cmd: 'cargo add midir midly' },
+];
+
+const recipes: Recipe[] = [
+  {
+    id: 'list-ports',
+    title: 'List MIDI ports',
+    intro: 'Enumerate every input and output the operating system exposes. Port names and order are platform-specific, so match by name rather than by index in real code.',
+    docs: [{ label: 'Transports', href: '/docs/transports/' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
+        code: String.raw`const access = await navigator.requestMIDIAccess();
+
+for (const input of access.inputs.values()) {
+  console.log('in ', input.id, input.name, input.manufacturer);
+}
+for (const output of access.outputs.values()) {
+  console.log('out', output.id, output.name, output.manufacturer);
+}
+
+// Fires when devices are plugged in or removed.
+access.onstatechange = (e) => console.log(e.port.type, e.port.name, e.port.state);`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import mido
+
+print('Inputs: ', mido.get_input_names())
+print('Outputs:', mido.get_output_names())`,
+      },
+      {
+        lang: 'cpp', lib: 'RtMidi', libQuery: 'rtmidi',
+        code: String.raw`#include <iostream>
+#include "RtMidi.h"
+
+int main() {
+  RtMidiIn in;
+  RtMidiOut out;
+  for (unsigned i = 0; i < in.getPortCount(); i++)
+    std::cout << "in  " << i << ": " << in.getPortName(i) << "\n";
+  for (unsigned i = 0; i < out.getPortCount(); i++)
+    std::cout << "out " << i << ": " << out.getPortName(i) << "\n";
+}`,
+      },
+      {
+        lang: 'rs', lib: 'midir', libQuery: 'midir',
+        code: String.raw`use midir::{MidiInput, MidiOutput};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let input = MidiInput::new("lister")?;
+    for p in input.ports() {
+        println!("in  {}", input.port_name(&p)?);
+    }
+    let output = MidiOutput::new("lister")?;
+    for p in output.ports() {
+        println!("out {}", output.port_name(&p)?);
+    }
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'monitor',
+    title: 'Monitor incoming messages',
+    intro: 'Print every incoming message as hex. The Web MIDI API and midir hand you one complete message per callback; you never have to reassemble running status yourself.',
+    docs: [{ label: 'Messages', href: '/docs/messages/' }, { label: 'Live monitor', href: '/try/' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
+        code: String.raw`const access = await navigator.requestMIDIAccess();
+const hex = (data) => [...data].map((b) => b.toString(16).padStart(2, '0')).join(' ');
+
+for (const input of access.inputs.values()) {
+  input.onmidimessage = (e) => {
+    console.log(input.name, e.timeStamp.toFixed(1), hex(e.data));
+  };
+}`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import mido
+
+name = mido.get_input_names()[0]
+with mido.open_input(name) as port:
+    for msg in port:          # blocks; yields messages as they arrive
+        print(msg.hex(), msg)`,
+      },
+      {
+        lang: 'cpp', lib: 'RtMidi', libQuery: 'rtmidi',
+        code: String.raw`#include <cstdio>
+#include <iostream>
+#include <vector>
+#include "RtMidi.h"
+
+void onMessage(double deltaSeconds, std::vector<unsigned char>* msg, void*) {
+  std::printf("%8.4f  ", deltaSeconds);
+  for (unsigned char b : *msg) std::printf("%02X ", b);
+  std::printf("\n");
+}
+
+int main() {
+  RtMidiIn in;
+  if (in.getPortCount() == 0) return 1;
+  in.openPort(0);
+  in.setCallback(&onMessage);
+  in.ignoreTypes(false, true, true);  // keep SysEx; drop clock and active sensing
+  std::cout << "Listening on " << in.getPortName(0) << ". Press Enter to quit.\n";
+  std::cin.get();
+}`,
+      },
+      {
+        lang: 'rs', lib: 'midir', libQuery: 'midir',
+        code: String.raw`use midir::{Ignore, MidiInput};
+use std::io::stdin;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut input = MidiInput::new("monitor")?;
+    input.ignore(Ignore::None); // receive SysEx, clock and active sensing too
+    let ports = input.ports();
+    let port = ports.first().ok_or("no input ports")?;
+    println!("Listening on {}", input.port_name(port)?);
+
+    let _conn = input.connect(port, "monitor-in", |stamp, message, _| {
+        let hex: Vec<String> = message.iter().map(|b| format!("{b:02X}")).collect();
+        println!("{stamp:>12} µs  {}", hex.join(" "));
+    }, ())?;
+
+    stdin().read_line(&mut String::new())?; // keep the connection open
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'send-note',
+    title: 'Send a note',
+    intro: 'Note On, wait half a second, Note Off. Status 0x90 is Note On on channel 1; OR the channel number (0–15) into the low nibble for other channels.',
+    docs: [{ label: 'Messages', href: '/docs/messages/' }, { label: 'Notes & Pitch', href: '/docs/notes/' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
+        note: 'send() takes an optional DOMHighResTimeStamp, so the browser schedules the Note Off for you.',
+        code: String.raw`const access = await navigator.requestMIDIAccess();
+const output = [...access.outputs.values()][0];
+
+output.send([0x90, 60, 100]);                          // Note On, ch 1, middle C, velocity 100
+output.send([0x80, 60, 0], performance.now() + 500);   // Note Off, 500 ms later`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import time
+import mido
+
+with mido.open_output(mido.get_output_names()[0]) as out:
+    out.send(mido.Message('note_on', note=60, velocity=100))  # channel=0 is MIDI channel 1
+    time.sleep(0.5)
+    out.send(mido.Message('note_off', note=60))`,
+      },
+      {
+        lang: 'cpp', lib: 'RtMidi', libQuery: 'rtmidi',
+        code: String.raw`#include <chrono>
+#include <thread>
+#include <vector>
+#include "RtMidi.h"
+
+int main() {
+  RtMidiOut out;
+  if (out.getPortCount() == 0) return 1;
+  out.openPort(0);
+  std::vector<unsigned char> on{0x90, 60, 100}, off{0x80, 60, 0};
+  out.sendMessage(&on);
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  out.sendMessage(&off);
+}`,
+      },
+      {
+        lang: 'rs', lib: 'midir', libQuery: 'midir',
+        code: String.raw`use midir::MidiOutput;
+use std::{thread::sleep, time::Duration};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let out = MidiOutput::new("note")?;
+    let ports = out.ports();
+    let port = ports.first().ok_or("no output ports")?;
+    let mut conn = out.connect(port, "note-out")?;
+
+    conn.send(&[0x90, 60, 100])?;
+    sleep(Duration::from_millis(500));
+    conn.send(&[0x80, 60, 0])?;
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'cc-program',
+    title: 'Send a Control Change and a Program Change',
+    intro: 'Set channel volume, select a bank, then change program. Program numbers are 0–127 on the wire but 1–128 in the General MIDI list, so GM program 41 (Violin) is sent as 40.',
+    docs: [{ label: 'Control Change', href: '/docs/control-change/' }, { label: 'General MIDI', href: '/docs/general-midi/' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
+        code: String.raw`const access = await navigator.requestMIDIAccess();
+const out = [...access.outputs.values()][0];
+const ch = 0; // channel 1
+
+out.send([0xB0 | ch, 7, 100]); // CC 7  Channel Volume = 100
+out.send([0xB0 | ch, 0, 0]);   // CC 0  Bank Select MSB
+out.send([0xB0 | ch, 32, 0]);  // CC 32 Bank Select LSB
+out.send([0xC0 | ch, 40]);     // Program Change: GM program 41, Violin`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import mido
+
+with mido.open_output(mido.get_output_names()[0]) as out:
+    out.send(mido.Message('control_change', channel=0, control=7, value=100))
+    out.send(mido.Message('control_change', channel=0, control=0, value=0))
+    out.send(mido.Message('control_change', channel=0, control=32, value=0))
+    out.send(mido.Message('program_change', channel=0, program=40))  # GM 41, Violin`,
+      },
+      {
+        lang: 'cpp', lib: 'RtMidi', libQuery: 'rtmidi',
+        code: String.raw`#include <vector>
+#include "RtMidi.h"
+
+int main() {
+  RtMidiOut out;
+  if (out.getPortCount() == 0) return 1;
+  out.openPort(0);
+  const unsigned char ch = 0;  // channel 1
+  std::vector<std::vector<unsigned char>> msgs{
+      {(unsigned char)(0xB0 | ch), 7, 100},  // Channel Volume
+      {(unsigned char)(0xB0 | ch), 0, 0},    // Bank Select MSB
+      {(unsigned char)(0xB0 | ch), 32, 0},   // Bank Select LSB
+      {(unsigned char)(0xC0 | ch), 40},      // Program Change (GM 41, Violin)
+  };
+  for (auto& m : msgs) out.sendMessage(&m);
+}`,
+      },
+      {
+        lang: 'rs', lib: 'midir', libQuery: 'midir',
+        code: String.raw`use midir::MidiOutput;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let out = MidiOutput::new("cc")?;
+    let ports = out.ports();
+    let mut conn = out.connect(ports.first().ok_or("no output ports")?, "cc-out")?;
+    let ch: u8 = 0; // channel 1
+
+    conn.send(&[0xB0 | ch, 7, 100])?; // Channel Volume
+    conn.send(&[0xB0 | ch, 0, 0])?;   // Bank Select MSB
+    conn.send(&[0xB0 | ch, 32, 0])?;  // Bank Select LSB
+    conn.send(&[0xC0 | ch, 40])?;     // Program Change (GM 41, Violin)
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'bend-range',
+    title: 'Set pitch-bend range with RPN 0',
+    intro: 'Select RPN 0,0 (Pitch Bend Sensitivity) with CC 101/100, write semitones to Data Entry MSB (CC 6) and cents to the LSB (CC 38), then send the null RPN (127,127) so a stray CC 6 later cannot change it.',
+    docs: [{ label: 'RPN & NRPN', href: '/docs/rpn-nrpn/' }, { label: 'MPE', href: '/docs/mpe/' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
+        code: String.raw`function setBendRange(out, ch, semitones, cents = 0) {
+  const cc = (num, value) => out.send([0xB0 | ch, num, value]);
+  cc(101, 0); cc(100, 0);           // select RPN 0,0: Pitch Bend Sensitivity
+  cc(6, semitones); cc(38, cents);  // Data Entry MSB = semitones, LSB = cents
+  cc(101, 127); cc(100, 127);       // null RPN: deselect
+}
+
+const access = await navigator.requestMIDIAccess();
+setBendRange([...access.outputs.values()][0], 0, 12); // ±12 semitones on channel 1`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import mido
+
+def set_bend_range(out, channel, semitones, cents=0):
+    for control, value in [(101, 0), (100, 0),          # select RPN 0,0
+                           (6, semitones), (38, cents),  # Data Entry MSB / LSB
+                           (101, 127), (100, 127)]:      # null RPN
+        out.send(mido.Message('control_change', channel=channel,
+                              control=control, value=value))
+
+with mido.open_output(mido.get_output_names()[0]) as out:
+    set_bend_range(out, 0, 12)`,
+      },
+      {
+        lang: 'cpp', lib: 'RtMidi', libQuery: 'rtmidi',
+        code: String.raw`#include <vector>
+#include "RtMidi.h"
+
+void setBendRange(RtMidiOut& out, unsigned char ch, unsigned char semitones,
+                  unsigned char cents = 0) {
+  const unsigned char pairs[6][2] = {{101, 0}, {100, 0},          // select RPN 0,0
+                                     {6, semitones}, {38, cents}, // Data Entry
+                                     {101, 127}, {100, 127}};     // null RPN
+  for (auto& p : pairs) {
+    std::vector<unsigned char> m{(unsigned char)(0xB0 | ch), p[0], p[1]};
+    out.sendMessage(&m);
+  }
+}
+
+int main() {
+  RtMidiOut out;
+  if (out.getPortCount() == 0) return 1;
+  out.openPort(0);
+  setBendRange(out, 0, 12);
+}`,
+      },
+      {
+        lang: 'rs', lib: 'midir', libQuery: 'midir',
+        code: String.raw`use midir::{MidiOutput, MidiOutputConnection, SendError};
+
+fn set_bend_range(conn: &mut MidiOutputConnection, ch: u8, semitones: u8, cents: u8)
+    -> Result<(), SendError> {
+    for (cc, value) in [(101, 0), (100, 0), (6, semitones), (38, cents), (101, 127), (100, 127)] {
+        conn.send(&[0xB0 | ch, cc, value])?;
+    }
+    Ok(())
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let out = MidiOutput::new("rpn")?;
+    let ports = out.ports();
+    let mut conn = out.connect(ports.first().ok_or("no output ports")?, "rpn-out")?;
+    set_bend_range(&mut conn, 0, 12, 0)?;
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'identity',
+    title: 'Ask a device who it is (SysEx Identity Request)',
+    intro: 'Send the Universal Non-Real Time Identity Request F0 7E 7F 06 01 F7 and wait for an Identity Reply (sub-IDs 06 02). Not every device answers; give up after a timeout.',
+    docs: [{ label: 'System Exclusive', href: '/docs/sysex/' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
+        note: 'SysEx needs explicit permission: request access with { sysex: true }.',
+        code: String.raw`const access = await navigator.requestMIDIAccess({ sysex: true });
+const input = [...access.inputs.values()][0];
+const output = [...access.outputs.values()][0];
+
+input.onmidimessage = ({ data }) => {
+  if (data[0] === 0xF0 && data[1] === 0x7E && data[3] === 0x06 && data[4] === 0x02) {
+    const hex = [...data].map((b) => b.toString(16).padStart(2, '0')).join(' ');
+    console.log('Identity Reply:', hex);
+  }
+};
+output.send([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7]);`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import time
+import mido
+
+inp = mido.open_input(mido.get_input_names()[0])
+out = mido.open_output(mido.get_output_names()[0])
+
+out.send(mido.Message('sysex', data=[0x7E, 0x7F, 0x06, 0x01]))  # mido adds F0/F7
+
+deadline = time.time() + 2
+while time.time() < deadline:
+    for msg in inp.iter_pending():
+        if msg.type == 'sysex' and msg.data[0] == 0x7E and list(msg.data[2:4]) == [0x06, 0x02]:
+            print('Identity Reply:', msg.hex())
+            deadline = 0
+    time.sleep(0.01)`,
+      },
+      {
+        lang: 'cpp', lib: 'RtMidi', libQuery: 'rtmidi',
+        code: String.raw`#include <chrono>
+#include <cstdio>
+#include <thread>
+#include <vector>
+#include "RtMidi.h"
+
+int main() {
+  RtMidiIn in;
+  RtMidiOut out;
+  if (in.getPortCount() == 0 || out.getPortCount() == 0) return 1;
+  in.openPort(0);
+  out.openPort(0);
+  in.ignoreTypes(false, true, true);  // SysEx is ignored by default
+
+  std::vector<unsigned char> req{0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7}, msg;
+  out.sendMessage(&req);
+  for (int i = 0; i < 200; i++) {  // poll for up to ~2 s
+    in.getMessage(&msg);
+    if (msg.size() > 5 && msg[0] == 0xF0 && msg[1] == 0x7E && msg[3] == 0x06 && msg[4] == 0x02) {
+      for (unsigned char b : msg) std::printf("%02X ", b);
+      std::printf("\n");
+      return 0;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  return 2;  // no reply
+}`,
+      },
+      {
+        lang: 'rs', lib: 'midir', libQuery: 'midir',
+        code: String.raw`use midir::{Ignore, MidiInput, MidiOutput};
+use std::{sync::mpsc, time::Duration};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut input = MidiInput::new("ident")?;
+    input.ignore(Ignore::None); // don't drop SysEx
+    let in_ports = input.ports();
+    let (tx, rx) = mpsc::channel();
+    let _in = input.connect(in_ports.first().ok_or("no inputs")?, "ident-in",
+        move |_, msg, _| { let _ = tx.send(msg.to_vec()); }, ())?;
+
+    let output = MidiOutput::new("ident")?;
+    let out_ports = output.ports();
+    let mut out = output.connect(out_ports.first().ok_or("no outputs")?, "ident-out")?;
+    out.send(&[0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7])?;
+
+    while let Ok(msg) = rx.recv_timeout(Duration::from_secs(2)) {
+        if msg.len() > 5 && msg[0] == 0xF0 && msg[1] == 0x7E && msg[3] == 0x06 && msg[4] == 0x02 {
+            println!("Identity Reply: {:02X?}", msg);
+            break;
+        }
+    }
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'read-file',
+    title: 'Read a .mid file and print notes in seconds',
+    intro: 'Converting ticks to seconds needs the tempo map. mido and @tonejs/midi do it for you; with midly you walk the events and apply Set Tempo yourself.',
+    docs: [{ label: 'Standard MIDI Files', href: '/docs/smf/' }, { label: 'Timing', href: '/docs/timing/' }],
+    snippets: [
+      {
+        lang: 'js', lib: '@tonejs/midi', libQuery: 'tonejs/midi',
+        code: String.raw`// Node.js. In the browser, pass an ArrayBuffer from fetch() instead.
+const { Midi } = require('@tonejs/midi'); // CommonJS package: no named ESM import in Node
+const { readFileSync } = require('node:fs');
+
+const midi = new Midi(readFileSync('song.mid'));
+for (const track of midi.tracks) {
+  for (const note of track.notes) {
+    console.log(
+      note.time.toFixed(3) + 's',
+      'ch' + (track.channel + 1),
+      note.midi, note.name,
+      'dur', note.duration.toFixed(3),
+    );
+  }
+}`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import mido
+
+mid = mido.MidiFile('song.mid')
+t = 0.0
+for msg in mid:            # tracks merged; msg.time is the delta in seconds (tempo-aware)
+    t += msg.time
+    if msg.type == 'note_on' and msg.velocity > 0:
+        print(f'{t:8.3f}s  ch{msg.channel + 1}  note {msg.note}  vel {msg.velocity}')`,
+      },
+      {
+        lang: 'rs', lib: 'midly', libQuery: 'midly',
+        note: 'Tempo is tracked per track here, which is exact for format 0 files. For format 1, build the tempo map from track 0 first.',
+        code: String.raw`use midly::{MetaMessage, MidiMessage, Smf, Timing, TrackEventKind};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let bytes = std::fs::read("song.mid")?;
+    let smf = Smf::parse(&bytes)?;
+    let ppq = match smf.header.timing {
+        Timing::Metrical(t) => t.as_int() as f64,
+        Timing::Timecode(..) => return Err("SMPTE timing not handled here".into()),
+    };
+    for (i, track) in smf.tracks.iter().enumerate() {
+        let (mut secs, mut us_per_quarter) = (0.0, 500_000.0);
+        for ev in track {
+            secs += ev.delta.as_int() as f64 * us_per_quarter / ppq / 1e6;
+            match ev.kind {
+                TrackEventKind::Meta(MetaMessage::Tempo(t)) => us_per_quarter = t.as_int() as f64,
+                TrackEventKind::Midi { channel, message: MidiMessage::NoteOn { key, vel } }
+                    if vel.as_int() > 0 =>
+                {
+                    println!("track {i} {secs:8.3}s ch{} note {} vel {}",
+                        channel.as_int() + 1, key.as_int(), vel.as_int());
+                }
+                _ => {}
+            }
+        }
+    }
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'write-file',
+    title: 'Write a C major scale to a .mid file',
+    intro: 'A format 0 file at 480 ticks per quarter note and 120 BPM: one quarter note per scale degree. Delta times are in ticks, measured from the previous event.',
+    docs: [{ label: 'Standard MIDI Files', href: '/docs/smf/' }, { label: 'VLQ encoder', href: '/tools/#vlq' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'midi-file', libQuery: 'midi-file',
+        code: String.raw`// Node.js
+const { writeMidi } = require('midi-file');
+const { writeFileSync } = require('node:fs');
+
+const track = [{ deltaTime: 0, meta: true, type: 'setTempo', microsecondsPerBeat: 500000 }];
+for (const n of [60, 62, 64, 65, 67, 69, 71, 72]) {
+  track.push({ deltaTime: 0, channel: 0, type: 'noteOn', noteNumber: n, velocity: 90 });
+  track.push({ deltaTime: 480, channel: 0, type: 'noteOff', noteNumber: n, velocity: 0 });
+}
+track.push({ deltaTime: 0, meta: true, type: 'endOfTrack' });
+
+const bytes = writeMidi({ header: { format: 0, numTracks: 1, ticksPerBeat: 480 }, tracks: [track] });
+writeFileSync('c-major.mid', Buffer.from(bytes));`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import mido
+from mido import Message, MetaMessage, MidiFile, MidiTrack
+
+mid = MidiFile(type=0, ticks_per_beat=480)
+track = MidiTrack()
+mid.tracks.append(track)
+
+track.append(MetaMessage('set_tempo', tempo=mido.bpm2tempo(120)))
+for note in [60, 62, 64, 65, 67, 69, 71, 72]:
+    track.append(Message('note_on', note=note, velocity=90, time=0))
+    track.append(Message('note_off', note=note, velocity=0, time=480))  # time = delta ticks
+
+mid.save('c-major.mid')  # mido appends End of Track for you`,
+      },
+      {
+        lang: 'rs', lib: 'midly', libQuery: 'midly',
+        code: String.raw`use midly::num::{u15, u24, u28, u4, u7};
+use midly::{Format, Header, MetaMessage, MidiMessage, Smf, Timing, TrackEvent, TrackEventKind};
+
+fn main() -> std::io::Result<()> {
+    let mut smf = Smf::new(Header::new(Format::SingleTrack, Timing::Metrical(u15::new(480))));
+    let ch = u4::new(0);
+    let ev = |delta: u32, kind| TrackEvent { delta: u28::new(delta), kind };
+
+    let mut track = vec![ev(0, TrackEventKind::Meta(MetaMessage::Tempo(u24::new(500_000))))];
+    for key in [60u8, 62, 64, 65, 67, 69, 71, 72] {
+        let key = u7::new(key);
+        track.push(ev(0, TrackEventKind::Midi { channel: ch, message: MidiMessage::NoteOn { key, vel: u7::new(90) } }));
+        track.push(ev(480, TrackEventKind::Midi { channel: ch, message: MidiMessage::NoteOff { key, vel: u7::new(0) } }));
+    }
+    track.push(ev(0, TrackEventKind::Meta(MetaMessage::EndOfTrack)));
+    smf.tracks.push(track);
+    smf.save("c-major.mid")
+}`,
+      },
+    ],
+  },
+  {
+    id: 'clock',
+    title: 'Send MIDI clock at a given BPM',
+    intro: 'MIDI clock is 24 Timing Clock (F8) bytes per quarter note: 20.83 ms apart at 120 BPM. Timers jitter, so schedule against an absolute timeline instead of sleeping a fixed interval, and in the browser use send() timestamps to look ahead.',
+    docs: [{ label: 'Timing & Sync', href: '/docs/timing/' }, { label: 'Tempo calculator', href: '/tools/#tempo' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
+        note: 'setInterval alone can jitter by several milliseconds. Timestamped send() moves the timing into the browser’s MIDI scheduler.',
+        code: String.raw`const access = await navigator.requestMIDIAccess();
+const out = [...access.outputs.values()][0];
+const bpm = 120;
+const interval = 60000 / bpm / 24;  // ms between clocks
+const LOOKAHEAD = 100;              // ms
+
+let next = performance.now() + 50;
+out.send([0xFA], next);             // Start
+const timer = setInterval(() => {
+  while (next < performance.now() + LOOKAHEAD) {
+    out.send([0xF8], next);         // Timing Clock, scheduled ahead
+    next += interval;
+  }
+}, 25);
+
+// Later: clearInterval(timer); out.send([0xFC]); // Stop`,
+      },
+      {
+        lang: 'py', lib: 'mido', libQuery: 'mido',
+        code: String.raw`import time
+import mido
+
+bpm = 120
+interval = 60 / bpm / 24
+
+with mido.open_output(mido.get_output_names()[0]) as out:
+    out.send(mido.Message('start'))
+    next_t = time.perf_counter()
+    try:
+        while True:
+            out.send(mido.Message('clock'))
+            next_t += interval  # absolute schedule: errors don't accumulate
+            while (remaining := next_t - time.perf_counter()) > 0:
+                time.sleep(remaining / 2 if remaining > 0.002 else 0)  # sleep, then spin
+    except KeyboardInterrupt:
+        out.send(mido.Message('stop'))`,
+      },
+      {
+        lang: 'cpp', lib: 'RtMidi', libQuery: 'rtmidi',
+        code: String.raw`#include <chrono>
+#include <thread>
+#include <vector>
+#include "RtMidi.h"
+
+int main() {
+  using clock = std::chrono::steady_clock;
+  RtMidiOut out;
+  if (out.getPortCount() == 0) return 1;
+  out.openPort(0);
+
+  const double bpm = 120;
+  const auto interval = std::chrono::duration<double>(60.0 / bpm / 24);
+  std::vector<unsigned char> start{0xFA}, tick{0xF8};
+
+  out.sendMessage(&start);
+  auto next = clock::now();
+  for (int i = 0; i < 24 * 4 * 16; i++) {  // 16 bars of 4/4
+    out.sendMessage(&tick);
+    next += std::chrono::duration_cast<clock::duration>(interval);
+    std::this_thread::sleep_until(next);
+  }
+  std::vector<unsigned char> stop{0xFC};
+  out.sendMessage(&stop);
+}`,
+      },
+      {
+        lang: 'rs', lib: 'midir', libQuery: 'midir',
+        code: String.raw`use midir::MidiOutput;
+use std::time::{Duration, Instant};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let out = MidiOutput::new("clock")?;
+    let ports = out.ports();
+    let mut conn = out.connect(ports.first().ok_or("no output ports")?, "clock-out")?;
+
+    let bpm = 120.0;
+    let interval = Duration::from_secs_f64(60.0 / bpm / 24.0);
+    conn.send(&[0xFA])?; // Start
+    let mut next = Instant::now();
+    for _ in 0..24 * 4 * 16 {  // 16 bars of 4/4
+        conn.send(&[0xF8])?;
+        next += interval;      // absolute schedule
+        if let Some(wait) = next.checked_duration_since(Instant::now()) {
+            std::thread::sleep(wait);
+        }
+    }
+    conn.send(&[0xFC])?; // Stop
+    Ok(())
+}`,
+      },
+    ],
+  },
+  {
+    id: 'note-math',
+    title: 'Convert between note numbers, names, and frequencies',
+    intro: 'Equal temperament with A4 = 440 Hz at note 69. Octave naming varies: this uses C4 = 60 (scientific pitch); Yamaha-style software calls the same note C3.',
+    docs: [{ label: 'Notes & Pitch', href: '/docs/notes/' }, { label: 'Note table', href: '/tools/#notes' }],
+    snippets: [
+      {
+        lang: 'js', lib: 'no dependencies', libQuery: 'tonal',
+        code: String.raw`const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+const noteToFreq = (n, a4 = 440) => a4 * 2 ** ((n - 69) / 12);
+const freqToNote = (hz, a4 = 440) => 69 + 12 * Math.log2(hz / a4); // fractional
+const noteName = (n) => NAMES[n % 12] + (Math.floor(n / 12) - 1);
+
+function parseNote(name) {           // "C#4" -> 61
+  const m = /^([A-G])(#|b)?(-?\d+)$/.exec(name);
+  if (!m) throw new Error('bad note name: ' + name);
+  const pc = NAMES.indexOf(m[1]) + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
+  return (Number(m[3]) + 1) * 12 + pc;
+}
+
+console.log(noteToFreq(60).toFixed(2)); // 261.63
+console.log(noteName(69), parseNote('C#4'), Math.round(freqToNote(196))); // A4 61 55`,
+      },
+      {
+        lang: 'py', lib: 'no dependencies', libQuery: 'music21',
+        code: String.raw`import math
+import re
+
+NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+def note_to_freq(n, a4=440.0):
+    return a4 * 2 ** ((n - 69) / 12)
+
+def freq_to_note(hz, a4=440.0):          # fractional note number
+    return 69 + 12 * math.log2(hz / a4)
+
+def note_name(n):
+    return f'{NAMES[n % 12]}{n // 12 - 1}'
+
+def parse_note(name):                     # "C#4" -> 61
+    letter, accidental, octave = re.fullmatch(r'([A-G])(#|b)?(-?\d+)', name).groups()
+    pc = NAMES.index(letter) + {'#': 1, 'b': -1}.get(accidental, 0)
+    return (int(octave) + 1) * 12 + pc
+
+print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_to_note(196)))
+# 261.63 A4 61 55`,
+      },
+    ],
+  },
+];
+---
+
+<Doc
+  title="Cookbook"
+  slug="cookbook"
+  eyebrow="Reference"
+  specs={[{ label: 'Web MIDI API', href: 'https://www.w3.org/TR/webmidi/' }]}
+>
+  <p>
+    Short, self-contained recipes for the things you do every day with MIDI. Each one is shown in up to four
+    ecosystems: the browser's <a href="/libraries/?q=web%20midi">Web MIDI API</a>, Python with
+    <a href="/libraries/?q=mido">mido</a>, C++ with <a href="/libraries/?q=rtmidi">RtMidi</a>, and Rust with
+    <a href="/libraries/?q=midir">midir</a> and <a href="/libraries/?q=midly">midly</a>. They open the first available
+    port to stay short; real programs should let the user pick a port by name.
+  </p>
+
+  <h2 id="setup">Setup</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th scope="col">Language</th><th scope="col">Library</th><th scope="col">Install</th></tr>
+      </thead>
+      <tbody>
+        {
+          installs.map((i) => (
+            <tr>
+              <td>{i.lang}</td>
+              <td>{i.lib}</td>
+              <td><code>{i.cmd}</code></td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <Callout type="note" title="Web MIDI snippets">
+    <p>
+      The browser examples use top-level <code>await</code>, so run them in a module script or the DevTools console.
+      Web MIDI needs a secure context (HTTPS or <code>localhost</code>) and a user permission prompt. You can try them
+      right now on the <a href="/try/">live monitor</a> page's console.
+    </p>
+  </Callout>
+  <Callout type="info" title="Tested">
+    <p>
+      Every snippet on this page was run on macOS against a virtual MIDI port: mido 1.3.3 with python-rtmidi 1.5.8,
+      @tonejs/midi 2.0.28, midi-file 1.2.4, RtMidi 6.0.0, midir 0.11.1 and midly 0.5.3. The Web MIDI snippets were
+      run in Node through the <code>web-midi-api</code> polyfill. Build the C++ examples with
+      <code>c++ -std=c++17 main.cpp $(pkg-config --cflags --libs rtmidi)</code>, or compile
+      <code>RtMidi.cpp</code> alongside your file with the platform's API define (for example
+      <code>-D__MACOSX_CORE__ -framework CoreMIDI -framework CoreAudio -framework CoreFoundation</code>).
+    </p>
+  </Callout>
+
+  <nav class="recipe-index" aria-label="Recipes">
+    <ol>
+      {recipes.map((r) => <li><a href={`#${r.id}`}>{r.title}</a></li>)}
+    </ol>
+  </nav>
+
+  {
+    recipes.map((r) => (
+      <section class="recipe" aria-labelledby={r.id}>
+        <h2 id={r.id}>{r.title}</h2>
+        <p>{r.intro}</p>
+        {r.docs && (
+          <p class="see">
+            See also:{' '}
+            {r.docs.map((d, k) => (
+              <>
+                {k > 0 && ' · '}
+                <a href={d.href}>{d.label}</a>
+              </>
+            ))}
+          </p>
+        )}
+        <div class="tabs" data-tabs>
+          <div class="tablist" role="tablist" aria-label={`${r.title}: language`} hidden>
+            {r.snippets.map((s, k) => (
+              <button
+                type="button"
+                role="tab"
+                id={`${r.id}-tab-${s.lang}`}
+                aria-controls={`${r.id}-panel-${s.lang}`}
+                aria-selected={k === 0 ? 'true' : 'false'}
+                tabindex={k === 0 ? 0 : -1}
+              >
+                {LANG[s.lang]}
+                <span class="tab-lib">{s.lib}</span>
+              </button>
+            ))}
+          </div>
+          {r.snippets.map((s) => (
+            <div class="panel" role="tabpanel" id={`${r.id}-panel-${s.lang}`} aria-labelledby={`${r.id}-tab-${s.lang}`} tabindex="0">
+              <div class="code-head">
+                <span class="code-lang">
+                  {LANG[s.lang]} · <a href={`/libraries/?q=${encodeURIComponent(s.libQuery)}`}>{s.lib}</a>
+                </span>
+                <button type="button" class="copy" data-copy>Copy</button>
+              </div>
+              <pre><code set:text={s.code} /></pre>
+              {s.note && <p class="snippet-note">{s.note}</p>}
+            </div>
+          ))}
+        </div>
+      </section>
+    ))
+  }
+
+  <p class="sr-status visually-hidden" aria-live="polite" id="copy-status"></p>
+</Doc>
+
+<script>
+  // Tabs: progressive enhancement. Without JS every panel is shown stacked.
+  for (const root of document.querySelectorAll<HTMLElement>('[data-tabs]')) {
+    const list = root.querySelector<HTMLElement>('[role="tablist"]')!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    if (tabs.length < 2) continue;
+    list.hidden = false;
+    root.classList.add('is-enhanced');
+
+    const select = (i: number, focus = false) => {
+      tabs.forEach((t, k) => {
+        const on = k === i;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        panels[k].hidden = !on;
+      });
+      if (focus) tabs[i].focus();
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(i));
+      t.addEventListener('keydown', (e) => {
+        const n = tabs.length;
+        let next = -1;
+        if (e.key === 'ArrowRight') next = (i + 1) % n;
+        else if (e.key === 'ArrowLeft') next = (i - 1 + n) % n;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = n - 1;
+        if (next >= 0) {
+          e.preventDefault();
+          select(next, true);
+        }
+      });
+    });
+    select(0);
+  }
+
+  // Copy buttons.
+  const status = document.querySelector<HTMLElement>('#copy-status');
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+    btn.addEventListener('click', async () => {
+      const code = btn.closest('.panel')?.querySelector('code')?.textContent ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = 'Copied';
+        if (status) status.textContent = 'Copied to clipboard';
+      } catch {
+        btn.textContent = 'Copy failed';
+        if (status) status.textContent = 'Copy failed';
+      }
+      setTimeout(() => (btn.textContent = 'Copy'), 1600);
+    });
+  }
+</script>
+
+<style>
+  .recipe-index ol {
+    columns: 2;
+    column-gap: 2rem;
+    padding-left: 1.4rem;
+  }
+  .recipe-index li {
+    break-inside: avoid;
+  }
+  .see {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .tabs {
+    margin: 1rem 0 2rem;
+  }
+  .tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 0.75rem;
+  }
+  .tablist[hidden] {
+    display: none;
+  }
+  [role='tab'] {
+    border: 1px solid transparent;
+    border-bottom: 0;
+    background: transparent;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    padding: 0.45rem 0.85rem;
+    min-height: 2.5rem;
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin-bottom: -1px;
+  }
+  [role='tab']:hover {
+    background: var(--surface-2);
+  }
+  [role='tab'][aria-selected='true'] {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--ink);
+    box-shadow: inset 0 2px 0 var(--accent);
+  }
+  .tab-lib {
+    display: block;
+    font-weight: 400;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .panel {
+    margin-bottom: 1rem;
+  }
+  .panel[hidden] {
+    display: none;
+  }
+  .code-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.35rem;
+  }
+  .code-lang {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .copy {
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.65rem;
+    min-height: 2rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .copy:hover {
+    background: var(--surface-2);
+  }
+  .panel pre {
+    margin: 0;
+  }
+  .snippet-note {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+  }
+  @media (max-width: 600px) {
+    .recipe-index ol {
+      columns: 1;
+    }
+  }
+</style>

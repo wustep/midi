@@ -226,7 +226,7 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
     margin-bottom: 1rem;
   }
   .cat {
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--control);
     background: var(--surface);
     border-radius: 999px;
     padding: 0.35rem 0.8rem;
@@ -282,7 +282,8 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
     display: none;
   }
   .card[data-archived='true'] {
-    opacity: 0.78;
+    background: var(--bg);
+    border-style: dashed;
   }
   .card-top {
     display: flex;

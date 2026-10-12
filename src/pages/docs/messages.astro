@@ -18,7 +18,7 @@ import MessageDecoder from '../../components/MessageDecoder.astro';
     two <em>data bytes</em>. System Exclusive is the one exception: it can carry any number of data bytes.
   </p>
 
-  <MessageDecoder initial="90 3C 64" />
+  <MessageDecoder initial="90 3C 64" level={2} />
 
   <h2 id="status-and-data">Status bytes and data bytes</h2>
   <p>

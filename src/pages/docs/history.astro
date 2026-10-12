@@ -1,0 +1,280 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+
+interface Event {
+  /** ISO year or year-month for <time datetime> */
+  date: string;
+  label: string;
+  title: string;
+  body: string;
+  milestone?: boolean;
+}
+
+const events: Event[] = [
+  {
+    date: '1981-10', label: 'Oct 1981', title: 'The Universal Synthesizer Interface',
+    body: 'Dave Smith and Chet Wood of Sequential Circuits present a paper at the Audio Engineering Society convention proposing a <em>Universal Synthesizer Interface</em>, a common serial link between instruments from different makers.',
+  },
+  {
+    date: '1982', label: '1982', title: 'Industry collaboration',
+    body: 'Sequential, Roland and other US and Japanese manufacturers refine the proposal. Roland founder Ikutaro Kakehashi is a key advocate, and the result is named the Musical Instrument Digital Interface.',
+  },
+  {
+    date: '1983-01', label: 'Jan 1983', title: 'First public demo at Winter NAMM', milestone: true,
+    body: 'A Sequential Prophet-600 and a Roland Jupiter-6, among the first MIDI-equipped instruments, are connected over MIDI and played together in Anaheim.',
+  },
+  {
+    date: '1983-08', label: 'Aug 1983', title: 'MIDI 1.0 Specification published', milestone: true,
+    body: 'The MIDI 1.0 Specification is published. Its core message set (status and data bytes, 16 channels, 31.25 kbaud over 5-pin DIN) still works unchanged today. From here on, the US MIDI Manufacturers Association (MMA) and Japan\'s JMSC (later AMEI) maintain the standard jointly.',
+  },
+  {
+    date: '1983', label: '1983', title: 'Yamaha DX7',
+    body: 'Yamaha releases the DX7 FM synthesizer. Its huge success puts MIDI ports in studios worldwide, and its SysEx patch format is still read by tools like <a href="https://github.com/asb2m10/dexed">Dexed</a>.',
+  },
+  {
+    date: '1984', label: '1984', title: 'Roland MPU-401',
+    body: 'Roland\'s MPU-401 interface gives personal computers a MIDI connection. Its programming interface becomes a de facto standard that PC sound cards emulate for years.',
+  },
+  {
+    date: '1985', label: '1985', title: 'Atari ST ships with MIDI built in',
+    body: 'The Atari ST includes MIDI IN and OUT ports as standard and becomes a staple sequencing platform in studios.',
+  },
+  {
+    date: '1987', label: '1987', title: 'MIDI Time Code',
+    body: 'MIDI Time Code (MTC) is added to the specification. It carries SMPTE timecode over MIDI using quarter-frame and full-frame messages. <a href="/docs/timing/#mtc">How MTC works</a>.',
+  },
+  {
+    date: '1988', label: '1988', title: 'Standard MIDI Files', milestone: true,
+    body: 'The Standard MIDI File format (<code>.mid</code>) is adopted, giving sequencers a common file for exchanging songs. <a href="/docs/smf/">SMF reference</a>.',
+  },
+  {
+    date: '1991', label: '1991', title: 'General MIDI Level 1', milestone: true,
+    body: 'General MIDI standardizes 128 instrument sounds, a drum map on channel 10, and minimum polyphony, so a file sounds broadly the same on any GM device. <a href="/docs/general-midi/">General MIDI</a>.',
+  },
+  {
+    date: '1991', label: '1991', title: 'Roland GS and the Sound Canvas',
+    body: 'Roland introduces the GS extensions with the SC-55 Sound Canvas, adding variation banks, drum kits, and SysEx-editable parameters on top of GM.',
+  },
+  {
+    date: '1994', label: '1994', title: 'Yamaha XG',
+    body: 'Yamaha launches XG, a further-extended GM format with many more voices and effects.',
+  },
+  {
+    date: '1999', label: '1999', title: 'General MIDI 2',
+    body: 'GM2 is adopted. It standardizes bank-selected variation sounds, more controllers and RPNs, and Universal SysEx for tuning and effects.',
+  },
+  {
+    date: '1999', label: '1999', title: 'USB MIDI device class', milestone: true,
+    body: 'The USB Implementers Forum publishes the USB Device Class Definition for MIDI Devices. Class-compliant USB-MIDI devices later work with no driver on every major OS. <a href="/docs/transports/#usb">USB-MIDI</a>.',
+  },
+  {
+    date: '2001', label: '2001', title: 'Core MIDI in Mac OS X',
+    body: 'Mac OS X ships with Core MIDI, a system-level MIDI service with inter-application routing. It later adds network MIDI and, in 2020, MIDI 2.0.',
+  },
+  {
+    date: '2006', label: '2006', title: 'RTP-MIDI (RFC 4695)',
+    body: 'The IETF publishes RFC 4695, an RTP payload format for MIDI with journaling for loss recovery. Apple\'s network MIDI implementation popularizes it as "AppleMIDI".',
+  },
+  {
+    date: '2011', label: '2011', title: 'RFC 6295',
+    body: 'RFC 6295 replaces RFC 4695 as the current RTP-MIDI specification. <a href="/docs/transports/#rtp">RTP-MIDI</a>.',
+  },
+  {
+    date: '2013-02', label: 'Feb 2013', title: 'A Technical Grammy for MIDI',
+    body: 'Ikutaro Kakehashi and Dave Smith receive a Technical Grammy Award for their roles in creating MIDI.',
+  },
+  {
+    date: '2015', label: '2015', title: 'Web MIDI ships in Chrome',
+    body: 'Chrome 43 enables the Web MIDI API by default, letting web pages talk directly to MIDI hardware. <a href="/try/">Try it here</a>.',
+  },
+  {
+    date: '2015', label: '2015', title: 'MIDI over Bluetooth LE',
+    body: 'The BLE-MIDI specification is adopted, defining a standard way to send MIDI wirelessly over Bluetooth Low Energy. <a href="/docs/transports/#ble">BLE-MIDI</a>.',
+  },
+  {
+    date: '2018-01', label: 'Jan 2018', title: 'MPE adopted', milestone: true,
+    body: 'MIDI Polyphonic Expression is adopted. It gives each note its own channel for per-note pitch bend, pressure, and timbre. <a href="/docs/mpe/">MPE</a>.',
+  },
+  {
+    date: '2018', label: '2018', title: 'TRS adapter standard',
+    body: 'The MIDI Association publishes a recommended practice for MIDI over TRS minijacks, which standardizes "Type A" wiring after years of incompatible adapters. <a href="/docs/transports/#trs">TRS MIDI</a>.',
+  },
+  {
+    date: '2020', label: '2020', title: 'MIDI 2.0', milestone: true,
+    body: 'After its announcement at NAMM in January, the MIDI 2.0 core specifications are adopted: the Universal MIDI Packet, the MIDI 2.0 Protocol, and MIDI-CI. They bring higher resolution, per-note control, and two-way capability negotiation. <a href="/docs/midi-2/">MIDI 2.0 &amp; UMP</a>.',
+  },
+  {
+    date: '2020', label: '2020', title: 'USB MIDI 2.0 and the first OS support',
+    body: 'The USB-IF publishes the USB MIDI 2.0 device class, which carries UMP over USB. Apple adds UMP APIs to Core MIDI in macOS 11 and iOS 14.',
+  },
+  {
+    date: '2023-06', label: 'Jun 2023', title: 'Updated MIDI 2.0 core specs', milestone: true,
+    body: 'Revised specifications (UMP and MIDI 2.0 Protocol v1.1, MIDI-CI v1.2) move discovery and protocol selection into UMP Stream messages, add Function Blocks, and add Process Inquiry to MIDI-CI. <a href="/docs/midi-ci/">MIDI-CI</a>.',
+  },
+  {
+    date: '2023', label: '2023', title: 'MIDI 2.0 in Linux',
+    body: 'Linux 6.5 adds ALSA support for USB MIDI 2.0 and UMP.',
+  },
+  {
+    date: '2024', label: '2024', title: 'Network MIDI 2.0',
+    body: 'The MIDI Association adopts Network MIDI 2.0, a UDP transport for UMP with discovery and session management. <a href="/docs/transports/#network-midi-2">Network MIDI 2.0</a>.',
+  },
+  {
+    date: '2024', label: '2024–25', title: 'Windows MIDI Services',
+    body: 'Microsoft develops Windows MIDI Services in the open on <a href="https://github.com/microsoft/MIDI">GitHub</a>. It is a new MIDI stack for Windows with multi-client ports, loopback endpoints, and MIDI 2.0 support.',
+  },
+];
+
+const decadeOf = (d: string) => `${d.slice(0, 3)}0s`;
+const decades = [...new Set(events.map((e) => decadeOf(e.date)))];
+---
+
+<Doc
+  title="History of MIDI"
+  slug="history"
+  specs={[{ label: 'The History of MIDI (MIDI Association)', href: 'https://midi.org/the-history-of-midi' }]}
+>
+  <p class="lede">
+    MIDI is one of the longest-lived standards in computing. A protocol sketched in 1981 still connects instruments
+    built four decades apart, and it has grown over time with files, timecode, General MIDI, USB, Bluetooth, the
+    browser, and MIDI 2.0.
+  </p>
+
+  <nav class="decades" aria-label="Jump to decade">
+    {decades.map((d) => <a href={`#d-${d}`}>{d}</a>)}
+  </nav>
+
+  {
+    decades.map((d) => (
+      <section aria-labelledby={`d-${d}`}>
+        <h2 id={`d-${d}`}>{d}</h2>
+        <ol class="timeline">
+          {events
+            .filter((e) => decadeOf(e.date) === d)
+            .map((e) => (
+              <li class:list={['ev', e.milestone && 'milestone']}>
+                <time datetime={e.date}>{e.label}</time>
+                <div class="ev-body">
+                  <h3>{e.title}</h3>
+                  <p set:html={e.body} />
+                </div>
+              </li>
+            ))}
+        </ol>
+      </section>
+    ))
+  }
+
+  <Callout type="note" title="Sources">
+    <p>
+      Dates come from the MIDI Association's <a href="https://midi.org/the-history-of-midi">history of MIDI</a>, the
+      specification documents themselves, IETF RFCs, and vendor release notes. Where only the year is certain, only
+      the year is given. Corrections with sources are welcome through
+      <a href="https://github.com/wustep/midi-new/blob/main/CONTRIBUTING.md">GitHub</a>.
+    </p>
+  </Callout>
+</Doc>
+
+<style>
+  .decades {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.5rem 0 0.5rem;
+  }
+  .decades a {
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.25rem 0.8rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--surface);
+  }
+  .decades a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .timeline {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    position: relative;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 6.25rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: var(--line);
+  }
+  .ev {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 1.5rem;
+    padding: 0.75rem 0;
+    position: relative;
+  }
+  .ev::before {
+    content: '';
+    position: absolute;
+    left: calc(6.25rem - 5px);
+    top: 1.15rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--line-strong);
+  }
+  .ev.milestone::before {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .ev time {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--muted);
+    text-align: right;
+    padding-top: 0.15rem;
+  }
+  .ev.milestone time {
+    color: var(--accent);
+  }
+  .ev-body {
+    padding-left: 0.75rem;
+  }
+  .ev h3 {
+    margin: 0 0 0.3rem;
+    font-size: 1.08rem;
+  }
+  .ev p {
+    margin: 0;
+    color: var(--ink-2);
+    max-width: var(--measure);
+  }
+  @media (max-width: 560px) {
+    .timeline::before {
+      left: 5px;
+    }
+    .ev {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+      padding-left: 1.75rem;
+    }
+    .ev::before {
+      left: 0;
+    }
+    .ev time {
+      text-align: left;
+    }
+    .ev-body {
+      padding-left: 0;
+    }
+  }
+</style>

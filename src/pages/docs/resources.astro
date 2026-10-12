@@ -1,0 +1,136 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+import resources from '../../../data/resources.json';
+
+const groupOrder = [
+  'Official specifications',
+  'Standards bodies',
+  'RFCs and web standards',
+  'Platform documentation',
+  'Learning and references',
+  'Datasets',
+  'Community',
+];
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const groups = groupOrder
+  .map((title) => ({ title, id: slugify(title), items: resources.filter((r) => r.group === title) }))
+  .filter((g) => g.items.length);
+const host = (url: string) => new URL(url).host.replace(/^www\./, '');
+---
+
+<Doc
+  title="Specs & Resources"
+  slug="resources"
+  description="Official MIDI Association and AMEI specifications, USB-IF class definitions, RFCs, the Web MIDI API, platform docs, and datasets."
+  specs={[{ label: 'MIDI Association spec index', href: 'https://midi.org/specs' }]}
+>
+  <p>
+    The primary sources behind this guide, plus trusted references for going deeper. Every link here is checked
+    automatically by <code>npm run verify:resources</code>.
+  </p>
+
+  <Callout title="Getting the official PDFs">
+    <p>
+      The MIDI Association publishes its specifications for free, but most downloads need a free account at
+      midi.org. MIDI 1.0, Standard MIDI Files, General MIDI, MPE and the MIDI 2.0 family are all listed on the
+      <a href="https://midi.org/specs">spec index</a>. MIDI 2.0 specifications are developed and published jointly with AMEI
+      in Japan.
+    </p>
+  </Callout>
+
+  <nav class="res-toc" aria-label="Resource groups">
+    {groups.map((g) => <a href={`#${g.id}`}>{g.title}</a>)}
+  </nav>
+
+  {
+    groups.map((g) => (
+      <section>
+        <h2 id={g.id}>{g.title}</h2>
+        <ul class="res-list">
+          {g.items.map((r) => (
+            <li>
+              <div class="res-top">
+                <a href={r.url} class="res-title">
+                  {r.title}
+                </a>
+                <span class="res-pub">{r.publisher}</span>
+              </div>
+              <p class="res-desc">{r.description}</p>
+              <p class="res-host">{host(r.url)}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  <h2 id="in-this-guide">In this guide</h2>
+  <p>
+    Looking for code rather than reading? The <a href="/libraries/">library catalog</a> lists verified open-source
+    implementations, and the <a href="/docs/cookbook/">Cookbook</a> has short runnable recipes.
+  </p>
+</Doc>
+
+<style>
+  .res-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.5rem 0 0.5rem;
+  }
+  .res-toc a {
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+  .res-toc a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .res-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .res-list li {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.8rem 1rem;
+  }
+  .res-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+  }
+  .res-title {
+    font-weight: 700;
+  }
+  .res-pub {
+    font-size: 0.74rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 0.1rem 0.45rem;
+    background: var(--surface-2);
+    color: var(--ink-2);
+  }
+  .res-desc {
+    margin: 0.3rem 0 0.15rem;
+    font-size: 0.94rem;
+    color: var(--ink-2);
+  }
+  .res-host {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+</style>

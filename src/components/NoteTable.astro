@@ -1,11 +1,18 @@
 ---
 import { noteName, noteFrequency, GM_DRUMS } from '../lib/midi';
+
+interface Props {
+  /** Heading level for the widget title, to fit the surrounding outline. */
+  level?: 2 | 3;
+}
+const { level = 3 } = Astro.props;
+const Heading = `h${level}`;
 const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
 ---
 
 <section class="widget notes" data-notes aria-labelledby="notes-title">
   <div class="widget-head">
-    <h3 class="widget-title" id="notes-title">Note number & frequency table</h3>
+    <Heading class="widget-title" id="notes-title">Note number & frequency table</Heading>
     <span class="widget-tag">f = A4 · 2^((n − 69) / 12)</span>
   </div>
   <div class="notes-controls">
@@ -167,7 +174,7 @@ const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
     font-size: 0.85rem;
   }
   .play {
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--control);
     background: transparent;
     border-radius: 999px;
     width: 1.9rem;

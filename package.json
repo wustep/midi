@@ -7,13 +7,19 @@
   "license": "MIT",
   "scripts": {
     "dev": "astro dev",
-    "build": "node scripts/validate-data.mjs && node scripts/generate-readme.mjs && astro build",
+    "build": "node scripts/validate-data.mjs && node scripts/generate-readme.mjs && astro build && node scripts/check-links.mjs",
     "preview": "astro preview",
     "verify": "node scripts/verify-links.mjs",
     "readme": "node scripts/generate-readme.mjs",
-    "check:data": "node scripts/validate-data.mjs"
+    "check:data": "node scripts/validate-data.mjs",
+    "verify:resources": "node scripts/verify-resources.mjs",
+    "check:links": "node scripts/check-links.mjs"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/atkinson-hyperlegible-mono": "^5.3.0",
+    "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
     "astro": "^7.3.8"
   },
   "engines": {

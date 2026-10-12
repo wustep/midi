@@ -11,7 +11,7 @@ Thanks for helping make this the best MIDI reference on the web. There are three
 ```sh
 npm install
 npm run dev      # http://localhost:4321
-npm run build    # regenerates README.md, then builds the static site into dist/
+npm run build    # validates data, regenerates README.md, builds dist/, then checks every internal link
 ```
 
 Node 20+ is required. Verifying the catalog requires the [GitHub CLI](https://cli.github.com/) (`gh auth login`).
@@ -53,6 +53,10 @@ Commit `data/libraries.json` **and** the regenerated `README.md`. Never edit `RE
 - Useful to others: documented, installable or buildable, and not a homework-sized experiment.
 - Archived projects may stay if they remain widely used or historically important; they're flagged in the UI and README.
 
+## Specs & resources links
+
+Links on the Specs & Resources page live in [`data/resources.json`](data/resources.json). Run `npm run verify:resources` to confirm every URL still returns 200.
+
 ## Docs guidelines
 
 - Accuracy beats completeness. Cite the relevant MIDI Association specification section where practical, and **recompute every worked example** (hex dumps, checksums, VLQs, bit layouts).
@@ -63,5 +67,5 @@ Commit `data/libraries.json` **and** the regenerated `README.md`. Never edit `RE
 ## Pull requests
 
 - Keep PRs focused (one library batch or one docs topic per PR).
-- `npm run build` must pass.
+- `npm run build` must pass (it fails on broken internal links or invalid catalog data).
 - By contributing you agree that code is licensed MIT ([LICENSE](LICENSE)) and docs/data are dedicated to the public domain under CC0 ([LICENSE-CC0](LICENSE-CC0)).

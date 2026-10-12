@@ -1,8 +1,11 @@
 ---
 interface Props {
   initial?: string;
+  /** Heading level for the widget title, to fit the surrounding outline. */
+  level?: 2 | 3;
 }
-const { initial = '90 3C 64' } = Astro.props;
+const { initial = '90 3C 64', level = 3 } = Astro.props;
+const Heading = `h${level}`;
 const presets = [
   { label: 'Note On', bytes: '90 3C 64' },
   { label: 'Running status', bytes: '90 3C 64 40 64 3C 00 40 00' },
@@ -17,7 +20,7 @@ const presets = [
 
 <section class="widget decoder" data-decoder aria-labelledby="decoder-title">
   <div class="widget-head">
-    <h3 class="widget-title" id="decoder-title">Message decoder</h3>
+    <Heading class="widget-title" id="decoder-title">Message decoder</Heading>
     <span class="widget-tag">MIDI 1.0 byte stream</span>
   </div>
   <label class="field-label" for="decoder-input">Hex bytes</label>
@@ -120,7 +123,7 @@ const presets = [
     margin-bottom: 1rem;
   }
   .chip {
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--control);
     background: transparent;
     border-radius: 999px;
     padding: 0.25rem 0.7rem;

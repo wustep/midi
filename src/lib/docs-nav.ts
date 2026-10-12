@@ -43,6 +43,15 @@ export const docGroups: DocGroup[] = [
       { slug: 'transports', title: 'Transports', summary: '5-pin DIN and TRS, USB-MIDI 1.0/2.0, BLE-MIDI, RTP-MIDI and network MIDI.' },
     ],
   },
+  {
+    title: 'Reference',
+    items: [
+      { slug: 'cookbook', title: 'Cookbook', summary: 'Short, runnable recipes in JavaScript, Python, C++ and Rust for everyday MIDI tasks.' },
+      { slug: 'glossary', title: 'Glossary', summary: 'Plain-language definitions of MIDI terms, from Active Sensing to UMP.' },
+      { slug: 'history', title: 'History of MIDI', summary: 'A timeline from the 1983 launch through General MIDI, USB, Web MIDI and MIDI 2.0.' },
+      { slug: 'resources', title: 'Specs & Resources', summary: 'Official MIDI Association and AMEI specifications, RFCs, and trusted references.' },
+    ],
+  },
 ];
 
 export const docsFlat: DocLink[] = docGroups.flatMap((g) => g.items);

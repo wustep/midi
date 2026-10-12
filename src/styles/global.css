@@ -3,9 +3,9 @@
  */
 
 :root {
-  --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif;
-  --font-text: 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Atkinson Hyperlegible Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Atkinson Hyperlegible Mono Variable', 'Atkinson Hyperlegible Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   --bg: #f2efe6;
   --surface: #faf8f2;
@@ -15,7 +15,8 @@
   --muted: #645e52;
   --line: #d6cfbf;
   --line-strong: #b9b09c;
-  --accent: #b83c0b; /* status bytes, links */
+  --control: #857c69; /* form control borders: ≥3:1 against bg and surface */
+  --accent: #a83508; /* status bytes, links */
   --accent-soft: #f6dccd;
   --data: #0b6b63; /* data bytes */
   --data-soft: #d2ebe7;
@@ -44,6 +45,7 @@
     --muted: #a29b8b;
     --line: #2f2d28;
     --line-strong: #47443c;
+  --control: #77715f;
     --accent: #ff8a4c;
     --accent-soft: #3a2116;
     --data: #5fd4c6;
@@ -67,6 +69,7 @@
   --muted: #a29b8b;
   --line: #2f2d28;
   --line-strong: #47443c;
+  --control: #77715f;
   --accent: #ff8a4c;
   --accent-soft: #3a2116;
   --data: #5fd4c6;
@@ -338,7 +341,7 @@ input[type='number'],
 select,
 textarea {
   background: var(--surface);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control);
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.65rem;
   min-height: 2.5rem;
@@ -355,7 +358,7 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--control);
   background: var(--surface);
   border-radius: var(--radius-sm);
   padding: 0.45rem 0.85rem;
@@ -400,6 +403,8 @@ textarea:focus-visible {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
 }
 .widget-tag {
   font-family: var(--font-mono);

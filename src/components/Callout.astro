@@ -7,7 +7,7 @@ const { type = 'info', title } = Astro.props;
 const defaults = { info: 'Good to know', warn: 'Watch out', note: 'Note' };
 ---
 
-<aside class:list={['callout', type !== 'info' && type]}>
+<div role="note" class:list={['callout', type !== 'info' && type]}>
   <p class="callout-title">{title ?? defaults[type]}</p>
   <slot />
-</aside>
+</div>

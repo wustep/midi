@@ -1,9 +1,15 @@
 ---
+interface Props {
+  /** Heading level for the widget title, to fit the surrounding outline. */
+  level?: 2 | 3;
+}
+const { level = 3 } = Astro.props;
+const Heading = `h${level}`;
 ---
 
 <section class="widget tempo" data-tempo aria-labelledby="tempo-title">
   <div class="widget-head">
-    <h3 class="widget-title" id="tempo-title">Tempo calculator</h3>
+    <Heading class="widget-title" id="tempo-title">Tempo calculator</Heading>
     <span class="widget-tag">BPM · µs/quarter · ticks</span>
   </div>
   <div class="tempo-grid">

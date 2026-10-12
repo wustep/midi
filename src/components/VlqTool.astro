@@ -1,9 +1,15 @@
 ---
+interface Props {
+  /** Heading level for the widget title, to fit the surrounding outline. */
+  level?: 2 | 3;
+}
+const { level = 3 } = Astro.props;
+const Heading = `h${level}`;
 ---
 
 <section class="widget vlq" data-vlq aria-labelledby="vlq-title">
   <div class="widget-head">
-    <h3 class="widget-title" id="vlq-title">VLQ encoder / decoder</h3>
+    <Heading class="widget-title" id="vlq-title">VLQ encoder / decoder</Heading>
     <span class="widget-tag">delta-times & lengths</span>
   </div>
   <div class="vlq-grid">

@@ -32,19 +32,19 @@ const tools = [
     </header>
 
     <section id="decoder" class="tool">
-      <MessageDecoder initial="B0 65 00 B0 64 00 B0 06 0C B0 26 00" />
+      <MessageDecoder initial="B0 65 00 B0 64 00 B0 06 0C B0 26 00" level={2} />
       <p class="more">Background: <a href="/docs/messages/">Messages</a> · <a href="/docs/rpn-nrpn/">RPN &amp; NRPN</a> · <a href="/docs/sysex/">SysEx</a></p>
     </section>
     <section id="vlq" class="tool">
-      <VlqTool />
+      <VlqTool level={2} />
       <p class="more">Background: <a href="/docs/smf/#vlq">Standard MIDI Files</a></p>
     </section>
     <section id="tempo" class="tool">
-      <TempoCalc />
+      <TempoCalc level={2} />
       <p class="more">Background: <a href="/docs/timing/">Timing &amp; Sync</a></p>
     </section>
     <section id="notes" class="tool">
-      <NoteTable />
+      <NoteTable level={2} />
       <p class="more">Background: <a href="/docs/notes/">Notes &amp; Pitch</a> · <a href="/docs/general-midi/">General MIDI</a></p>
     </section>
   </div>

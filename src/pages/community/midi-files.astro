@@ -19,8 +19,8 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
   page="midi-files"
   description="Where to find MIDI files legally: public-domain archives like Mutopia and IMSLP, research datasets (Lakh, MAESTRO, GigaMIDI, Slakh, GiantMIDI, POP909) with license notes, and copyright caveats."
 >
-  <header>
-    <p class="eyebrow">Resources</p>
+  <header class="page-head">
+    <p class="eyebrow">Community</p>
     <h1>Getting MIDI files</h1>
     <p class="lede">
       Archives and datasets of MIDI files, with what their licenses actually allow. Open any file in the
@@ -70,23 +70,23 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
             <span class="fold-count" data-group-count>{g.items.length}</span>
           </summary>
           <p class="group-blurb">{g.blurb}</p>
-          <ul class="c-list">
+          <ul class="link-rows">
             {g.items.map((f) => (
               <li data-item data-tags={f.commercialUse} data-text={[f.title, f.description, f.license, f.licenseNote, f.url].join(' ').toLowerCase()}>
-                <div class="c-top">
-                  <a class="c-title" href={f.url}>{f.title}</a>
-                  <span class={`badge ${f.commercialUse}`}>{commercial[f.commercialUse]}</span>
+                <div class="lr-top">
+                  <a class="lr-title" href={f.url}>{f.title}</a>
+                  <span class={`badge ${{ yes: "good", no: "bad", varies: "warn", unclear: "warn" }[f.commercialUse] ?? ""}`}>{commercial[f.commercialUse]}</span>
                 </div>
-                <p class="c-desc">{f.description}</p>
-                <p class="c-note">
+                <p class="lr-desc">{f.description}</p>
+                <p class="lr-note">
                   <strong>License:</strong> {f.license}. {f.licenseNote}
                 </p>
                 {(f.size || f.paper) && (
-                  <p class="c-note">
+                  <p class="lr-note">
                     {f.size && <>Size: {f.size}.</>} {f.paper && <a href={f.paper}>Paper</a>}
                   </p>
                 )}
-                <p class="c-host">{host(f.url)}</p>
+                <p class="card-meta">{host(f.url)}</p>
               </li>
             ))}
           </ul>

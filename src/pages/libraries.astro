@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
+import { docsForCategory, toolsForCategory } from '../lib/related';
 
 type Lib = (typeof libraries)[number];
 
@@ -17,12 +18,17 @@ const catTitle = Object.fromEntries(categories.map((c) => [c.id, c.short]));
 const fmtStars = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
 const verifiedAt = libraries.map((l) => l.verifiedAt).sort().at(-1);
 const year = (d: string | null) => (d ? d.slice(0, 4) : '');
+// "Stale" relative to the last verification, so the label doesn't drift as the data ages.
+const stale = (d: string | null) => Boolean(d && verifiedAt && Number(verifiedAt.slice(0, 4)) - Number(d.slice(0, 4)) >= 2);
+const context = Object.fromEntries(
+  categories.map((c) => [c.id, { blurb: c.blurb, docs: docsForCategory(c.id), tools: toolsForCategory(c.id).map((t) => ({ label: t.title, href: t.href })) }]),
+);
 ---
 
 <Base title="Libraries" section="/libraries" description={`${libraries.length} open-source MIDI libraries and tools, verified against GitHub: parsing, realtime I/O, Web MIDI, synthesis, firmware, DAWs, notation, ML and MIDI 2.0.`}>
-  <div class="lib-page">
-    <header class="lib-header">
-      <p class="eyebrow">Catalog</p>
+  <div class="page lib-page">
+    <header class="page-head lib-header">
+      <p class="eyebrow">Libraries</p>
       <h1>Open-source MIDI libraries</h1>
       <p class="lede">
         {libraries.length} projects across {categories.length} categories. Every entry is checked against the GitHub API
@@ -68,7 +74,8 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
       }
     </div>
 
-    <p class="count" aria-live="polite"><span id="count">{libraries.length}</span> shown</p>
+    <div class="cat-context" id="cat-context" hidden></div>
+    <p class="count" aria-live="polite"><span id="count">{libraries.length}</span> <span id="count-label">projects</span></p>
 
     <ul class="grid" id="grid">
       {
@@ -104,18 +111,28 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
               {l.archived ? (
                 <span class="tag tag-warn">Archived</span>
               ) : (
-                l.pushedAt && <span class="tag tag-quiet" title={`Last push ${l.pushedAt}`}>Active {year(l.pushedAt)}</span>
+                l.pushedAt && <span class:list={['tag', stale(l.pushedAt) ? 'tag-stale' : 'tag-quiet']} title={`Last push ${l.pushedAt}`}>Updated {year(l.pushedAt)}</span>
               )}
             </div>
           </li>
         ))
       }
     </ul>
+    <p class="more-wrap"><button type="button" class="btn" id="more" hidden>Show more</button></p>
     <p class="empty" id="empty" hidden>No libraries match. Try clearing a filter, or <a href="https://github.com/wustep/midi/blob/main/CONTRIBUTING.md">suggest one</a>.</p>
   </div>
 </Base>
 
+<script define:vars={{ context }} is:inline>
+  window.__libContext = context;
+</script>
+
 <script>
+  const PAGE = 48;
+  let limit = PAGE;
+  const more = document.querySelector<HTMLButtonElement>('#more')!;
+  const ctxEl = document.querySelector<HTMLElement>('#cat-context')!;
+  const contextData = (window as unknown as { __libContext: Record<string, { blurb: string; docs: { label: string; href: string }[]; tools: { label: string; href: string }[] }> }).__libContext;
   const q = document.querySelector<HTMLInputElement>('#q')!;
   const lang = document.querySelector<HTMLSelectElement>('#f-lang')!;
   const sort = document.querySelector<HTMLSelectElement>('#f-sort')!;
@@ -135,18 +152,9 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
   cat = params.get('cat') ?? '';
   archived.checked = params.get('archived') !== '0';
 
-  function apply() {
+  function apply(resetLimit = true) {
+    if (resetLimit) limit = PAGE;
     const terms = q.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
-    let shown = 0;
-    for (const c of cards) {
-      const ok =
-        (!cat || c.dataset.cat === cat) &&
-        (!lang.value || c.dataset.lang === lang.value) &&
-        (archived.checked || c.dataset.archived !== 'true') &&
-        terms.every((t) => c.dataset.search!.includes(t));
-      c.hidden = !ok;
-      if (ok) shown++;
-    }
     const key = sort.value;
     const sorted = [...cards].sort((a, b) => {
       if (key === 'name') return a.dataset.name!.localeCompare(b.dataset.name!);
@@ -157,8 +165,29 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
       );
     });
     grid.append(...sorted);
-    count.textContent = String(shown);
+    // Filter in display order and show only the first `limit` matches.
+    let shown = 0;
+    for (const c of sorted) {
+      const ok =
+        (!cat || c.dataset.cat === cat) &&
+        (!lang.value || c.dataset.lang === lang.value) &&
+        (archived.checked || c.dataset.archived !== 'true') &&
+        terms.every((t) => c.dataset.search!.includes(t));
+      c.hidden = !ok || shown >= limit;
+      if (ok) shown++;
+    }
+    count.textContent = shown > limit ? `${limit} of ${shown}` : String(shown);
+    document.querySelector('#count-label')!.textContent = shown === 1 ? 'project' : 'projects';
+    more.hidden = shown <= limit;
+    more.textContent = `Show ${Math.min(PAGE, shown - limit)} more`;
     empty.hidden = shown > 0;
+    const c = cat && contextData[cat];
+    ctxEl.hidden = !c;
+    if (c) {
+      const links = [...c.docs.map((d) => `<a href="${d.href}">${d.label}</a>`)];
+      const toolLinks = c.tools.map((t) => `<a href="${t.href}">${t.label}</a>`);
+      ctxEl.innerHTML = `<p>${c.blurb}</p><div class="related">${links.length ? `<div><strong>Read first</strong>${links.join('')}</div>` : ''}${toolLinks.length ? `<div><strong>Try it</strong>${toolLinks.join('')}</div>` : ''}</div>`;
+    }
     for (const b of catBtns) b.setAttribute('aria-pressed', String(b.dataset.cat === cat));
 
     const p = new URLSearchParams();
@@ -171,29 +200,47 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
     history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
   }
 
-  q.addEventListener('input', apply);
-  lang.addEventListener('change', apply);
-  sort.addEventListener('change', apply);
-  archived.addEventListener('change', apply);
+  q.addEventListener('input', () => apply());
+  lang.addEventListener('change', () => apply());
+  sort.addEventListener('change', () => apply());
+  archived.addEventListener('change', () => apply());
+  more.addEventListener('click', () => {
+    limit += PAGE;
+    apply(false);
+  });
   for (const b of catBtns)
     b.addEventListener('click', () => {
       cat = b.dataset.cat ?? '';
       apply();
     });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') {
-      e.preventDefault();
-      q.focus();
-    }
-  });
   apply();
 </script>
 
 <style>
   .lib-page {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 3rem var(--gutter) 0;
+    --page-top: var(--s-6);
+  }
+  .cat-context {
+    margin: var(--s-3) 0 0;
+    padding: var(--s-3) var(--s-4);
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+  }
+  .cat-context :global(p) {
+    margin: 0;
+    font-size: var(--t-sm);
+  }
+  .cat-context :global(.related) {
+    margin-top: var(--s-2);
+  }
+  .more-wrap {
+    text-align: center;
+    margin: var(--s-5) 0 0;
+  }
+  .tag-stale {
+    background: var(--warn-soft);
+    color: var(--warn);
   }
   .lib-header {
     margin-bottom: 2rem;
@@ -234,6 +281,11 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
     font-weight: 600;
     cursor: pointer;
     min-height: 2.25rem;
+  }
+  @media (pointer: coarse) {
+    .cat {
+      min-height: 2.75rem;
+    }
   }
   .cat span {
     color: var(--muted);

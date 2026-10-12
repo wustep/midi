@@ -1,0 +1,328 @@
+---
+/** Site-wide search: a ⌘K / Ctrl+K palette. The index (/search.json) loads on first open. */
+const quick = [
+  { t: 'MIDI Reader', u: '/reader/', k: 'Tool' },
+  { t: 'Messages', u: '/docs/messages/', k: 'Docs' },
+  { t: 'CC map', u: '/tools/cc/', k: 'Tool' },
+  { t: 'Libraries', u: '/libraries/', k: 'Docs' },
+  { t: 'Standard MIDI Files', u: '/docs/smf/', k: 'Docs' },
+  { t: 'Web MIDI monitor', u: '/tools/monitor/', k: 'Tool' },
+];
+---
+
+<dialog class="palette" data-palette aria-label="Search the site">
+  <form method="dialog" class="pal-box" role="search" data-pal-form>
+    <div class="pal-input">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+      <input
+        type="search"
+        data-pal-q
+        placeholder="Search docs, tools, libraries, glossary, CCs…"
+        aria-label="Search"
+        autocomplete="off"
+        spellcheck="false"
+        role="combobox"
+        aria-expanded="true"
+        aria-controls="pal-results"
+        aria-autocomplete="list"
+      />
+      <button type="button" class="pal-esc" data-pal-close aria-label="Close search"><kbd>Esc</kbd></button>
+    </div>
+    <div class="pal-body">
+      <ul id="pal-results" class="pal-results" role="listbox" aria-label="Results" data-pal-results></ul>
+      <div class="pal-quick" data-pal-quick>
+        <p class="pal-label">Jump to</p>
+        <ul class="pal-results" role="listbox" aria-label="Suggestions" id="pal-quick-list">
+          {quick.map((q, i) => <li role="none"><a role="option" id={`pal-q-${i}`} aria-selected="false" href={q.u}><span class="pal-t">{q.t}</span><span class="pal-k">{q.k}</span></a></li>)}
+        </ul>
+        <p class="pal-hint">Try “sustain”, “CC 74”, “running status”, “rust”, “soundfont”, “GS reset”.</p>
+      </div>
+    </div>
+    <p class="pal-foot" aria-hidden="true"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>Esc</kbd> close</span></p>
+    <p class="visually-hidden" role="status" aria-live="polite" data-pal-status></p>
+  </form>
+</dialog>
+
+<script>
+  import { prepare, search, group, type Entry, type Prepared } from '../lib/search';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-palette]')!;
+  const input = dialog.querySelector<HTMLInputElement>('[data-pal-q]')!;
+  const list = dialog.querySelector<HTMLElement>('[data-pal-results]')!;
+  const quick = dialog.querySelector<HTMLElement>('[data-pal-quick]')!;
+  const status = dialog.querySelector<HTMLElement>('[data-pal-status]')!;
+  let index: Prepared[] | undefined;
+  let loading: Promise<void> | undefined;
+  let active = -1;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const external = (u: string) => /^https?:/.test(u);
+  const host = (u: string) => (external(u) ? new URL(u).host.replace(/^www\./, '') : '');
+
+  const load = () =>
+    (loading ??= fetch('/search.json')
+      .then((r) => r.json() as Promise<Entry[]>)
+      .then((entries) => {
+        index = prepare(entries);
+      })
+      .catch(() => {
+        loading = undefined;
+        status.textContent = 'Search is unavailable offline.';
+      }));
+
+  const options = () => [...dialog.querySelectorAll<HTMLAnchorElement>(input.value.trim() ? '[data-pal-results] a[role="option"]' : '[data-pal-quick] a[role="option"]')];
+
+  function setActive(i: number) {
+    const opts = options();
+    opts.forEach((a) => a.setAttribute('aria-selected', 'false'));
+    active = opts.length ? (i + opts.length) % opts.length : -1;
+    const a = opts[active];
+    if (a) {
+      a.setAttribute('aria-selected', 'true');
+      input.setAttribute('aria-activedescendant', a.id);
+      a.scrollIntoView({ block: 'nearest' });
+    } else input.removeAttribute('aria-activedescendant');
+    input.setAttribute('aria-controls', input.value.trim() ? 'pal-results' : 'pal-quick-list');
+  }
+
+  function render() {
+    const q = input.value.trim();
+    quick.hidden = Boolean(q);
+    list.hidden = !q;
+    if (!q) return setActive(0);
+    if (!index) {
+      list.innerHTML = '<li class="pal-empty">Loading…</li>';
+      load().then(render);
+      return;
+    }
+    const results = search(index, q, 40);
+    status.textContent = `${results.length} result${results.length === 1 ? '' : 's'}`;
+    let n = 0;
+    list.innerHTML = results.length
+      ? group(results)
+          .map(([kind, items]) => `<li class="pal-group" role="none" aria-hidden="true">${kind === 'Section' ? 'Docs sections' : kind === 'Library' ? 'Libraries' : kind}</li>` + items.map((e) => `<li role="none"><a role="option" id="pal-opt-r${n++}" aria-selected="false" href="${esc(e.u)}"${external(e.u) ? ' rel="noopener"' : ''}><span class="pal-t">${esc(e.t)}${external(e.u) ? ' <span class="pal-ext" aria-hidden="true">↗</span><span class="visually-hidden"> (external site)</span>' : ''}</span>${e.d ? `<span class="pal-d">${esc(e.d)}</span>` : ''}${host(e.u) ? `<span class="pal-h">${esc(host(e.u))}</span>` : ''}</a></li>`).join(''))
+          .join('')
+      : `<li class="pal-empty">No results for “${esc(q)}”. Try fewer words, or browse the <a href="/docs/">docs</a> and <a href="/libraries/">libraries</a>.</li>`;
+    setActive(0);
+  }
+
+  function open(prefill = '') {
+    if (!dialog.open) dialog.showModal();
+    input.value = prefill;
+    input.select();
+    load();
+    render();
+  }
+  function close() {
+    dialog.close();
+  }
+
+  input.addEventListener('input', render);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive(active + (e.key === 'ArrowDown' ? 1 : -1));
+    } else if (e.key === 'Enter') {
+      const a = options()[active];
+      if (a) {
+        e.preventDefault();
+        if (e.metaKey || e.ctrlKey) window.open(a.href, '_blank', 'noopener');
+        else location.href = a.href;
+        close();
+      }
+    }
+  });
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) close(); // backdrop
+    if ((e.target as HTMLElement).closest('[data-pal-close]')) close();
+    if ((e.target as HTMLElement).closest('a')) setTimeout(close, 0);
+  });
+  dialog.addEventListener('mousemove', (e) => {
+    const li = (e.target as HTMLElement).closest('[role="option"]');
+    if (!li) return;
+    const i = options().findIndex((a) => a === li);
+    if (i >= 0 && i !== active) setActive(i);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const t = e.target as HTMLElement;
+    const typing = t.closest('input, textarea, select, [contenteditable]');
+    if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      dialog.open ? close() : open();
+    } else if (e.key === '/' && !typing && !dialog.open) {
+      e.preventDefault();
+      open();
+    }
+  });
+  // Header search links open the palette instead of navigating to /search/.
+  document.querySelectorAll<HTMLAnchorElement>('[data-open-search]').forEach((a) =>
+    a.addEventListener('click', (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      open();
+    }),
+  );
+  // Warm the index when the user shows intent.
+  document.querySelectorAll('[data-open-search]').forEach((a) => a.addEventListener('pointerenter', () => load(), { once: true }));
+</script>
+
+<style>
+  .palette {
+    width: min(680px, calc(100vw - 32px));
+    max-height: min(640px, calc(100vh - 96px));
+    margin: 10vh auto auto;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 24px 80px -20px rgb(0 0 0 / 0.45);
+    overflow: hidden;
+  }
+  .palette::backdrop {
+    background: rgb(20 18 12 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+  .pal-box {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+  }
+  .pal-input {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.75rem 0.4rem 1rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .pal-input input {
+    border: 0;
+    background: transparent;
+    font-size: 1.05rem;
+    min-height: 3rem;
+    padding: 0;
+    color: var(--ink);
+  }
+  .pal-input input:focus-visible {
+    outline: none;
+  }
+  .pal-input input::-webkit-search-cancel-button {
+    display: none;
+  }
+  .pal-esc {
+    border: 0;
+    background: none;
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+    background: var(--bg);
+    color: var(--ink-2);
+  }
+  .pal-body {
+    overflow-y: auto;
+    padding: 0.4rem 0.5rem 0.6rem;
+  }
+  .pal-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .pal-results :global(.pal-group) {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.7rem 0.6rem 0.25rem;
+  }
+  .pal-results :global(a) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.05rem 0.75rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 8px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .pal-results :global(a[aria-selected='true']) {
+    background: var(--accent-soft);
+  }
+  .pal-results :global(.pal-t) {
+    font-weight: 600;
+  }
+  .pal-results :global(.pal-ext) {
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 0.85em;
+  }
+  .pal-results :global(.pal-d) {
+    grid-column: 1;
+    font-size: 0.84rem;
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pal-results :global(.pal-h),
+  .pal-results :global(.pal-k) {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    align-self: center;
+  }
+  .pal-results :global(.pal-empty) {
+    padding: 1.25rem 0.6rem;
+    color: var(--ink-2);
+  }
+  .pal-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0.5rem 0.6rem 0.25rem;
+  }
+  .pal-hint {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0.75rem 0.6rem 0;
+  }
+  .pal-foot {
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .pal-foot span {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  @media (max-width: 600px) {
+    .palette {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border-radius: 0;
+      border: 0;
+    }
+    .pal-foot {
+      display: none;
+    }
+  }
+</style>

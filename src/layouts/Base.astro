@@ -4,6 +4,7 @@ import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght-italic.css';
 import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css';
 import '../styles/global.css';
+import SearchPalette from '../components/SearchPalette.astro';
 
 interface Props {
   title: string;
@@ -93,6 +94,11 @@ const nav = [
           </ul>
         </nav>
         <div class="header-actions">
+          <a class="search-btn" href="/search/" data-open-search aria-label="Search" aria-keyshortcuts="Control+K Meta+K /">
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+            <span class="search-label">Search</span>
+            <kbd class="search-kbd" data-mod>⌘K</kbd>
+          </a>
           <a class="icon-btn" href="https://github.com/wustep/midi" aria-label="Source on GitHub">
             <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"
               ><path
@@ -116,6 +122,7 @@ const nav = [
       </div>
     </header>
 
+    <SearchPalette />
     <main id="main" tabindex="-1">
       <slot />
     </main>
@@ -143,6 +150,9 @@ const nav = [
         root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       const sync = () => btn?.setAttribute('aria-pressed', String(current() === 'dark'));
       sync();
+
+      // Show Ctrl K instead of ⌘K outside Apple platforms.
+      if (!/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) document.querySelectorAll('[data-mod]').forEach((k) => (k.textContent = 'Ctrl K'));
 
       // Phone menu: the primary nav collapses behind a button.
       const menuBtn = document.querySelector<HTMLButtonElement>('.menu-btn');
@@ -301,6 +311,34 @@ const nav = [
     display: flex;
     gap: 0.25rem;
   }
+  .search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0 0.6rem 0 0.75rem;
+    margin-right: 0.35rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    min-width: 11rem;
+  }
+  .search-btn:hover {
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+  .search-kbd {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.05em 0.35em;
+    color: var(--muted);
+  }
   .icon-btn {
     display: inline-grid;
     place-items: center;
@@ -402,6 +440,19 @@ const nav = [
     }
     .header-actions {
       order: 2;
+    }
+    .search-btn {
+      min-width: 0;
+      width: 2.5rem;
+      padding: 0;
+      justify-content: center;
+      border-color: transparent;
+      background: transparent;
+      margin-right: 0;
+    }
+    .search-label,
+    .search-kbd {
+      display: none;
     }
     .menu-btn {
       display: inline-grid;

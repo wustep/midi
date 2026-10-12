@@ -1,42 +1,55 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { tools } from '../../lib/tools';
+import { tools, TOOL_GROUPS } from '../../lib/tools';
 
-const groups = ['Files & devices', 'Theory & reference', 'Calculators'] as const;
+const blurbs: Record<string, string> = {
+  Inspect: 'Look inside files and live streams.',
+  'Build & send': 'Assemble messages and send them to devices.',
+  'Look up': 'References you can play with.',
+  Calculate: 'Quick conversions for timing and file encoding.',
+};
+const slug = (g: string) => g.toLowerCase().replace(/[^a-z]+/g, '-');
 const legacy = Object.fromEntries(tools.filter((t) => t.href.startsWith('/tools/')).map((t) => [t.slug, t.href]));
 ---
 
-<Base title="Tools" section="/tools" description="Interactive MIDI tools that run in your browser: MIDI Reader, SysEx builder, clock and latency tester, CC map, chords and scales, Web MIDI monitor, message decoder, VLQ encoder, tempo calculator, and note table.">
-  <div class="tools-page">
-    <header>
-      <p class="eyebrow">Workbench</p>
-      <h1>Tools</h1>
-      <p class="lede">Utilities for the everyday questions of MIDI work. Everything runs in your browser, and files you open are never uploaded.</p>
+<Base title="Tools" section="/tools" description="Interactive MIDI tools that run in your browser: MIDI Reader, Web MIDI monitor, message decoder, clock and latency tester, SysEx and RPN builders, MPE playground, CC map, chords and scales, note table, tempo and VLQ calculators.">
+  <div class="page">
+    <header class="page-head">
+      <p class="eyebrow">Tools</p>
+      <h1>MIDI tools in your browser</h1>
+      <p class="lede">{tools.length} tools for the everyday questions of MIDI work. Nothing is installed, and files you open are never uploaded.</p>
     </header>
 
     {
-      groups.map((g) => (
-        <section aria-labelledby={`g-${g.replace(/\W+/g, '-')}`}>
-          <h2 id={`g-${g.replace(/\W+/g, '-')}`}>{g}</h2>
-          <ul class:list={['tool-cards', { big: g === 'Files & devices' }]}>
-            {tools
-              .filter((t) => t.group === g)
-              .map((t) => (
+      TOOL_GROUPS.map((g) => {
+        const items = tools.filter((t) => t.group === g);
+        const big = g === 'Inspect';
+        return (
+          <section class="group" aria-labelledby={`g-${slug(g)}`}>
+            <div class="group-head">
+              <h2 id={`g-${slug(g)}`}>{g}</h2>
+              <p>{blurbs[g]}</p>
+            </div>
+            <ul class:list={['card-grid', { big }]}>
+              {items.map((t) => (
                 <li>
-                  <a href={t.href}>
-                    <span class="demo" aria-hidden="true">
-                      <code>{t.demo[0]}</code>
-                      <span class="arrow">→</span>
-                      <code class="out">{t.demo[1]}</code>
-                    </span>
-                    <strong>{t.title}</strong>
-                    <span class="blurb">{t.blurb}</span>
+                  <a class="card" href={t.href}>
+                    {big && (
+                      <span class="demo" aria-hidden="true">
+                        <code>{t.demo[0]}</code>
+                        <span class="arrow">→</span>
+                        <code class="out">{t.demo[1]}</code>
+                      </span>
+                    )}
+                    <span class="card-title">{t.title}</span>
+                    <span class="card-text">{t.blurb}</span>
                   </a>
                 </li>
               ))}
-          </ul>
-        </section>
-      ))
+            </ul>
+          </section>
+        );
+      })
     }
   </div>
 </Base>
@@ -48,57 +61,38 @@ const legacy = Object.fromEntries(tools.filter((t) => t.href.startsWith('/tools/
 </script>
 
 <style>
-  .tools-page {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 3rem var(--gutter) 0;
+  .group {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: var(--s-4) var(--s-6);
+    padding: var(--s-5) 0;
+    border-top: 1px solid var(--line);
   }
-  h2 {
-    font-size: 1.15rem;
-    margin: 2.5rem 0 1rem;
+  .group-head h2 {
+    font-size: var(--t-lg);
+    margin: 0 0 var(--s-1);
   }
-  .tool-cards {
-    list-style: none;
-    padding: 0;
+  .group-head p {
     margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 0.9rem;
+    font-size: var(--t-sm);
+    color: var(--muted);
   }
-  .tool-cards.big {
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  .card-grid {
+    --card-min: 230px;
   }
-  .tool-cards a {
-    display: grid;
-    align-content: start;
-    gap: 0.35rem;
-    height: 100%;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 1rem 1.1rem 1.1rem;
-    text-decoration: none;
-    color: var(--ink);
-    background: var(--surface);
-    box-shadow: var(--shadow);
+  .card-grid.big {
+    --card-min: 380px;
   }
-  .tool-cards a:hover {
-    border-color: var(--accent);
-  }
-  .tool-cards strong {
-    font-family: var(--font-display);
-    font-stretch: 110%;
-    font-size: 1.05rem;
-  }
-  .big strong {
-    font-size: 1.2rem;
+  .big .card-title {
+    font-size: var(--t-lg);
   }
   .demo {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.4rem;
-    font-size: 0.8rem;
+    gap: var(--s-1) var(--s-2);
+    margin-bottom: var(--s-2);
+    font-size: var(--t-xs);
   }
   .demo code {
     background: var(--bg);
@@ -110,9 +104,9 @@ const legacy = Object.fromEntries(tools.filter((t) => t.href.startsWith('/tools/
   .arrow {
     color: var(--muted);
   }
-  .blurb {
-    font-size: 0.9rem;
-    color: var(--ink-2);
-    line-height: 1.45;
+  @media (max-width: 860px) {
+    .group {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 </style>

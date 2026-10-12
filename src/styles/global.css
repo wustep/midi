@@ -29,8 +29,35 @@
 
   --radius: 10px;
   --radius-sm: 6px;
+  --radius-xs: 4px;
   --gutter: clamp(16px, 4vw, 40px);
   --measure: 72ch;
+
+  /* Spacing scale (4px base). */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4rem;
+
+  /* Type scale. */
+  --t-xs: 0.75rem;
+  --t-sm: 0.875rem;
+  --t-base: 1.0625rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.5rem;
+  --t-2xl: clamp(1.45rem, 2.4vw, 1.85rem);
+  --t-3xl: clamp(2.1rem, 4.5vw, 3.1rem);
+
+  /* Layout widths: every page shell is --w-page wide and left-aligned with the logo;
+     content inside is narrowed, never the shell. */
+  --w-page: 1280px;
+  --w-tool: 980px;
+  --w-read: 72ch;
+  --page-top: var(--s-6);
 
   color-scheme: light;
 }
@@ -231,6 +258,204 @@ hr {
   top: 1rem;
 }
 
+/* ---------- Page shell & header (shared by every page type) ---------- */
+.page {
+  max-width: var(--w-page);
+  margin: 0 auto;
+  padding: var(--page-top) var(--gutter) 0;
+}
+.page-head {
+  margin-bottom: var(--s-6);
+  max-width: 62rem;
+}
+.page-head h1 {
+  font-size: var(--t-3xl);
+  margin: 0 0 var(--s-3);
+  text-wrap: balance;
+}
+.page-head .lede {
+  margin: 0;
+}
+.crumbs {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: 0;
+  margin: 0 0 var(--s-4);
+  font-size: var(--t-sm);
+  color: var(--muted);
+}
+.crumbs li + li::before {
+  content: '/';
+  margin-right: var(--s-2);
+  color: var(--line-strong);
+}
+.crumbs a {
+  color: var(--ink-2);
+}
+.section-title {
+  font-size: var(--t-lg);
+  margin: var(--s-7) 0 var(--s-4);
+}
+
+/* ---------- Cards ---------- */
+.card-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min, 260px), 100%), 1fr));
+  gap: var(--s-3);
+}
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--s-1);
+  height: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--s-4);
+  color: var(--ink);
+}
+a.card,
+.card-link {
+  text-decoration: none;
+}
+a.card:hover,
+.card:has(> .card-cover:hover) {
+  border-color: var(--accent);
+}
+.card-title {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 700;
+  font-size: var(--t-base);
+  line-height: 1.25;
+  margin: 0;
+}
+.card-kicker {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.card-text {
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+  line-height: 1.45;
+  margin: 0;
+}
+.card-meta {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--muted);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Link rows: compact directory lists (community, specs, sound libraries) ---------- */
+.link-rows {
+  list-style: none;
+  padding: 0;
+  margin: var(--s-3) 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+  column-gap: var(--s-6);
+}
+.link-rows > li {
+  display: grid;
+  align-content: start;
+  gap: 0.15rem;
+  padding: var(--s-3) 0;
+  border-top: 1px solid var(--line);
+}
+.lr-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-1) var(--s-3);
+}
+.lr-title {
+  font-weight: 700;
+}
+.lr-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+}
+.lr-desc {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--ink-2);
+}
+.lr-note {
+  margin: 0;
+  font-size: var(--t-xs);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.show-all {
+  margin-top: var(--s-3);
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-block;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  line-height: 1.5;
+  border-radius: var(--radius-xs);
+  padding: 0 0.4rem;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.badge.good {
+  background: var(--data-soft);
+  color: var(--data);
+}
+.badge.bad {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.badge.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.badge.meta {
+  background: var(--meta-soft);
+  color: var(--meta);
+}
+
+/* ---------- Related links row (docs ↔ tools ↔ libraries) ---------- */
+.related {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-5);
+  margin: var(--s-4) 0 0;
+  font-size: var(--t-sm);
+  color: var(--muted);
+}
+.related > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-2);
+}
+.related strong {
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.related a {
+  white-space: nowrap;
+}
+
 /* ---------- Tables ---------- */
 .table-wrap {
   /* Positioned so visually-hidden (absolute) children are clipped by the scroll box too. */
@@ -407,6 +632,7 @@ textarea:focus-visible {
 
 /* Comfortable tap targets on touch screens. */
 @media (pointer: coarse) {
+  .pill,
   .chip,
   .btn,
   input[type='text'],

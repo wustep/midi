@@ -47,7 +47,7 @@ The catalog is one part of **[midi.community](https://midi.community)**, an open
 - 📖 **[Protocol docs](https://midi.community/docs/)**: messages and running status, notes and pitch, Control Change, RPN/NRPN, SysEx, timing (clock, SPP, MTC), Standard MIDI Files, General MIDI, MPE, MIDI 2.0 and UMP, MIDI-CI, transports (DIN, TRS, USB, BLE, RTP)
 - 🍳 **[Cookbook](https://midi.community/docs/cookbook/)**: tested snippets in JavaScript (Web MIDI), Python (mido), C++ (RtMidi) and Rust (midir, midly)
 - 🔍 **[MIDI Reader](https://midi.community/reader/)**: open a `.mid` file and see every track, tempo change, controller and SysEx explained, with a piano roll, sampled playback, an annotated hex view, and export to edited .mid, CSV or JSON
-- 🧰 **[Tools](https://midi.community/tools/)**: [CC map](https://midi.community/tools/cc/), [chords & scales](https://midi.community/tools/chords/), [clock & latency tester](https://midi.community/tools/clock/), [MPE playground](https://midi.community/tools/mpe/), [RPN/NRPN builder](https://midi.community/tools/rpn/), SysEx builder, message decoder, VLQ encoder, tempo calculator, note table, and a live [Web MIDI monitor](https://midi.community/try/)
+- 🧰 **[Tools](https://midi.community/tools/)**: [CC map](https://midi.community/tools/cc/), [chords & scales](https://midi.community/tools/chords/), [clock & latency tester](https://midi.community/tools/clock/), [MPE playground](https://midi.community/tools/mpe/), [RPN/NRPN builder](https://midi.community/tools/rpn/), SysEx builder, message decoder, VLQ encoder, tempo calculator, note table, and a live [Web MIDI monitor](https://midi.community/tools/monitor/)
 - 🎹 **[Samples](https://midi.community/samples/)**: play openly licensed instruments in the browser, plus SoundFont, SFZ and multisample sources with license notes
 - 💬 **[Community](https://midi.community/community/)**: forums, subreddits, Discord servers and mailing lists, and [where to get MIDI files](https://midi.community/community/midi-files/) with license and copyright notes
 - 📜 **[Glossary](https://midi.community/docs/glossary/)**, **[History of MIDI](https://midi.community/docs/history/)**, **[Specs & resources](https://midi.community/docs/resources/)**
@@ -616,7 +616,7 @@ Universal MIDI Packet, MIDI-CI, and MIDI 2.0 platform support.
 
 | Project | Language | Description | ⭐ | License |
 |---|---|---|--:|---|
-| [Windows MIDI Services](https://github.com/microsoft/MIDI) | C++ | Microsoft's next-generation Windows MIDI stack with MIDI 2.0 and UMP. | 692 | MIT |
+| [Windows MIDI Services](https://github.com/microsoft/MIDI) | C++ | Microsoft's next-generation Windows MIDI stack with MIDI 2.0 and UMP. | 691 | MIT |
 | [AAP (Android Audio Plugin)](https://github.com/atsushieno/aap-core) | C++ | Audio plugin format and framework for Android that uses MIDI 2.0 UMP for events. | 140 | MIT |
 | [ESP32_Host_MIDI](https://github.com/sauloverissimo/ESP32_Host_MIDI) | C++ | MIDI 1.0 and 2.0 host transports for ESP32 (USB host, BLE, and more) for Arduino and ESP-IDF. | 129 | Other |
 | [ktmidi](https://github.com/atsushieno/ktmidi) | Kotlin | Kotlin Multiplatform MIDI 1.0/2.0 library with UMP and MIDI-CI. | 104 | MIT |

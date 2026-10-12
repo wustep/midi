@@ -29,7 +29,7 @@
     </div>
     <div>
       <h3 class="mpe-h">Notes</h3>
-      <div class="table-wrap"><table data-notes><caption class="visually-hidden">Active notes</caption><thead><tr><th>Ch</th><th>Note</th><th class="num">Pitch</th><th class="num">Bend</th><th class="num">Pressure</th><th class="num">Timbre</th></tr></thead><tbody></tbody></table></div>
+      <div class="table-wrap"><table data-notes><caption class="visually-hidden">Active notes</caption><thead><tr><th>Ch</th><th>Note</th><th class="num">Pitch</th><th class="num">Bend (st)</th><th class="num">Press.</th><th class="num col-timbre">Timbre</th></tr></thead><tbody></tbody></table></div>
     </div>
   </div>
 
@@ -165,7 +165,7 @@
         ? notes
             .map((n) => {
               const bend = n!.pitch - n!.note;
-              return `<tr><td><span class="swatch" style="background:hsl(${HUES[n!.channel % HUES.length]} 62% 50%)"></span>${n!.channel + 1}</td><td>${noteName(n!.note)}</td><td class="num">${n!.pitch.toFixed(2)}</td><td class="num">${bend >= 0 ? '+' : ''}${bend.toFixed(2)} st</td><td class="num">${Math.round(n!.pressure * 127)}</td><td class="num">${Math.round(n!.timbre * 127)}</td></tr>`;
+              return `<tr><td><span class="swatch" style="background:hsl(${HUES[n!.channel % HUES.length]} 62% 50%)"></span>${n!.channel + 1}</td><td>${noteName(n!.note)}</td><td class="num">${n!.pitch.toFixed(2)}</td><td class="num">${bend >= 0 ? '+' : ''}${bend.toFixed(2)}</td><td class="num">${Math.round(n!.pressure * 127)}</td><td class="num col-timbre">${Math.round(n!.timbre * 127)}</td></tr>`;
             })
             .join('')
         : `<tr><td colspan="6" class="muted">No notes held.</td></tr>`;
@@ -389,6 +389,11 @@
   @media (max-width: 720px) {
     .mpe-grid {
       grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 480px) {
+    [data-notes] :global(.col-timbre) {
+      display: none;
     }
   }
 </style>

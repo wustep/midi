@@ -1,0 +1,137 @@
+---
+import Base from '../../layouts/Base.astro';
+import Callout from '../../components/Callout.astro';
+import SamplesNav from '../../components/SamplesNav.astro';
+import sources from '../../../data/sample-sources.json';
+
+const groupOrder = ['SoundFonts (SF2/SF3)', 'SFZ libraries', 'Multisampled instruments', 'Drum kits', 'Collections & directories'];
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const groups = groupOrder.map((title) => ({ title, id: slugify(title), items: sources.filter((s) => s.group === title) })).filter((g) => g.items.length);
+const host = (url: string) => new URL(url).host.replace(/^www\./, '');
+
+/** Bucket a license label for filtering. Restrictions win over permissions. */
+const bucket = (l: string) =>
+  /NC|non-?commercial|custom|freeware|proprietary|terms/i.test(l) ? 'restricted' : /CC0|public domain/i.test(l) ? 'cc0' : /GPL|SA\b|-SA/i.test(l) ? 'copyleft' : /CC.?BY|MIT|BSD|Apache|ISC/i.test(l) ? 'by' : 'varies';
+const BUCKETS: Record<string, { label: string; tone: string }> = {
+  cc0: { label: 'No conditions (CC0)', tone: 'good' },
+  by: { label: 'Credit required', tone: 'good' },
+  copyleft: { label: 'Share-alike / GPL', tone: 'meta' },
+  restricted: { label: 'Restricted or custom', tone: 'warn' },
+  varies: { label: 'Varies', tone: '' },
+};
+const counts = new Map<string, number>();
+for (const s of sources) counts.set(bucket(s.license), (counts.get(bucket(s.license)) ?? 0) + 1);
+---
+
+<Base title="Sound libraries" section="/samples" description="Free and openly licensed SoundFonts, SFZ libraries, multisampled instruments and drum kits, with license notes on what you can use and share.">
+  <div class="page samples-page" data-filter-root>
+    <header class="page-head">
+      <p class="eyebrow">Samples</p>
+      <h1>Free sound libraries</h1>
+      <p class="lede">{sources.length} SoundFonts, SFZ libraries, multisampled instruments and drum kits, each with what its license lets you do.</p>
+    </header>
+    <SamplesNav page="sources" />
+
+    <Callout title="Free to use is not free to share" type="warn">
+      <p>
+        Many free libraries let you use the sounds in your music but forbid redistributing the samples, or forbid
+        commercial use. <strong>CC0</strong> means no conditions; <strong>CC BY</strong> needs credit;
+        <strong>NC</strong> licenses rule out commercial use. Check the source's license before bundling samples in an
+        app, game or plugin.
+      </p>
+    </Callout>
+
+    <div class="filter-bar">
+      <label class="filter-q">
+        <span class="visually-hidden">Search sound libraries</span>
+        <input type="search" placeholder="Search: piano, drums, sfz, GM…" data-filter-q autocomplete="off" />
+      </label>
+      <span class="filter-status" data-filter-status role="status"></span>
+    </div>
+    <div class="filter-tags" role="group" aria-label="License">
+      <button type="button" class="chip" data-filter-tag="" aria-pressed="true">All</button>
+      {Object.entries(BUCKETS).filter(([k]) => counts.has(k)).map(([k, b]) => <button type="button" class="chip" data-filter-tag={k} aria-pressed="false">{b.label} <span class="n">{counts.get(k)}</span></button>)}
+    </div>
+
+    {
+      groups.map((g) => (
+        <details class="fold-group" open data-group data-fold-phone>
+          <summary><h2 id={g.id}>{g.title}</h2><span class="fold-count" data-group-count>{g.items.length}</span></summary>
+          <ul class="link-rows">
+            {g.items.map((s) => {
+              const b = bucket(s.license);
+              return (
+                <li data-item data-tags={b} data-text={[s.title, s.description, s.license, s.licenseNote, s.formats.join(' '), s.url].join(' ').toLowerCase()}>
+                  <div class="lr-top">
+                    <a class="lr-title" href={s.url}>{s.title}</a>
+                    <span class="lr-badges">
+                      {s.formats.map((f) => <span class="badge">{f}</span>)}
+                      <span class={`badge ${BUCKETS[b].tone}`}>{s.license}</span>
+                    </span>
+                  </div>
+                  <p class="lr-desc">{s.description}</p>
+                  <p class="lr-note">
+                    {s.licenseNote}
+                    {s.licenseUrl && <> <a href={s.licenseUrl}>License</a>.</>}
+                    {s.size && <> Size: {s.size}.</>}
+                  </p>
+                  <p class="card-meta">{host(s.url)}</p>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      ))
+    }
+    <p class="filter-empty" data-filter-empty hidden>Nothing matches. Try a broader search.</p>
+  </div>
+</Base>
+
+<script>
+  import { initListFilter } from '../../lib/list-filter';
+  document.querySelectorAll<HTMLElement>('[data-filter-root]').forEach(initListFilter);
+</script>
+
+<style>
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-4);
+    margin: var(--s-5) 0 var(--s-3);
+  }
+  .filter-q {
+    flex: 1 1 280px;
+    max-width: 30rem;
+  }
+  .filter-status {
+    font-size: var(--t-sm);
+    color: var(--muted);
+  }
+  .filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin-bottom: var(--s-4);
+  }
+  @media (max-width: 600px) {
+    .filter-tags {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      margin-inline: calc(-1 * var(--gutter));
+      padding: 0 var(--gutter) var(--s-1);
+      scrollbar-width: none;
+    }
+    .filter-tags .chip {
+      flex: 0 0 auto;
+    }
+  }
+  .filter-tags .n {
+    color: var(--muted);
+    font-size: var(--t-xs);
+  }
+  .filter-empty {
+    padding: var(--s-5) 0;
+    color: var(--ink-2);
+  }
+</style>

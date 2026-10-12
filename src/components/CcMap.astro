@@ -231,7 +231,10 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     }
     listenBtn.addEventListener('click', connect);
 
-    render();
+    // Deep link: /tools/cc/?cc=74
+    const fromUrl = Number(new URLSearchParams(location.search).get('cc'));
+    if (Number.isInteger(fromUrl) && fromUrl >= 0 && fromUrl <= 127 && new URLSearchParams(location.search).has('cc')) select(fromUrl, true);
+    else render();
   }
 </script>
 

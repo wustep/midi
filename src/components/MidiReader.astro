@@ -81,6 +81,7 @@ const demos = [
           <option value="connect">Web MIDI output…</option>
         </select>
       </label>
+      <button type="button" class="btn rd-export-btn" data-goto-export>Export…</button>
       <label class="rd-inline">
         <span>Speed</span>
         <select data-rate>
@@ -338,6 +339,11 @@ const demos = [
       }
     }
 
+    $('[data-goto-export]').addEventListener('click', () => {
+      const d = $('#rd-export').closest('details')!;
+      (d as HTMLDetailsElement).open = true;
+      d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
     const fab = $<HTMLButtonElement>('[data-fab]');
     fab.addEventListener('click', () => playBtn.click());
     // The transport isn't sticky on phones; show a floating play button once it has scrolled above the viewport.

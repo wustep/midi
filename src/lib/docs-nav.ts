@@ -20,6 +20,7 @@ export const docGroups: DocGroup[] = [
       { slug: 'rpn-nrpn', title: 'RPN & NRPN', summary: 'Registered and non-registered parameter numbers, data entry, and the null RPN.' },
       { slug: 'sysex', title: 'System Exclusive', summary: 'Manufacturer IDs, Universal SysEx, device inquiry, and checksums.' },
       { slug: 'timing', title: 'Timing & Sync', summary: 'MIDI clock, Song Position Pointer, MIDI Time Code, and tempo math.' },
+      { slug: 'transports', title: 'Transports', summary: '5-pin DIN and TRS, USB-MIDI 1.0/2.0, BLE-MIDI, RTP-MIDI and network MIDI.' },
     ],
   },
   {
@@ -35,12 +36,6 @@ export const docGroups: DocGroup[] = [
       { slug: 'mpe', title: 'MPE', summary: 'MIDI Polyphonic Expression: zones, per-note channels, and the MPE Configuration Message.' },
       { slug: 'midi-2', title: 'MIDI 2.0 & UMP', summary: 'Universal MIDI Packet formats, message types, groups, and higher resolution.' },
       { slug: 'midi-ci', title: 'MIDI-CI', summary: 'Capability Inquiry: discovery, profiles, property exchange, process inquiry.' },
-    ],
-  },
-  {
-    title: 'Connecting',
-    items: [
-      { slug: 'transports', title: 'Transports', summary: '5-pin DIN and TRS, USB-MIDI 1.0/2.0, BLE-MIDI, RTP-MIDI and network MIDI.' },
     ],
   },
   {

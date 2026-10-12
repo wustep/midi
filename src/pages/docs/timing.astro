@@ -16,11 +16,6 @@ import TempoCalc from '../../components/TempoCalc.astro';
     MIDI handles time in two ways. Files store musical time as ticks, converted to seconds through a tempo map. Live
     systems sync through a stream of clock messages (tempo-relative) or MIDI Time Code (absolute, SMPTE-based).
   </p>
-  <Callout title="Measure your setup">
-    <p>
-      The <a href="/tools/clock/">clock &amp; latency tester</a> measures the tempo and jitter of incoming clock, sends clock to a device, and times round trips through a loopback.
-    </p>
-  </Callout>
 
   <h2 id="ticks">Ticks, PPQ and tempo</h2>
   <p>

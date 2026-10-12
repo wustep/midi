@@ -865,7 +865,7 @@
     "category": "synthesis",
     "description": "Audio server and language for real-time synthesis and algorithmic composition.",
     "license": "GPL-3.0",
-    "stars": 6784,
+    "stars": 6785,
     "pushedAt": "2026-10-12",
     "archived": false,
     "homepage": "http://supercollider.github.io",
@@ -1147,7 +1147,7 @@
     "category": "hardware",
     "description": "Firmware for Mutable Instruments modules, including MIDI interfaces.",
     "license": null,
-    "stars": 3211,
+    "stars": 3213,
     "pushedAt": "2026-10-12",
     "archived": false,
     "verifiedAt": "2026-10-12"
@@ -1679,7 +1679,7 @@
     "category": "daw",
     "description": "Rust audio plugin framework with note events and MIDI support.",
     "license": "ISC",
-    "stars": 2989,
+    "stars": 2990,
     "pushedAt": "2026-09-03",
     "archived": false,
     "verifiedAt": "2026-10-12"
@@ -2320,7 +2320,7 @@
     "category": "midi2",
     "description": "Microsoft's next-generation Windows MIDI stack with MIDI 2.0 and UMP.",
     "license": "MIT",
-    "stars": 692,
+    "stars": 691,
     "pushedAt": "2026-10-12",
     "archived": false,
     "verifiedAt": "2026-10-12"
@@ -3429,7 +3429,7 @@
     "description": "Sample and preset transfer for Elektron devices and others over SysEx.",
     "license": "GPL-3.0",
     "stars": 425,
-    "pushedAt": "2026-10-10",
+    "pushedAt": "2026-10-12",
     "archived": false,
     "homepage": "https://dagargo.github.io/elektroid/",
     "verifiedAt": "2026-10-12"

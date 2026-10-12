@@ -9,9 +9,9 @@ import Shortcuts from '../../components/Shortcuts.astro';
   section="/reader"
   description="Open a Standard MIDI File in your browser and see every part explained: header, tracks, programs, tempo map, meta events, controllers, SysEx, a piano roll, and an annotated hex view. Play it with sampled instruments. Nothing is uploaded."
 >
-  <div class="reader-page">
-    <header class="reader-header">
-      <p class="eyebrow">MIDI Reader</p>
+  <div class="page reader-page">
+    <header class="page-head reader-header">
+      <p class="eyebrow">Reader</p>
       <h1>What's inside your .mid file?</h1>
       <p class="lede">
         Drop in a Standard MIDI File and read it like a book: the header, every track and instrument, tempo and key
@@ -36,16 +36,7 @@ import Shortcuts from '../../components/Shortcuts.astro';
 
 <style>
   .reader-page {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2.5rem var(--gutter) 0;
-  }
-  .reader-header {
-    margin-bottom: 1.75rem;
-  }
-  .reader-header h1 {
-    font-size: clamp(2rem, 4.5vw, 3.1rem);
-    margin-bottom: 0.6rem;
+    --page-top: var(--s-6);
   }
   .reader-keys {
     margin-top: 2.5rem;

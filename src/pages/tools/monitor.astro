@@ -1,6 +1,6 @@
 ---
-import Tool from '../layouts/Tool.astro';
-import Callout from '../components/Callout.astro';
+import Tool from '../../layouts/Tool.astro';
+import Callout from '../../components/Callout.astro';
 
 // 4 octaves + 1 of keyboard visualization: C2 (36) to C7 (96).
 const LOW = 36;
@@ -146,8 +146,8 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
 </Tool>
 
 <script>
-  import { decodeMessage, parseHex, hexBytes, hex, ccName } from '../lib/midi';
-  import { midiAccess } from '../lib/webmidi';
+  import { decodeMessage, parseHex, hexBytes, hex, ccName } from '../../lib/midi';
+  import { midiAccess } from '../../lib/webmidi';
 
   const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
   const connectBtn = $<HTMLButtonElement>('#connect');

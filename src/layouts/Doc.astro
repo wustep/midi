@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import { docGroups, docsFlat } from '../lib/docs-nav';
+import { relatedForDoc } from '../lib/related';
 
 interface Props {
   title: string;
@@ -18,6 +19,7 @@ const i = docsFlat.findIndex((d) => d.slug === slug);
 const prev = i > 0 ? docsFlat[i - 1] : undefined;
 const next = i >= 0 && i < docsFlat.length - 1 ? docsFlat[i + 1] : undefined;
 const group = docGroups.find((g) => g.items.some((d) => d.slug === slug));
+const related = relatedForDoc(slug);
 ---
 
 <Base title={title} description={description ?? docsFlat[i]?.summary} section="/docs">
@@ -63,22 +65,6 @@ const group = docGroups.find((g) => g.items.some((d) => d.slug === slug));
             </div>
           ))
         }
-        <div class="nav-group">
-          <p class="nav-group-title">Hands-on</p>
-          <ul>
-            <li><a href="/tools/">All tools</a></li>
-            <li><a href="/reader/">MIDI Reader</a></li>
-            <li><a href="/try/">Web MIDI monitor</a></li>
-            <li><a href="/samples/">Play samples</a></li>
-          </ul>
-        </div>
-        <div class="nav-group">
-          <p class="nav-group-title">Community</p>
-          <ul>
-            <li><a href="/community/">Forums &amp; chat</a></li>
-            <li><a href="/community/midi-files/">Getting MIDI files</a></li>
-          </ul>
-        </div>
       </nav>
     </aside>
 
@@ -97,6 +83,24 @@ const group = docGroups.find((g) => g.items.some((d) => d.slug === slug));
                 </>
               ))}
             </p>
+          )
+        }
+        {
+          (related.tools.length > 0 || related.libs.length > 0) && (
+            <div class="related">
+              {related.tools.length > 0 && (
+                <div>
+                  <strong>Try it</strong>
+                  {related.tools.map((t) => <a href={t.href}>{t.title}</a>)}
+                </div>
+              )}
+              {related.libs.length > 0 && (
+                <div>
+                  <strong>Code</strong>
+                  {related.libs.map((l) => <a href={l.href}>{l.label} libraries</a>)}
+                </div>
+              )}
+            </div>
           )
         }
       </header>
@@ -131,6 +135,9 @@ const group = docGroups.find((g) => g.items.some((d) => d.slug === slug));
 </Base>
 
 <style>
+  .doc-header .related {
+    margin: var(--s-3) 0 var(--s-5);
+  }
   .doc-shell {
     max-width: 1280px;
     margin: 0 auto;

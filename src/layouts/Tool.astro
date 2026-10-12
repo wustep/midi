@@ -1,154 +1,126 @@
 ---
 import Base from './Base.astro';
 import { tools, toolBySlug } from '../lib/tools';
+import { libsForTool } from '../lib/related';
 import Shortcuts from '../components/Shortcuts.astro';
 
 interface Props {
   slug: string;
   description?: string;
-  /** Wider layout for tools with big tables (the file inspector). */
+  /** Let the tool use the full page width (big grids and tables). */
   wide?: boolean;
   /** Keyboard shortcuts shown under the tool. */
   shortcuts?: [string, string][];
 }
 const { slug, description, wide = false, shortcuts = [] } = Astro.props;
 const tool = toolBySlug(slug);
-const others = tools.filter((t) => t.slug !== slug);
+const siblings = tools.filter((t) => t.group === tool.group && t.slug !== slug);
+const libs = libsForTool(slug);
 ---
 
 <Base title={tool.title} section="/tools" description={description ?? tool.blurb}>
-  <div class:list={['tool-shell', { wide }]}>
-    <nav class="crumbs" aria-label="Breadcrumb">
-      <ol>
-        <li><a href="/tools/">Tools</a></li>
-        <li aria-current="page">{tool.title}</li>
-      </ol>
-    </nav>
-    <header class="tool-header">
+  <div class="page tool-page">
+    <header class="page-head">
+      <nav aria-label="Breadcrumb">
+        <ol class="crumbs">
+          <li><a href="/tools/">Tools</a></li>
+          <li>{tool.group}</li>
+        </ol>
+      </nav>
       <h1>{tool.title}</h1>
       <p class="lede"><slot name="lede">{tool.blurb}</slot></p>
+      {
+        (tool.docs.length > 0 || libs.length > 0) && (
+          <div class="related">
+            {tool.docs.length > 0 && (
+              <div>
+                <strong>Background</strong>
+                {tool.docs.map((d) => <a href={d.href}>{d.label}</a>)}
+              </div>
+            )}
+            {libs.length > 0 && (
+              <div>
+                <strong>Libraries</strong>
+                {libs.map((l) => <a href={l.href}>{l.label}</a>)}
+              </div>
+            )}
+          </div>
+        )
+      }
     </header>
-    <slot />
-    {shortcuts.length > 0 && <Shortcuts items={shortcuts} />}
-    {
-      tool.docs.length > 0 && (
-        <p class="more">
-          Background:{' '}
-          {tool.docs.map((d, i) => (
-            <>
-              {i > 0 && ' · '}
-              <a href={d.href}>{d.label}</a>
-            </>
-          ))}
-        </p>
-      )
-    }
-    <slot name="after" />
-    <nav class="other-tools" aria-labelledby="other-tools-title">
-      <h2 id="other-tools-title">More tools</h2>
-      <ul>
+    <div class:list={['tool-body', { wide }]}>
+      <slot />
+      {shortcuts.length > 0 && <Shortcuts items={shortcuts} />}
+      <slot name="after" />
+    </div>
+    <nav class="more-tools" aria-labelledby="more-tools-title">
+      <h2 id="more-tools-title" class="section-title">More to {tool.group.toLowerCase()}</h2>
+      <ul class="card-grid">
         {
-          others.map((t) => (
+          siblings.map((t) => (
             <li>
-              <a href={t.href}>
-                <strong>{t.title}</strong>
-                <span>{t.blurb}</span>
+              <a class="card" href={t.href}>
+                <span class="card-title">{t.title}</span>
+                <span class="card-text">{t.blurb}</span>
               </a>
             </li>
           ))
         }
+        <li>
+          <a class="card all" href="/tools/">
+            <span class="card-title">All {tools.length} tools →</span>
+            <span class="card-text">Inspect, build and send, look up, calculate.</span>
+          </a>
+        </li>
       </ul>
     </nav>
   </div>
 </Base>
 
 <style>
-  .tool-shell {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 2rem var(--gutter) 0;
+  .tool-body {
+    max-width: var(--w-tool);
   }
-  .tool-shell.wide {
-    max-width: 1180px;
+  .tool-body.wide {
+    max-width: none;
   }
-  .crumbs ol {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    padding: 0;
-    margin: 0 0 1.25rem;
-    font-size: 0.88rem;
-    color: var(--muted);
+  /* The page H1 already names the tool, so the widget's own heading is only for screen readers. */
+  .tool-body > :global(.widget:only-of-type > .widget-head) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
-  .crumbs li + li::before {
-    content: '/';
-    margin-right: 0.4rem;
-    color: var(--line-strong);
-  }
-  .crumbs a {
+  .tool-body :global(.note-small) {
+    font-size: var(--t-sm);
     color: var(--ink-2);
+    max-width: var(--w-read);
   }
-  .tool-header h1 {
-    font-size: clamp(2rem, 4vw, 2.8rem);
-    margin-bottom: 0.5rem;
-  }
-  .more {
-    font-size: 0.9rem;
-    color: var(--muted);
-    margin-top: -0.75rem;
-  }
-  .tool-shell :global(.note-small) {
-    font-size: 0.9rem;
-    color: var(--ink-2);
-    max-width: 80ch;
-  }
-  .other-tools {
-    margin-top: 4rem;
+  .more-tools {
+    margin-top: var(--s-8);
+    padding-top: var(--s-2);
     border-top: 1px solid var(--line);
+    --card-min: 220px;
   }
-  .other-tools h2 {
-    font-size: 1.1rem;
-    margin: 1.5rem 0 1rem;
+  .more-tools .section-title {
+    margin-top: var(--s-5);
   }
-  .other-tools ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 0.75rem;
-  }
-  .other-tools a {
-    display: grid;
-    gap: 0.2rem;
-    height: 100%;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 0.8rem 0.95rem;
-    text-decoration: none;
-    color: var(--ink);
-    background: var(--surface);
-  }
-  .other-tools a:hover {
-    border-color: var(--accent);
-  }
-  .other-tools span {
-    font-size: 0.85rem;
-    color: var(--muted);
-    line-height: 1.4;
+  .more-tools .all {
+    background: transparent;
+    border-style: dashed;
   }
   @media (max-width: 560px) {
-    /* Titles only on phones: the full descriptions live on the tools hub. */
-    .other-tools ul {
+    /* Titles only on phones; the hub has the descriptions. */
+    .more-tools .card-grid {
       grid-template-columns: 1fr 1fr;
-      gap: 0.5rem;
+      gap: var(--s-2);
     }
-    .other-tools a {
-      padding: 0.6rem 0.7rem;
-      min-height: 2.75rem;
+    .more-tools .card {
+      padding: var(--s-3);
     }
-    .other-tools span {
+    .more-tools .card-text {
       display: none;
     }
   }

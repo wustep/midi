@@ -6,6 +6,7 @@
  *     button[data-filter-tag="…"]  (value "" means all)
  *     details[data-group] > summary [data-group-count]
  *       [data-item][data-text="lowercased searchable text"][data-tags="a b c"]
+ *     details[data-group][data-limit="8"] shows that many items until expanded (ignored while filtering)
  *     [data-filter-empty]
  *     [data-filter-status]
  * The active topic is mirrored in ?topic= so filtered views can be linked.
@@ -34,11 +35,29 @@ export function initListFilter(root: HTMLElement) {
     let total = 0;
     for (const g of groups) {
       let n = 0;
-      for (const item of g.querySelectorAll<HTMLElement>('[data-item]')) {
+      const limit = active || 'expanded' in g.dataset ? Infinity : Number(g.dataset.limit ?? Infinity);
+      const items = [...g.querySelectorAll<HTMLElement>('[data-item]')];
+      for (const item of items) {
         const ok = matches(item.dataset.text ?? '', (item.dataset.tags ?? '').split(' ').filter(Boolean), query, tag);
-        item.hidden = !ok;
+        item.hidden = !ok || n >= limit;
         if (ok) n++;
       }
+      let more = g.querySelector<HTMLButtonElement>('[data-show-all]');
+      if (n > limit) {
+        if (!more) {
+          more = document.createElement('button');
+          more.type = 'button';
+          more.className = 'btn show-all';
+          more.dataset.showAll = '';
+          more.addEventListener('click', () => {
+            g.dataset.expanded = '';
+            apply();
+          });
+          g.append(more);
+        }
+        more.hidden = false;
+        more.textContent = `Show all ${n}`;
+      } else if (more) more.hidden = true;
       total += n;
       g.hidden = n === 0;
       const count = g.querySelector('[data-group-count]');
@@ -65,5 +84,5 @@ export function initListFilter(root: HTMLElement) {
   groups.forEach((g) => g.addEventListener('toggle', () => {
     if (!q?.value.trim() && !tag) initialOpen.set(g, g.open);
   }));
-  if (tag) apply();
+  apply();
 }

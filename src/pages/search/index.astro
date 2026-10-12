@@ -1,0 +1,99 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Search" description="Search the MIDI Field Guide: docs, tools, glossary, Control Change numbers, libraries, communities, MIDI files and sounds.">
+  <div class="search-page">
+    <h1>Search</h1>
+    <form action="/search/" method="get" role="search" class="sp-form">
+      <label class="visually-hidden" for="site-q">Search the site</label>
+      <input id="site-q" name="q" type="search" placeholder="sustain, CC 74, running status, rust…" autocomplete="off" />
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+    <p class="sp-status" role="status" aria-live="polite" data-status>Tip: press <kbd>⌘K</kbd> or <kbd>/</kbd> on any page.</p>
+    <div data-results></div>
+    <noscript>
+      <p>Search needs JavaScript. Browse the <a href="/docs/">docs</a>, <a href="/tools/">tools</a>, <a href="/libraries/">libraries</a> or the <a href="/docs/glossary/">glossary</a> instead.</p>
+    </noscript>
+  </div>
+</Base>
+
+<script>
+  import { prepare, search, group, type Entry } from '../../lib/search';
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const input = document.querySelector<HTMLInputElement>('#site-q')!;
+  const out = document.querySelector<HTMLElement>('[data-results]')!;
+  const status = document.querySelector<HTMLElement>('[data-status]')!;
+  const q = new URLSearchParams(location.search).get('q') ?? '';
+  input.value = q;
+  const index = fetch('/search.json').then((r) => r.json() as Promise<Entry[]>).then(prepare);
+  async function run() {
+    const v = input.value.trim();
+    const url = new URL(location.href);
+    if (v) url.searchParams.set('q', v);
+    else url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+    if (!v) return void (out.innerHTML = '');
+    const results = search(await index, v, 80);
+    status.textContent = `${results.length} result${results.length === 1 ? '' : 's'} for “${v}”`;
+    out.innerHTML = group(results)
+      .map(([k, items]) => `<section><h2>${k === 'Section' ? 'Docs sections' : k === 'Library' ? 'Libraries' : k}</h2><ul>${items.map((e) => `<li><a href="${esc(e.u)}">${esc(e.t)}</a>${e.d ? `<p>${esc(e.d)}</p>` : ''}</li>`).join('')}</ul></section>`)
+      .join('');
+  }
+  input.addEventListener('input', run);
+  document.querySelector('form')!.addEventListener('submit', (e) => {
+    e.preventDefault();
+    run();
+  });
+  if (q) run();
+  input.focus();
+</script>
+
+<style>
+  .search-page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 0;
+  }
+  .sp-form {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .sp-status {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 0.75rem;
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 0.3em;
+  }
+  [data-results] :global(h2) {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 2rem 0 0.5rem;
+  }
+  [data-results] :global(ul) {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  [data-results] :global(li) {
+    padding: 0.55rem 0;
+    border-top: 1px solid var(--line);
+  }
+  [data-results] :global(li a) {
+    font-weight: 600;
+  }
+  [data-results] :global(li p) {
+    margin: 0.15rem 0 0;
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+</style>

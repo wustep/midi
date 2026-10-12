@@ -8,5 +8,7 @@ export default defineConfig({
   // Keep source whitespace so inline links/code after a line break keep their leading space.
   compressHTML: false,
   build: { format: 'directory' },
+  // The Web MIDI monitor moved under /tools/ in round 7.
+  redirects: { '/try': '/tools/monitor/' },
   integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
 });

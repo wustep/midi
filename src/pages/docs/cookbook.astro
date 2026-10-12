@@ -93,7 +93,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     id: 'monitor',
     title: 'Monitor incoming messages',
     intro: 'Print every incoming message as hex. The Web MIDI API and midir hand you one complete message per callback; you never have to reassemble running status yourself.',
-    docs: [{ label: 'Messages', href: '/docs/messages/' }, { label: 'Live monitor', href: '/try/' }],
+    docs: [{ label: 'Messages', href: '/docs/messages/' }, { label: 'Live monitor', href: '/tools/monitor/' }],
     snippets: [
       {
         lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
@@ -782,7 +782,7 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
     <p>
       The browser examples use top-level <code>await</code>, so run them in a module script or the DevTools console.
       Web MIDI needs a secure context (HTTPS or <code>localhost</code>) and a user permission prompt. You can try them
-      right now on the <a href="/try/">live monitor</a> page's console.
+      right now on the <a href="/tools/monitor/">live monitor</a> page's console.
     </p>
   </Callout>
   <Callout type="info" title="Tested">

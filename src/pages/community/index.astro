@@ -31,7 +31,7 @@ const host = (url: string) => {
   page="community"
   description="Where to ask MIDI questions and meet other builders: forums (MIDI Association, KVR, Gearspace, lines, JUCE), subreddits, Discord servers with official invites, and mailing lists."
 >
-  <header>
+  <header class="page-head">
     <p class="eyebrow">Community</p>
     <h1>Forums, chat &amp; mailing lists</h1>
     <p class="lede">
@@ -43,7 +43,7 @@ const host = (url: string) => {
   <Callout title="Getting good answers">
     <p>
       Say what you're using (device, OS, DAW or library and versions), what you expected and what happened. For MIDI
-      bugs, the raw bytes help most: capture them with the <a href="/try/">Web MIDI monitor</a> and paste them, or
+      bugs, the raw bytes help most: capture them with the <a href="/tools/monitor/">Web MIDI monitor</a> and paste them, or
       decode them first with the <a href="/tools/decoder/">message decoder</a>.
     </p>
   </Callout>
@@ -67,26 +67,26 @@ const host = (url: string) => {
 
     {
       groups.map((g) => (
-        <details class="fold-group" open data-group data-fold-phone>
+        <details class="fold-group" open data-group data-fold-phone data-limit="8">
           <summary>
             <h2 id={g.id}>{g.title}</h2>
             <span class="fold-count" data-group-count>{g.items.length}</span>
           </summary>
           <p class="group-blurb">{g.blurb}</p>
-          <ul class="c-list">
+          <ul class="link-rows">
             {g.items.map((c) => (
               <li data-item data-text={searchText(c)} data-tags={((c as { tags?: string[] }).tags ?? []).join(' ')}>
-                <div class="c-top">
-                  <a class="c-title" href={c.url}>{c.title}</a>
+                <div class="lr-top">
+                  <a class="lr-title" href={c.url}>{c.title}</a>
                 </div>
-                <p class="c-desc">{c.description}</p>
-                {c.note && <p class="c-note">{c.note}</p>}
+                <p class="lr-desc">{c.description}</p>
+                {c.note && <p class="lr-note">{c.note}</p>}
                 {c.source && c.source !== c.url && (
-                  <p class="c-note">
+                  <p class="lr-note">
                     Invite published on <a href={c.source}>{host(c.source)}</a>
                   </p>
                 )}
-                <p class="c-host">{host(c.url)}</p>
+                <p class="card-meta">{host(c.url)}</p>
               </li>
             ))}
           </ul>
@@ -97,8 +97,8 @@ const host = (url: string) => {
   </div>
 
   <p class="small">
-    Missing a community? Add it to <a href="https://github.com/wustep/midi/blob/main/data/community.json"><code>data/community.json</code></a>
-    with a link to where its invite or sign-up is officially published, and run <code>npm run verify:resources</code>.
+    Missing a community? <a href="https://github.com/wustep/midi/blob/main/CONTRIBUTING.md">Suggest it on GitHub</a>
+    with a link to the page where its invite or sign-up is officially published.
   </p>
 </Community>
 

@@ -2,11 +2,11 @@
 import Base from '../layouts/Base.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
-import { docGroups } from '../lib/docs-nav';
-import { tools as allTools } from '../lib/tools';
-import instruments from '../../data/samples.json';
 import community from '../../data/community.json';
 import midiFiles from '../../data/midi-files.json';
+import instruments from '../../data/samples.json';
+import { docsFlat } from '../lib/docs-nav';
+import { tools, toolBySlug } from '../lib/tools';
 
 const quickRef = [
   ['8n', 'Note Off', 'note, velocity'],
@@ -19,33 +19,15 @@ const quickRef = [
   ['F0', 'System Exclusive', '… F7'],
 ];
 
-const protocolGroups = docGroups.filter((g) => g.title !== 'Reference');
-const reference = docGroups.find((g) => g.title === 'Reference')?.items ?? [];
-const protocolCount = protocolGroups.reduce((n, g) => n + g.items.length, 0);
-const languages = new Set(libraries.map((l) => l.language)).size;
 const libCount = libraries.length;
 const libRounded = Math.floor(libCount / 10) * 10;
-
-const chapters = [
-  { id: 'protocol', n: '01', title: 'Protocol' },
-  { id: 'libraries', n: '02', title: 'Libraries' },
-  { id: 'reader', n: '03', title: 'Reader' },
-  { id: 'tools', n: '04', title: 'Tools' },
-  { id: 'samples', n: '05', title: 'Samples' },
-  { id: 'community', n: '06', title: 'Community' },
-  { id: 'reference', n: '07', title: 'Reference' },
-];
-
-const tools = allTools.filter((t) => t.slug !== 'reader');
-const communityGroups = ['Forums', 'Reddit', 'Discord', 'Mailing lists'].map((g) => ({ g, items: community.filter((c) => c.group === g) }));
-const datasetCount = midiFiles.filter((f) => f.group === 'Datasets').length;
-
-const refBlurbs: Record<string, string> = {
-  cookbook: 'Web MIDI · mido · RtMidi · midir',
-  glossary: 'Active Sensing → Zone',
-  history: '1981 → today',
-  resources: 'MIDI Association · AMEI · RFCs · W3C',
-};
+const languages = new Set(libraries.map((l) => l.language)).size;
+const startHere = ['messages', 'notes', 'control-change', 'smf', 'mpe', 'midi-2'].map((s) => docsFlat.find((d) => d.slug === s)!);
+const featured = ['reader', 'monitor', 'cc'].map(toolBySlug);
+const topCats = [...categories]
+  .map((c) => ({ ...c, n: libraries.filter((l) => l.category === c.id).length, top: libraries.filter((l) => l.category === c.id && !l.archived).sort((a, b) => b.stars - a.stars).slice(0, 3) }))
+  .sort((a, b) => b.n - a.n)
+  .slice(0, 6);
 ---
 
 <Base title="MIDI Field Guide">
@@ -60,7 +42,7 @@ const refBlurbs: Record<string, string> = {
       <div class="cta">
         <a class="btn btn-primary" href="/docs/">Read the docs</a>
         <a class="btn" href="/reader/">Open a MIDI file</a>
-        <a class="btn" href="/libraries/">Browse libraries</a>
+        <a class="btn" href="/libraries/">Browse {libRounded}+ libraries</a>
       </div>
     </div>
 
@@ -88,53 +70,25 @@ const refBlurbs: Record<string, string> = {
       </figcaption>
     </figure>
   </section>
-
-  <nav class="chapters" aria-label="On this page">
-    <ol>
-      {
-        chapters.map((c) => (
-          <li>
-            <a href={`#${c.id}`}>
-              <span class="num">{c.n}</span>
-              {c.title}
-            </a>
-          </li>
-        ))
-      }
-    </ol>
-  </nav>
-
-  <!-- 01 Protocol -->
-  <section class="chapter" id="protocol" aria-labelledby="protocol-title">
-    <div class="chapter-inner">
-      <header class="chapter-head">
-        <p class="chapter-num">01</p>
-        <h2 id="protocol-title">Protocol</h2>
-        <p class="chapter-lede">
-          {protocolCount} chapters written as a working reference: tables you can scan, worked byte examples, and
-          the edge cases that bite, like running status, velocity-zero note offs, and Roland checksums.
-        </p>
-      </header>
-      <div class="protocol-grid">
-        <div class="groups">
+  <div class="page home">
+    <section class="band" aria-labelledby="start-title">
+      <div class="band-head">
+        <h2 id="start-title">Start here</h2>
+        <p>Short chapters with tables you can scan and worked byte examples. <a href="/docs/">All {docsFlat.length} chapters →</a></p>
+      </div>
+      <div class="start-grid">
+        <ul class="card-grid start-cards">
           {
-            protocolGroups.map((g) => (
-              <div class="group">
-                <h3>{g.title}</h3>
-                <ul>
-                  {g.items.map((d) => (
-                    <li>
-                      <a href={`/docs/${d.slug}/`}>
-                        <strong>{d.title}</strong>
-                        <span>{d.summary}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            startHere.map((d) => (
+              <li>
+                <a class="card" href={`/docs/${d.slug}/`}>
+                  <span class="card-title">{d.title}</span>
+                  <span class="card-text">{d.summary}</span>
+                </a>
+              </li>
             ))
           }
-        </div>
+        </ul>
         <div class="qr">
           <div class="table-wrap">
             <table>
@@ -144,9 +98,9 @@ const refBlurbs: Record<string, string> = {
               </thead>
               <tbody>
                 {
-                  quickRef.map(([s, m, d]) => (
+                  quickRef.map(([st, m, d]) => (
                     <tr>
-                      <td><span class="b b-s">{s}</span></td>
+                      <td><span class="b b-s">{st}</span></td>
                       <td>{m}</td>
                       <td class="dim">{d}</td>
                     </tr>
@@ -158,183 +112,86 @@ const refBlurbs: Record<string, string> = {
           <p class="qr-note"><code>n</code> = channel − 1 (0–F). Full tables in <a href="/docs/messages/">Messages</a>.</p>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 02 Libraries -->
-  <section class="chapter alt" id="libraries" aria-labelledby="libraries-title">
-    <div class="chapter-inner">
-      <header class="chapter-head">
-        <p class="chapter-num">02</p>
-        <h2 id="libraries-title">Libraries</h2>
-        <p class="chapter-lede">
-          {libCount} open-source projects in {languages} languages and ecosystems, from parsing <code>.mid</code> files to USB-MIDI
-          firmware and symbolic-music models. Every entry is checked against the GitHub API. Also published as an
-          <a href="https://github.com/wustep/midi#readme">awesome list on GitHub</a>.
-        </p>
-        <form class="lib-search" action="/libraries/" method="get" role="search">
-          <label class="visually-hidden" for="home-q">Search libraries</label>
-          <input id="home-q" name="q" type="search" placeholder="rust, soundfont, mpe…" />
-          <button class="btn btn-primary" type="submit">Search</button>
-        </form>
-      </header>
-      <ul class="cat-grid">
-        {
-          categories.map((c) => {
-            const all = libraries.filter((l) => l.category === c.id);
-            const top = all.filter((l) => !l.archived).sort((a, b) => b.stars - a.stars).slice(0, 3);
-            return (
-              <li>
-                <a href={`/libraries/?cat=${c.id}`}>
-                  <span class="cat-count">{all.length}</span>
-                  <strong>{c.title}</strong>
-                  <span class="cat-blurb">{c.blurb}</span>
-                  <span class="cat-top">{top.map((l) => l.name).join(' · ')}</span>
-                </a>
-              </li>
-            );
-          })
-        }
-        <li>
-          <a class="cat-cta" href="/libraries/">
-            <strong>Browse all {libCount}</strong>
-            <span class="cat-blurb">Filter by language and category, sort by stars or recent activity.</span>
-          </a>
-        </li>
-        <li>
-          <a class="cat-cta" href="https://github.com/wustep/midi/blob/main/CONTRIBUTING.md">
-            <strong>Suggest a library</strong>
-            <span class="cat-blurb">Add one line of JSON; a script verifies it against GitHub.</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- 03 Reader -->
-  <section class="chapter" id="reader" aria-labelledby="reader-title">
-    <div class="chapter-inner split">
-      <header class="chapter-head">
-        <p class="chapter-num">03</p>
-        <h2 id="reader-title">MIDI Reader</h2>
-        <p class="chapter-lede">
-          Drop in any <code>.mid</code> file and read it: tracks and instruments, tempo and key changes, controllers,
-          SysEx, a piano roll, and every event linked to its exact bytes. Play it with sampled instruments or your own
-          gear. Nothing is uploaded.
-        </p>
-        <a class="btn btn-primary" href="/reader/">Open the Reader</a>
-      </header>
-      <div class="fake-anno" aria-hidden="true">
-        <p class="fa-head"><span class="swatch"></span>Note On <span>track 2 · 1:1:0 · bytes 212–215</span></p>
-        <div><code class="fa-d">00</code><strong>Delta-time</strong><span>0 ticks after the previous event</span></div>
-        <div><code class="fa-s">90</code><strong>Status</strong><span>Note On, channel 1</span></div>
-        <div><code class="fa-v">3C</code><strong>Note</strong><span>60 = C4</span></div>
-        <div><code class="fa-v">64</code><strong>Velocity</strong><span>100</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 04 Tools -->
-  <section class="chapter alt" id="tools" aria-labelledby="tools-title">
-    <div class="chapter-inner">
-      <header class="chapter-head">
-        <p class="chapter-num">04</p>
+    <section class="band" aria-labelledby="tools-title">
+      <div class="band-head">
         <h2 id="tools-title">Tools</h2>
-        <p class="chapter-lede">Small, fast utilities for the everyday questions of MIDI work. They run entirely in your browser.</p>
-      </header>
-      <ul class="tool-grid">
+        <p>Everything runs in your browser; files are never uploaded. <a href="/tools/">All {tools.length} tools →</a></p>
+      </div>
+      <ul class="card-grid feature-cards">
         {
-          tools.map((t) => (
+          featured.map((t) => (
             <li>
-              <a href={t.href}>
+              <a class="card" href={t.href}>
                 <span class="demo" aria-hidden="true">
-                  <code class="demo-in">{t.demo[0]}</code>
+                  <code>{t.demo[0]}</code>
                   <span class="arrow">→</span>
-                  <code class="demo-out">{t.demo[1]}</code>
+                  <code class="out">{t.demo[1]}</code>
                 </span>
-                <strong>{t.title}</strong>
-                <span>{t.blurb}</span>
+                <span class="card-title">{t.title}</span>
+                <span class="card-text">{t.blurb}</span>
               </a>
             </li>
           ))
         }
       </ul>
-    </div>
-  </section>
+    </section>
 
-  <!-- 05 Samples -->
-  <section class="chapter" id="samples" aria-labelledby="samples-title">
-    <div class="chapter-inner split">
-      <header class="chapter-head">
-        <p class="chapter-num">05</p>
-        <h2 id="samples-title">Samples</h2>
-        <p class="chapter-lede">
-          Play openly licensed instruments in the browser with your mouse, touch screen, computer keyboard or a MIDI
-          controller, then find full SoundFonts and SFZ libraries with clear license notes.
+    <section class="band" aria-labelledby="libraries-title">
+      <div class="band-head">
+        <h2 id="libraries-title">Libraries</h2>
+        <p>
+          {libCount} open-source projects in {languages} languages, each checked against the GitHub API.
+          <a href="/libraries/">Browse all {categories.length} categories →</a>
         </p>
-        <a class="btn btn-primary" href="/samples/">Play the instruments</a>
-      </header>
-      <div class="inst-card" aria-hidden="true">
-        <div class="mini-keys">{Array.from({ length: 15 }, (_, i) => <span class:list={[{ on: i === 4 || i === 7 }]}></span>)}</div>
-        <ul class="inst-chips">{instruments.map((i) => <li>{i.name}</li>)}</ul>
       </div>
-    </div>
-  </section>
-
-  <!-- 06 Community -->
-  <section class="chapter alt" id="community" aria-labelledby="community-title">
-    <div class="chapter-inner">
-      <header class="chapter-head">
-        <p class="chapter-num">06</p>
-        <h2 id="community-title">Community</h2>
-        <p class="chapter-lede">Where to ask questions and find people building with MIDI, and where to get MIDI files you're allowed to use.</p>
-      </header>
-      <ul class="ref-grid">
+      <form class="lib-search" action="/libraries/" method="get" role="search">
+        <label class="visually-hidden" for="home-q">Search libraries</label>
+        <input id="home-q" name="q" type="search" placeholder="rust, soundfont, mpe, arduino…" />
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
+      <ul class="card-grid cat-cards">
         {
-          communityGroups.map(({ g, items }) => (
+          topCats.map((c) => (
             <li>
-              <a href={`/community/#${g.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
-                <span class="ref-kicker">{items.length} listed</span>
-                <strong>{g}</strong>
-                <span>{items.slice(0, 4).map((c) => c.title).join(' · ')}</span>
+              <a class="card" href={`/libraries/?cat=${c.id}`}>
+                <span class="card-kicker">{c.n} projects</span>
+                <span class="card-title">{c.title}</span>
+                <span class="card-meta">{c.top.map((l) => l.name).join(' · ')}</span>
               </a>
             </li>
           ))
         }
+      </ul>
+    </section>
+
+    <section class="band more" aria-label="More">
+      <ul class="card-grid more-cards">
         <li>
-          <a href="/community/midi-files/">
-            <span class="ref-kicker">{midiFiles.length} sources · {datasetCount} datasets</span>
-            <strong>Getting MIDI files</strong>
-            <span>Public-domain archives and research datasets, with license and copyright notes.</span>
+          <a class="card" href="/samples/">
+            <span class="card-kicker">Samples</span>
+            <span class="card-title">Play {instruments.length} free instruments</span>
+            <span class="card-text">Openly licensed sounds you can play with a keyboard or MIDI controller, plus SoundFont and SFZ libraries.</span>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="/community/">
+            <span class="card-kicker">Community</span>
+            <span class="card-title">{community.length} places to ask</span>
+            <span class="card-text">Forums, subreddits, Discord servers and mailing lists, and {midiFiles.length} sources of MIDI files.</span>
+          </a>
+        </li>
+        <li>
+          <a class="card" href="/docs/cookbook/">
+            <span class="card-kicker">Reference</span>
+            <span class="card-title">Cookbook &amp; glossary</span>
+            <span class="card-text">Runnable recipes in JavaScript, Python, C++ and Rust, plus plain-language definitions.</span>
           </a>
         </li>
       </ul>
-    </div>
-  </section>
-
-  <!-- 07 Reference -->
-  <section class="chapter" id="reference" aria-labelledby="reference-title">
-    <div class="chapter-inner">
-      <header class="chapter-head">
-        <p class="chapter-num">07</p>
-        <h2 id="reference-title">Reference</h2>
-        <p class="chapter-lede">Code you can paste, words you can look up, and where it all came from.</p>
-      </header>
-      <ul class="ref-grid">
-        {
-          reference.map((r) => (
-            <li>
-              <a href={`/docs/${r.slug}/`}>
-                <span class="ref-kicker">{refBlurbs[r.slug]}</span>
-                <strong>{r.title}</strong>
-                <span>{r.summary}</span>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-  </section>
+    </section>
+  </div>
 </Base>
 
 <style>
@@ -436,138 +293,9 @@ const refBlurbs: Record<string, string> = {
   }
 
   /* Chapter strip */
-  .chapters {
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    background: var(--surface);
-    position: sticky;
-    top: 60px; /* height of the sticky site header */
-    z-index: 10;
-  }
-  .chapters ol {
-    list-style: none;
-    margin: 0 auto;
-    padding: 0 var(--gutter);
-    max-width: 1280px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-  }
-  .chapters a {
-    display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
-    padding: 0.9rem 0.25rem;
-    color: var(--ink);
-    text-decoration: none;
-    font-family: var(--font-display);
-    font-stretch: 115%;
-    font-weight: 700;
-    font-size: 0.98rem;
-    border-bottom: 2px solid transparent;
-  }
-  .chapters a:hover {
-    border-bottom-color: var(--accent);
-  }
-  .num {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 0.78rem;
-    color: var(--accent);
-  }
-
-  /* Chapters */
-  .chapter {
-    padding: clamp(3.5rem, 8vw, 6rem) 0;
-    scroll-margin-top: 4rem;
-  }
-  .chapter.alt {
-    background: var(--surface);
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-  }
-  .chapter-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 var(--gutter);
-  }
-  .chapter-head {
-    max-width: 66ch;
-    margin-bottom: 2.25rem;
-  }
-  .chapter-num {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    color: var(--accent);
-    margin: 0 0 0.25rem;
-    font-size: 0.95rem;
-  }
-  .chapter-head h2 {
-    margin: 0 0 0.75rem;
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-stretch: 125%;
-    font-weight: 850;
-    letter-spacing: -0.02em;
-  }
-  .chapter-lede {
-    color: var(--ink-2);
-    font-size: 1.08rem;
-  }
-
-  /* Protocol */
-  .protocol-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: clamp(2rem, 4vw, 3.5rem);
-    align-items: start;
-  }
-  .groups {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2rem 2.5rem;
-  }
-  .group h3 {
-    margin: 0 0 0.5rem;
-    font-size: 0.78rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-stretch: 120%;
-  }
-  .group ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .group li {
-    border-top: 1px solid var(--line);
-  }
-  .group a {
-    display: grid;
-    gap: 0.1rem;
-    padding: 0.6rem 0;
-    text-decoration: none;
-    color: var(--ink);
-  }
-  .group a strong {
-    font-family: var(--font-display);
-    font-stretch: 108%;
-  }
-  .group a strong::after {
-    content: ' →';
-    color: var(--muted);
-    font-weight: 400;
-  }
-  .group a span {
-    font-size: 0.88rem;
-    color: var(--muted);
-    line-height: 1.45;
-  }
-  .group a:hover strong {
-    color: var(--accent);
-  }
   .qr {
     position: sticky;
-    top: 8.5rem;
+    top: 5rem;
   }
   .qr .table-wrap {
     margin-top: 0;
@@ -588,295 +316,103 @@ const refBlurbs: Record<string, string> = {
   }
 
   /* Libraries */
-  .lib-search {
+  .home {
+    --page-top: 0;
+  }
+  .band {
+    padding: var(--s-7) 0 var(--s-2);
+    border-top: 1px solid var(--line);
+  }
+  .band-head {
     display: flex;
-    gap: 0.5rem;
-    margin-top: 1.5rem;
-    max-width: 34rem;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s-2) var(--s-6);
+    margin-bottom: var(--s-5);
   }
-  .lib-search input {
-    flex: 1;
-  }
-  .cat-grid {
-    list-style: none;
-    padding: 0;
+  .band-head h2 {
+    font-size: var(--t-2xl);
     margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
   }
-  .cat-grid a {
-    display: grid;
-    align-content: start;
-    gap: 0.35rem;
-    height: 100%;
-    padding: 1.1rem 1.2rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--bg);
-    color: var(--ink);
-    text-decoration: none;
-    position: relative;
-  }
-  .cat-grid a:hover {
-    border-color: var(--accent);
-  }
-  .cat-grid strong {
-    font-family: var(--font-display);
-    font-stretch: 112%;
-    font-size: 1.05rem;
-    padding-right: 2.5rem;
-  }
-  .cat-grid .cat-cta {
-    border-style: dashed;
-    background: transparent;
-  }
-  .cat-grid .cat-cta strong::after {
-    content: ' →';
-    color: var(--accent);
-  }
-  .cat-count {
-    position: absolute;
-    top: 1rem;
-    right: 1.1rem;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    color: var(--accent);
-  }
-  .cat-blurb {
-    font-size: 0.9rem;
-    color: var(--ink-2);
-  }
-  .cat-top {
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 0.35rem;
-  }
-
-  /* Tools */
-  .tool-grid,
-  .ref-grid {
-    list-style: none;
-    padding: 0;
+  .band-head p {
     margin: 0;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-  }
-  .tool-grid a,
-  .ref-grid a {
-    display: grid;
-    align-content: start;
-    gap: 0.4rem;
-    height: 100%;
-    padding: 1.1rem 1.2rem 1.25rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .tool-grid a:hover,
-  .ref-grid a:hover {
-    border-color: var(--accent);
-  }
-  .tool-grid strong,
-  .ref-grid strong {
-    font-family: var(--font-display);
-    font-stretch: 112%;
-    font-size: 1.08rem;
-  }
-  .tool-grid a > span:last-child,
-  .ref-grid a > span:last-child {
-    font-size: 0.9rem;
     color: var(--ink-2);
+    max-width: 44rem;
+  }
+  .start-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: var(--s-5);
+    align-items: start;
+  }
+  .start-cards {
+    --card-min: 230px;
+  }
+  .feature-cards {
+    --card-min: 300px;
+  }
+  .feature-cards .card-title {
+    font-size: var(--t-lg);
   }
   .demo {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.7rem;
-    margin-bottom: 0.5rem;
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    border: 1px solid var(--line);
-    font-size: 0.82rem;
-    min-height: 3.6rem;
+    gap: var(--s-1) var(--s-2);
+    margin-bottom: var(--s-2);
+    font-size: var(--t-xs);
   }
   .demo code {
-    background: none;
-    padding: 0;
-    font-weight: 700;
+    background: var(--bg);
+    border: 1px solid var(--line);
   }
-  .demo-in {
-    color: var(--accent);
-  }
-  .demo-out {
+  .demo .out {
     color: var(--data);
   }
   .arrow {
     color: var(--muted);
   }
-
-  /* Try it */
-  .split {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: clamp(2rem, 5vw, 4.5rem);
-    align-items: center;
-  }
-  .split .chapter-head {
-    margin-bottom: 0;
-  }
-  .split .chapter-lede {
-    margin-bottom: 1.5rem;
-  }
-  .fake-anno,
-  .inst-card {
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface);
-    padding: 1rem 1.1rem;
-    box-shadow: var(--shadow);
-    font-size: 0.92rem;
-  }
-  .fa-head {
-    font-weight: 700;
-    margin: 0 0 0.4rem;
-  }
-  .fa-head span:last-child {
-    font-weight: 400;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
-  .fake-anno .swatch {
-    display: inline-block;
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 2px;
-    margin-right: 0.4rem;
-    background: hsl(172 62% 50%);
-  }
-  .fake-anno div {
-    display: grid;
-    grid-template-columns: 2.6rem 6rem minmax(0, 1fr);
-    gap: 0.6rem;
-    align-items: baseline;
-    border-top: 1px solid var(--line);
-    padding: 0.45rem 0;
-  }
-  .fake-anno span {
-    color: var(--ink-2);
-  }
-  .fa-d {
-    color: var(--muted);
-    font-weight: 700;
-  }
-  .fa-s {
-    color: var(--accent);
-    font-weight: 700;
-  }
-  .fa-v {
-    color: var(--data);
-    font-weight: 700;
-  }
-  .mini-keys {
-    display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    gap: 2px;
-    height: 90px;
-    margin-bottom: 0.9rem;
-  }
-  .mini-keys span {
-    background: #fbfaf6;
-    border: 1px solid var(--line-strong);
-    border-radius: 0 0 4px 4px;
-  }
-  .mini-keys span.on {
-    background: var(--accent-soft);
-    box-shadow: inset 0 -5px 0 var(--accent);
-  }
-  .inst-chips {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .lib-search {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
+    gap: var(--s-2);
+    max-width: 34rem;
+    margin-bottom: var(--s-4);
   }
-  .inst-chips li {
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    padding: 0.15rem 0.65rem;
-    font-size: 0.82rem;
+  .cat-cards,
+  .more-cards {
+    --card-min: 330px;
+  }
+  .more {
+    border-top: 0;
+    padding-top: var(--s-5);
+  }
+  .more-cards .card {
     background: var(--bg);
-  }
-
-  /* Reference */
-  .ref-kicker {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    color: var(--accent);
-    margin-bottom: 0.4rem;
-  }
-
-  @media (max-width: 1080px) {
-    .tool-grid,
-    .ref-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+    border-style: dashed;
   }
   @media (max-width: 900px) {
     .hero,
-    .split,
-    .protocol-grid {
+    .start-grid {
       grid-template-columns: minmax(0, 1fr);
-    }
-    .qr {
-      position: static;
-    }
-    .chapters ol {
-      display: flex;
-      overflow-x: auto;
-      gap: 1.25rem;
-      scrollbar-width: none;
-    }
-    .chapters a {
-      white-space: nowrap;
-    }
-  }
-  @media (max-width: 720px) {
-    /* The site header wraps to two rows here, so the strip stops being sticky. */
-    .chapters {
-      position: static;
     }
   }
   @media (max-width: 600px) {
-    .cat-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.6rem;
+    .band {
+      padding-top: var(--s-6);
     }
-    .cat-grid a {
-      padding: 0.8rem 0.85rem;
-    }
-    .cat-grid strong {
-      font-size: 0.95rem;
-      padding-right: 1.75rem;
-    }
-    .cat-count {
-      top: 0.8rem;
-      right: 0.8rem;
-      font-size: 0.85rem;
-    }
-    .cat-blurb,
-    .cat-top {
+    .start-cards .card-text,
+    .cat-cards .card-meta {
       display: none;
     }
-    .groups,
-    .tool-grid,
-    .ref-grid {
-      grid-template-columns: minmax(0, 1fr);
+    .start-cards,
+    .cat-cards {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-2);
+    }
+    .start-cards .card,
+    .cat-cards .card {
+      padding: var(--s-3);
     }
   }
 </style>

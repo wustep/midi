@@ -1,0 +1,171 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+import TempoCalc from '../../components/TempoCalc.astro';
+---
+
+<Doc
+  title="Timing & Sync"
+  slug="timing"
+  specs={[
+    { label: 'MIDI 1.0 Detailed Specification', href: 'https://midi.org/specs' },
+    { label: 'Standard MIDI Files', href: 'https://midi.org/standard-midi-files-specification' },
+  ]}
+>
+  <p class="lede">
+    MIDI handles time in two ways. Files store musical time as ticks, converted to seconds through a tempo map. Live
+    systems sync through a stream of clock messages (tempo-relative) or MIDI Time Code (absolute, SMPTE-based).
+  </p>
+
+  <h2 id="ticks">Ticks, PPQ and tempo</h2>
+  <p>
+    A Standard MIDI File's header sets the <strong>division</strong>, usually as <strong>PPQ</strong> (pulses or
+    ticks per quarter note). Common values are 96, 480, and 960. Every event's delta-time counts ticks. Tempo is
+    stored separately, in <strong>microseconds per quarter note</strong>, by the
+    <a href="/docs/smf/#meta-events">Set Tempo meta event</a> <span class="b b-m">FF 51 03</span>. With no tempo
+    event, assume 500,000 µs (120 BPM).
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Quantity</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>BPM</td><td><code>60,000,000 / µsPerQuarter</code></td></tr>
+        <tr><td>µs per quarter</td><td><code>60,000,000 / BPM</code></td></tr>
+        <tr><td>ms per tick</td><td><code>µsPerQuarter / PPQ / 1000</code></td></tr>
+        <tr><td>seconds for <i>n</i> ticks</td><td><code>n × µsPerQuarter / PPQ / 1,000,000</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Example: at 120 BPM (500,000 µs) and 480 PPQ, one tick lasts 500,000 / 480 / 1000 ≈ 1.042 ms. A tempo change
+    affects only the ticks after it, so finding absolute time means walking the tempo map and summing each segment.
+  </p>
+  <Callout title="BPM means quarter notes">
+    <p>
+      MIDI tempo is always defined per quarter note, whatever the time signature. In 6/8, a "dotted-quarter = 80" feel
+      is a MIDI tempo of 120 quarter notes per minute.
+    </p>
+  </Callout>
+
+  <TempoCalc />
+
+  <h3 id="smpte-division">SMPTE-based division</h3>
+  <p>
+    A file can use absolute time instead of PPQ. When bit 15 of the division word is set, the high byte is a negative
+    frame rate in two's complement (<code>E8</code> = −24, <code>E7</code> = −25, <code>E3</code> = −29 for 29.97 drop
+    frame, <code>E2</code> = −30) and the low byte is ticks per frame. <code>E7 28</code> (25 fps × 40 ticks) gives
+    exactly 1 ms per tick. Tempo events do not affect timing in this mode.
+  </p>
+
+  <h2 id="clock">MIDI Clock</h2>
+  <p>
+    MIDI Clock is a tempo-following pulse. A leader sends <span class="b b-s">F8</span> (Timing Clock) at
+    <strong>24 pulses per quarter note</strong>. Followers derive tempo from the spacing between pulses. There is no
+    tempo value in the stream, so tempo changes appear as changes in pulse spacing.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Status</th><th>Name</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><span class="b b-s">F8</span></td><td>Timing Clock</td><td>24 per quarter note while the leader runs. Many devices send it even while stopped, so followers can show tempo.</td></tr>
+        <tr><td><span class="b b-s">FA</span></td><td>Start</td><td>Start from the beginning (song position 0). The first <code>F8</code> after Start marks the first beat.</td></tr>
+        <tr><td><span class="b b-s">FB</span></td><td>Continue</td><td>Resume from the current song position, for example one just set by SPP. Also begins at the next clock.</td></tr>
+        <tr><td><span class="b b-s">FC</span></td><td>Stop</td><td>Stop. The follower keeps its position so a later Continue resumes there.</td></tr>
+        <tr><td><span class="b b-s">F2</span> <span class="b b-d">ll</span> <span class="b b-d">mm</span></td><td>Song Position Pointer</td><td>Sets the position in MIDI beats. Send while stopped.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    These are <a href="/docs/messages/#system-real-time">System Real-Time</a> messages. They are a single byte and may
+    appear anywhere, even between the bytes of another message.
+  </p>
+
+  <h3 id="spp">Song Position Pointer</h3>
+  <p>
+    SPP is a 14-bit value, LSB first, counting <strong>MIDI beats</strong>. One MIDI beat is a sixteenth note, which is
+    6 clocks. The maximum, 16,383 sixteenths, is just under 1,024 bars of 4/4.
+  </p>
+  <pre><code>position (16ths) = ll | (mm &lt;&lt; 7)
+clocks from start = position × 6
+F2 20 00  →  32 sixteenths  →  bar 3, beat 1 in 4/4</code></pre>
+  <p>
+    The usual way to locate: <code>FC</code> (Stop), <code>F2 ll mm</code>, then <code>FB</code> (Continue). Allow the
+    follower time to seek before sending clocks.
+  </p>
+
+  <h3 id="jitter">Jitter and latency</h3>
+  <p>
+    At 120 BPM, clocks arrive every 20.8 ms. Followers usually smooth the incoming intervals (moving average or a
+    phase-locked loop) instead of reacting to each pulse, because USB scheduling, OS timers and merges add jitter. If
+    tight sync matters, use a dedicated hardware clock source, avoid long chains of MIDI Thru, and compensate for
+    fixed latency on the follower. On a network, <a href="https://github.com/Ableton/link">Ableton Link</a> is a common
+    alternative.
+  </p>
+
+  <h2 id="mtc">MIDI Time Code</h2>
+  <p>
+    MIDI Time Code (MTC) carries absolute SMPTE time (hours:minutes:seconds:frames), used to lock MIDI devices to
+    video, tape and other timecode-driven systems. It is independent of tempo.
+  </p>
+
+  <h3 id="quarter-frame">Quarter-frame messages</h3>
+  <p>
+    While running, the leader sends <span class="b b-s">F1</span> <span class="b b-d">0nnn dddd</span> four times per
+    frame. <code>nnn</code> is the piece number (0–7) and <code>dddd</code> a 4-bit nibble:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Piece</th><th>Data byte</th><th>Carries</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td><code>0000 ffff</code></td><td>Frames, low nibble</td></tr>
+        <tr><td>1</td><td><code>0001 000f</code></td><td>Frames, high bit</td></tr>
+        <tr><td>2</td><td><code>0010 ssss</code></td><td>Seconds, low nibble</td></tr>
+        <tr><td>3</td><td><code>0011 00ss</code></td><td>Seconds, high 2 bits</td></tr>
+        <tr><td>4</td><td><code>0100 mmmm</code></td><td>Minutes, low nibble</td></tr>
+        <tr><td>5</td><td><code>0101 00mm</code></td><td>Minutes, high 2 bits</td></tr>
+        <tr><td>6</td><td><code>0110 hhhh</code></td><td>Hours, low nibble</td></tr>
+        <tr><td>7</td><td><code>0111 0rrh</code></td><td>Hours, high bit (<code>h</code>) and frame rate (<code>rr</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th><code>rr</code></th><th>Frame rate</th></tr></thead>
+      <tbody>
+        <tr><td><code>00</code></td><td>24 fps (film)</td></tr>
+        <tr><td><code>01</code></td><td>25 fps (PAL/EBU)</td></tr>
+        <tr><td><code>10</code></td><td>29.97 fps drop-frame (NTSC)</td></tr>
+        <tr><td><code>11</code></td><td>30 fps non-drop</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Eight quarter frames, so <strong>two frames</strong>, make one complete time value. When piece 7 arrives, the
+    assembled time is the time at which piece 0 was sent. A receiver must add 2 frames to get current time. In reverse
+    playback the pieces arrive 7→0.
+  </p>
+
+  <h3 id="full-frame">Full-frame message</h3>
+  <p>When locating, rewinding, or jumping, a full time stamp is sent at once as Universal Real-Time SysEx:</p>
+  <pre><code><span class="b b-s">F0</span> <span class="b b-m">7F</span> <span class="b b-d">7F</span> <span class="b b-d">01 01</span> <span class="b b-d">hh mm ss ff</span> <span class="b b-s">F7</span></code></pre>
+  <p>
+    <code>hh</code> is <code>0rrhhhhh</code>, with the rate bits as above and the hour in the low 5 bits. The other bytes
+    hold minutes (0–59), seconds (0–59), and frames.
+  </p>
+
+  <h3 id="drop-frame">Drop-frame timecode</h3>
+  <p>
+    NTSC video runs at 30000/1001 ≈ 29.97 fps. Drop-frame timecode keeps the displayed time close to wall-clock time
+    by skipping frame <em>numbers</em> 00 and 01 at the start of every minute, except minutes divisible by 10. No
+    video frames are dropped, only labels. 29.97 non-drop also exists in video, but MTC has no code for it. It is
+    usually sent with the 30 fps code and runs 0.1% slow.
+  </p>
+
+  <h2 id="active-sensing">Aside: Active Sensing</h2>
+  <p>
+    <span class="b b-s">FE</span> Active Sensing is not a timing message, but it belongs to the same Real-Time family.
+    It is optional. Once a receiver has seen one, it expects a message of some kind at least every 300 ms. If none
+    arrives, it assumes the cable was pulled and turns off all voices. Most software filters <code>FE</code> out of
+    its monitors.
+  </p>
+</Doc>

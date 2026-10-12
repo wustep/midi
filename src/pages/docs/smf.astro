@@ -1,0 +1,266 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+import VlqTool from '../../components/VlqTool.astro';
+
+const vlqExamples = [
+  ['00000000', '00'],
+  ['00000040', '40'],
+  ['0000007F', '7F'],
+  ['00000080', '81 00'],
+  ['00002000', 'C0 00'],
+  ['00003FFF', 'FF 7F'],
+  ['00004000', '81 80 00'],
+  ['00100000', 'C0 80 00'],
+  ['001FFFFF', 'FF FF 7F'],
+  ['00200000', '81 80 80 00'],
+  ['08000000', 'C0 80 80 00'],
+  ['0FFFFFFF', 'FF FF FF 7F'],
+];
+
+const metas = [
+  ['00', '02', 'Sequence Number', 'ssss: 16-bit sequence number. At the start of a track, before any nonzero delta.'],
+  ['01', 'len', 'Text', 'Any text. Annotations, comments.'],
+  ['02', 'len', 'Copyright Notice', 'Should be the first event in the first track.'],
+  ['03', 'len', 'Sequence / Track Name', 'In track 1 of format 1 (or the only track of format 0): the sequence name. Elsewhere: the track name.'],
+  ['04', 'len', 'Instrument Name', 'Describes the instrumentation for the track.'],
+  ['05', 'len', 'Lyric', 'A syllable or lyric, usually one per note.'],
+  ['06', 'len', 'Marker', 'Rehearsal letters, section names ("Verse", "Chorus").'],
+  ['07', 'len', 'Cue Point', 'Something happening on stage or film at this point.'],
+  ['08', 'len', 'Program Name', 'Name of the patch used by the following program changes (RP-019).'],
+  ['09', 'len', 'Device Name', 'Name of the device/port this track is meant for (RP-019).'],
+  ['20', '01', 'MIDI Channel Prefix', 'cc: following meta/sysex events in this track relate to channel cc (0–15).'],
+  ['21', '01', 'MIDI Port', 'pp: output port number. Widely used but never formally adopted; prefer Device Name.'],
+  ['2F', '00', 'End of Track', 'Required. Must be the last event in every track.'],
+  ['51', '03', 'Set Tempo', 'tt tt tt: microseconds per quarter note, 24-bit big-endian.'],
+  ['54', '05', 'SMPTE Offset', 'hr mn se fr ff: SMPTE time at which the track starts. hr includes the frame-rate bits as in MTC.'],
+  ['58', '04', 'Time Signature', 'nn dd cc bb: see below.'],
+  ['59', '02', 'Key Signature', 'sf mi: sf = −7…+7 flats/sharps (signed byte), mi = 0 major, 1 minor.'],
+  ['7F', 'len', 'Sequencer-Specific', 'Manufacturer ID first, then proprietary data. Equivalent of SysEx for files.'],
+];
+
+// Annotated hexdump of a tiny format-0 file: one middle C at 120 BPM, 96 PPQ.
+const dump: [string, string][] = [
+  ['4D 54 68 64', '"MThd" chunk ID'],
+  ['00 00 00 06', 'Header length: 6'],
+  ['00 00', 'Format 0'],
+  ['00 01', '1 track'],
+  ['00 60', 'Division: 96 ticks per quarter note'],
+  ['4D 54 72 6B', '"MTrk" chunk ID'],
+  ['00 00 00 1E', 'Track length: 30 bytes'],
+  ['00 FF 51 03 07 A1 20', 'Δ0 · Set Tempo 500,000 µs/qn (120 BPM)'],
+  ['00 FF 58 04 04 02 18 08', 'Δ0 · Time Signature 4/4, 24 clocks/click, 8 32nds/qn'],
+  ['00 C0 00', 'Δ0 · Program Change, channel 1, program 0 (Acoustic Grand Piano)'],
+  ['00 90 3C 64', 'Δ0 · Note On, channel 1, note 60 (C4), velocity 100'],
+  ['60 80 3C 40', 'Δ96 · Note Off, channel 1, note 60, velocity 64 (one quarter note later)'],
+  ['00 FF 2F 00', 'Δ0 · End of Track'],
+];
+---
+
+<Doc
+  title="Standard MIDI Files"
+  slug="smf"
+  specs={[{ label: 'Standard MIDI Files 1.0', href: 'https://midi.org/standard-midi-files-specification' }]}
+>
+  <p class="lede">
+    A <code>.mid</code> file is a sequence of chunks. Its tracks hold MIDI messages, each stamped with a delta time,
+    plus meta events for tempo, meter, names and markers. The format is compact, big-endian, and simple to parse.
+  </p>
+
+  <h2 id="chunks">Chunks</h2>
+  <p>Every chunk has the same 8-byte preamble:</p>
+  <pre><code>type    4 ASCII bytes   "MThd" or "MTrk"
+length  32-bit big-endian byte count of the data that follows
+data    length bytes</code></pre>
+  <p>
+    A file is one <code>MThd</code> header chunk followed by one or more <code>MTrk</code> track chunks. Readers must
+    skip chunk types they do not recognize by using the length. That rule is how the format stays extensible.
+  </p>
+
+  <h2 id="header">Header chunk: MThd</h2>
+  <pre><code>4D 54 68 64   00 00 00 06   <span class="b b-d">ffff</span>   <span class="b b-d">nnnn</span>   <span class="b b-d">dddd</span>
+"MThd"        length 6      format ntrks  division</code></pre>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>Size</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>format</td><td>16 bits</td><td>
+          <strong>0</strong>: a single multi-channel track.
+          <strong>1</strong>: one or more simultaneous tracks; by convention, track 1 holds the tempo map.
+          <strong>2</strong>: one or more independent single-track patterns (rare).
+        </td></tr>
+        <tr><td>ntrks</td><td>16 bits</td><td>Number of track chunks. Always 1 for format 0.</td></tr>
+        <tr><td>division</td><td>16 bits</td><td>See below.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Header length is 6 today, but a reader should honor a larger length and skip the extra bytes.
+  </p>
+
+  <h3 id="division">Division</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Bit 15</th><th>Bits 14–8</th><th>Bits 7–0</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>0</code></td><td colspan="2">ticks per quarter note (15 bits)</td><td>Musical time (PPQ). Most files. Tempo comes from Set Tempo events.</td></tr>
+        <tr><td><code>1</code></td><td>negative SMPTE format: −24, −25, −29, −30</td><td>ticks per frame</td><td>Absolute time. −29 means 29.97 fps drop-frame. E.g. <code>E7 28</code> = 25 fps × 40 = 1 ms ticks.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>See <a href="/docs/timing/">Timing &amp; Sync</a> for converting ticks to seconds.</p>
+
+  <h2 id="tracks">Track chunks: MTrk</h2>
+  <p>A track is a stream of events, each prefixed by a delta time:</p>
+  <pre><code>&lt;MTrk event&gt; = &lt;delta-time&gt; &lt;event&gt;
+&lt;event&gt;      = &lt;MIDI event&gt; | &lt;sysex event&gt; | &lt;meta event&gt;</code></pre>
+  <p>
+    The <strong>delta time</strong> is the number of ticks since the previous event in the same track (or since the
+    start of the track), encoded as a variable-length quantity. Simultaneous events have a delta of 0.
+  </p>
+  <ul>
+    <li>
+      <strong>MIDI events</strong> are ordinary <a href="/docs/messages/">channel messages</a>. System Real-Time and
+      System Common messages are not stored as MIDI events. Use SysEx escapes if you really need them.
+    </li>
+    <li>
+      <strong>Running status</strong> is allowed and common: if an event starts with a data byte (&lt; <code>80</code>),
+      reuse the previous channel status. Meta and SysEx events cancel running status.
+    </li>
+    <li>Every track must end with an End of Track meta event, <code>FF 2F 00</code>.</li>
+  </ul>
+
+  <h2 id="vlq">Variable-length quantities</h2>
+  <p>
+    Delta times and some lengths use a <strong>VLQ</strong>: the number is split into 7-bit groups, most significant
+    first. Every byte except the last has bit 7 set. The largest allowed value is <code>0FFFFFFF</code>, so a VLQ is at
+    most 4 bytes.
+  </p>
+  <pre><code>decode:  value = 0
+         repeat: b = next byte; value = (value &lt;&lt; 7) | (b &amp; 0x7F)
+         until (b &amp; 0x80) == 0</code></pre>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Value (hex)</th><th>VLQ bytes</th></tr></thead>
+      <tbody>
+        {
+          vlqExamples.map(([v, b]) => (
+            <tr>
+              <td><code>{v}</code></td>
+              <td><code>{b}</code></td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <VlqTool />
+
+  <h2 id="sysex-events">SysEx events</h2>
+  <p>Files frame SysEx with a VLQ length instead of relying on the trailing <code>F7</code>:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Form</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="b b-m">F0</span> <code>len</code> <code>bytes</code></td>
+          <td>
+            A SysEx message. <code>bytes</code> is everything after the <code>F0</code>, including the final
+            <code>F7</code> if the message is complete. If the <code>F7</code> is missing, more packets follow.
+          </td>
+        </tr>
+        <tr>
+          <td><span class="b b-m">F7</span> <code>len</code> <code>bytes</code></td>
+          <td>
+            An "escape": <code>bytes</code> are sent to the output as-is. Used for continuation packets of a split
+            SysEx (with their own timing), or for arbitrary bytes like System Real-Time or Song Position messages.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Example: GM System On stored in a file is <code>00 F0 05 7E 7F 09 01 F7</code> (delta 0, F0, length 5, then 5
+    bytes).
+  </p>
+
+  <h2 id="meta-events">Meta events</h2>
+  <p>
+    Meta events hold non-MIDI information: <span class="b b-m">FF</span> <code>type</code> <code>len</code>
+    <code>data</code>, where <code>len</code> is a VLQ. They are never sent to a MIDI port. (On the wire,
+    <code>FF</code> means System Reset.) Readers must skip unknown meta types by length.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Length</th><th>Name</th><th>Data</th></tr></thead>
+      <tbody>
+        {
+          metas.map(([t, l, n, d]) => (
+            <tr>
+              <td><span class="b b-m">FF {t}</span></td>
+              <td><code>{l}</code></td>
+              <td>{n}</td>
+              <td>{d}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Text events (<code>01</code>–<code>0F</code>) have no defined encoding. Old files are often Latin-1 or Shift-JIS.
+    Newer files tend to be UTF-8, and RP-026 lets a file declare its encoding.
+  </p>
+
+  <h3 id="time-signature">Time signature: FF 58 04 nn dd cc bb</h3>
+  <ul>
+    <li><code>nn</code>: numerator.</li>
+    <li><code>dd</code>: denominator as a power of two (2 = quarter, 3 = eighth). 6/8 is <code>06 03</code>.</li>
+    <li><code>cc</code>: MIDI clocks per metronome click (24 = every quarter note; 36 = every dotted quarter).</li>
+    <li><code>bb</code>: number of notated 32nd notes per MIDI quarter note (normally 8).</li>
+  </ul>
+  <p>4/4 with a click every quarter: <code>FF 58 04 04 02 18 08</code>.</p>
+
+  <h3 id="tempo">Set tempo: FF 51 03 tt tt tt</h3>
+  <p>
+    Microseconds per quarter note. <code>07 A1 20</code> = 500,000 µs = 120 BPM. In format 1, tempo events belong in
+    the first track. Default when absent: 120 BPM.
+  </p>
+
+  <h2 id="hexdump">A complete file, byte by byte</h2>
+  <p>
+    The smallest useful file: format 0, 96 PPQ, one quarter-note middle C at 120 BPM. 52 bytes in total: a 14-byte
+    header chunk and a track chunk with 8 bytes of preamble and 30 bytes of events.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Bytes</th><th>Meaning</th></tr></thead>
+      <tbody>
+        {
+          dump.map(([b, m]) => (
+            <tr>
+              <td><code>{b}</code></td>
+              <td>{m}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The Note Off could also be written <code>60 3C 00</code> with running status, reusing the
+    <code>90</code> status: a Note On with velocity 0 means Note Off. That makes the track 29 bytes and its length
+    <code>00 00 00 1D</code>.
+  </p>
+
+  <Callout type="warn" title="Parsing pitfalls">
+    <ul>
+      <li>Trust chunk lengths, but guard against files whose last track is truncated or whose length is wrong.</li>
+      <li>Handle running status, and remember Note On with velocity 0 is a Note Off.</li>
+      <li>Pair overlapping Note On / Note Off events for the same key and channel by first-in, first-out.</li>
+      <li>Tempo changes in format 1 apply to all tracks. Build one merged tempo map before converting ticks to seconds.</li>
+      <li>RIFF-wrapped files (<code>.rmi</code>) contain a normal SMF inside a <code>RIFF</code>/<code>RMID</code> <code>data</code> chunk.</li>
+    </ul>
+  </Callout>
+</Doc>

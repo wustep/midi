@@ -1,0 +1,297 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+
+type Kind = 'msb' | 'lsb' | 'switch' | 'value' | 'undefined' | 'mode' | 'param';
+interface Row {
+  n: number;
+  to?: number;
+  name: string;
+  kind: Kind;
+  note?: string;
+}
+
+const msbNames: Record<number, string> = {
+  0: 'Bank Select',
+  1: 'Modulation Wheel',
+  2: 'Breath Controller',
+  4: 'Foot Controller',
+  5: 'Portamento Time',
+  6: 'Data Entry',
+  7: 'Channel Volume',
+  8: 'Balance',
+  10: 'Pan',
+  11: 'Expression Controller',
+  12: 'Effect Control 1',
+  13: 'Effect Control 2',
+  16: 'General Purpose Controller 1',
+  17: 'General Purpose Controller 2',
+  18: 'General Purpose Controller 3',
+  19: 'General Purpose Controller 4',
+};
+
+const rows: Row[] = [
+  { n: 0, name: 'Bank Select (MSB)', kind: 'msb', note: 'Takes effect at the next Program Change.' },
+  { n: 1, name: 'Modulation Wheel (MSB)', kind: 'msb', note: 'Usually vibrato depth.' },
+  { n: 2, name: 'Breath Controller (MSB)', kind: 'msb' },
+  { n: 3, name: 'Undefined (MSB)', kind: 'undefined' },
+  { n: 4, name: 'Foot Controller (MSB)', kind: 'msb' },
+  { n: 5, name: 'Portamento Time (MSB)', kind: 'msb' },
+  { n: 6, name: 'Data Entry (MSB)', kind: 'msb', note: 'Value for the selected RPN/NRPN.' },
+  { n: 7, name: 'Channel Volume (MSB)', kind: 'msb', note: 'GM default 100.' },
+  { n: 8, name: 'Balance (MSB)', kind: 'msb', note: '64 = center.' },
+  { n: 9, name: 'Undefined (MSB)', kind: 'undefined' },
+  { n: 10, name: 'Pan (MSB)', kind: 'msb', note: '0 = hard left, 64 = center, 127 = hard right.' },
+  { n: 11, name: 'Expression Controller (MSB)', kind: 'msb', note: 'A fraction of channel volume; GM default 127.' },
+  { n: 12, name: 'Effect Control 1 (MSB)', kind: 'msb' },
+  { n: 13, name: 'Effect Control 2 (MSB)', kind: 'msb' },
+  { n: 14, to: 15, name: 'Undefined (MSB)', kind: 'undefined' },
+  { n: 16, to: 19, name: 'General Purpose Controllers 1–4 (MSB)', kind: 'msb' },
+  { n: 20, to: 31, name: 'Undefined (MSB)', kind: 'undefined' },
+  { n: 32, to: 63, name: 'LSB for controllers 0–31', kind: 'lsb', note: 'CC n+32 is the low 7 bits of CC n (see below).' },
+  { n: 64, name: 'Damper Pedal (Sustain)', kind: 'switch' },
+  { n: 65, name: 'Portamento On/Off', kind: 'switch' },
+  { n: 66, name: 'Sostenuto', kind: 'switch' },
+  { n: 67, name: 'Soft Pedal', kind: 'switch' },
+  { n: 68, name: 'Legato Footswitch', kind: 'switch' },
+  { n: 69, name: 'Hold 2', kind: 'switch' },
+  { n: 70, name: 'Sound Controller 1: Sound Variation', kind: 'value' },
+  { n: 71, name: 'Sound Controller 2: Timbre / Harmonic Intensity', kind: 'value', note: 'Often filter resonance.' },
+  { n: 72, name: 'Sound Controller 3: Release Time', kind: 'value' },
+  { n: 73, name: 'Sound Controller 4: Attack Time', kind: 'value' },
+  { n: 74, name: 'Sound Controller 5: Brightness', kind: 'value', note: 'Often filter cutoff. MPE uses it as the "Y" axis (timbre).' },
+  { n: 75, name: 'Sound Controller 6: Decay Time', kind: 'value' },
+  { n: 76, name: 'Sound Controller 7: Vibrato Rate', kind: 'value' },
+  { n: 77, name: 'Sound Controller 8: Vibrato Depth', kind: 'value' },
+  { n: 78, name: 'Sound Controller 9: Vibrato Delay', kind: 'value' },
+  { n: 79, name: 'Sound Controller 10', kind: 'value', note: 'No default meaning.' },
+  { n: 80, to: 83, name: 'General Purpose Controllers 5–8', kind: 'value' },
+  { n: 84, name: 'Portamento Control', kind: 'value', note: 'Source note number for the next note’s glide.' },
+  { n: 85, to: 87, name: 'Undefined', kind: 'undefined' },
+  { n: 88, name: 'High Resolution Velocity Prefix', kind: 'value', note: 'Low 7 bits of the velocity of the next Note On/Off.' },
+  { n: 89, to: 90, name: 'Undefined', kind: 'undefined' },
+  { n: 91, name: 'Effects 1 Depth (Reverb Send)', kind: 'value', note: 'Formerly "External Effects Depth".' },
+  { n: 92, name: 'Effects 2 Depth (Tremolo)', kind: 'value' },
+  { n: 93, name: 'Effects 3 Depth (Chorus Send)', kind: 'value' },
+  { n: 94, name: 'Effects 4 Depth (Celeste / Detune)', kind: 'value' },
+  { n: 95, name: 'Effects 5 Depth (Phaser)', kind: 'value' },
+  { n: 96, name: 'Data Increment', kind: 'param', note: 'Value byte is ignored (send 0).' },
+  { n: 97, name: 'Data Decrement', kind: 'param', note: 'Value byte is ignored (send 0).' },
+  { n: 98, name: 'Non-Registered Parameter Number (NRPN) LSB', kind: 'param' },
+  { n: 99, name: 'Non-Registered Parameter Number (NRPN) MSB', kind: 'param' },
+  { n: 100, name: 'Registered Parameter Number (RPN) LSB', kind: 'param' },
+  { n: 101, name: 'Registered Parameter Number (RPN) MSB', kind: 'param' },
+  { n: 102, to: 119, name: 'Undefined', kind: 'undefined' },
+  { n: 120, name: 'All Sound Off', kind: 'mode', note: 'Value 0. Silence immediately, including release tails.' },
+  { n: 121, name: 'Reset All Controllers', kind: 'mode', note: 'Value 0. See RP-015 for what gets reset.' },
+  { n: 122, name: 'Local Control On/Off', kind: 'mode', note: '0 = off, 127 = on.' },
+  { n: 123, name: 'All Notes Off', kind: 'mode', note: 'Value 0. Notes held by sustain keep sounding until the pedal is released.' },
+  { n: 124, name: 'Omni Mode Off', kind: 'mode', note: 'Value 0. Also acts as All Notes Off.' },
+  { n: 125, name: 'Omni Mode On', kind: 'mode', note: 'Value 0. Also acts as All Notes Off.' },
+  { n: 126, name: 'Mono Mode On (Poly Off)', kind: 'mode', note: 'Value = number of channels (0 = as many as voices). Also acts as All Notes Off.' },
+  { n: 127, name: 'Poly Mode On (Mono Off)', kind: 'mode', note: 'Value 0. Also acts as All Notes Off.' },
+];
+
+const kindLabel: Record<Kind, string> = {
+  msb: '14-bit MSB',
+  lsb: '14-bit LSB',
+  switch: 'Switch',
+  value: '7-bit',
+  undefined: 'Undefined',
+  mode: 'Channel mode',
+  param: 'Parameter',
+};
+
+const hex = (n: number) => '0x' + n.toString(16).toUpperCase().padStart(2, '0');
+const lsbExamples = Object.entries(msbNames).map(([n, name]) => ({ msb: Number(n), lsb: Number(n) + 32, name }));
+---
+
+<Doc
+  title="Control Change"
+  slug="control-change"
+  description="Complete MIDI 1.0 Control Change reference: all 128 controller numbers, 14-bit MSB/LSB pairs, switch controllers, and channel mode messages."
+  specs={[
+    { label: 'MIDI 1.0 Core Specifications', href: 'https://midi.org/midi-1-0-core-specifications' },
+    { label: 'All specs', href: 'https://midi.org/specs' },
+  ]}
+>
+  <p class="lede">
+    A Control Change message is <span class="b b-s">Bn</span>&nbsp;<span class="b b-d">cc</span>&nbsp;<span class="b b-d"
+      >vv</span
+    >: controller number <code>cc</code> set to value <code>vv</code> on channel <code>n</code>. Controllers 0–119 are
+    sound and performance controls. Controllers 120–127 are reserved for channel mode messages.
+  </p>
+
+  <h2 id="types">Kinds of controller</h2>
+  <ul>
+    <li>
+      <strong>14-bit pairs (0–31 with 32–63).</strong> CC <em>n</em> carries the 7-bit MSB and CC <em>n</em>+32 carries the
+      matching LSB.
+    </li>
+    <li>
+      <strong>Switches (64–69).</strong> Values 0–63 mean <em>off</em> and 64–127 mean <em>on</em>. Send 0 and 127.
+      Receivers should test <code>value &gt;= 64</code>. Many modern devices send continuous values for half-pedalling on
+      CC 64.
+    </li>
+    <li><strong>7-bit continuous (70–95).</strong> No LSB partner.</li>
+    <li><strong>Parameter-number controllers (96–101).</strong> These drive <a href="/docs/rpn-nrpn/">RPN and NRPN</a>.</li>
+    <li><strong>Channel mode messages (120–127).</strong> These change how the channel behaves, not a sound parameter.</li>
+  </ul>
+
+  <h2 id="fourteen-bit">14-bit controllers</h2>
+  <p>
+    For more than 128 steps, send the MSB on CC <em>n</em> and then the LSB on CC <em>n</em>+32:
+  </p>
+  <pre><code>value14 = (MSB &lt;&lt; 7) | LSB      // 0 … 16383
+
+B0 01 40    ; Mod wheel MSB = 64
+B0 21 00    ; Mod wheel LSB = 0   → 8192</code></pre>
+  <ul>
+    <li>
+      When a new <strong>MSB</strong> arrives, the receiver should <strong>reset the LSB to 0</strong>. A sender that
+      changes only the coarse value can then send just the MSB.
+    </li>
+    <li>A sender that changes only the LSB can send just the LSB. The receiver keeps the last MSB.</li>
+    <li>
+      Because of these rules, always send <strong>MSB first, then LSB</strong>. Receivers that ignore CC 32–63 still get a
+      usable 7-bit value from the MSB.
+    </li>
+  </ul>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th class="num">MSB</th><th class="num">LSB</th><th>Controller</th></tr>
+      </thead>
+      <tbody>
+        {
+          lsbExamples.map((r) => (
+            <tr>
+              <td class="num">{r.msb}</td>
+              <td class="num">{r.lsb}</td>
+              <td>{r.name}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <Callout title="Bank Select">
+    <p>
+      CC 0 (MSB) and CC 32 (LSB) together form a 14-bit bank number. Nothing changes until the next Program Change. The
+      order is <span class="b b-s">Bn</span>&nbsp;<span class="b b-d">00</span>&nbsp;<span class="b b-d">mm</span>, then
+      <span class="b b-s">Bn</span>&nbsp;<span class="b b-d">20</span>&nbsp;<span class="b b-d">ll</span>, then
+      <span class="b b-s">Cn</span>&nbsp;<span class="b b-d">pp</span>. Some instruments use only the MSB or only the
+      LSB. Check the device's MIDI implementation chart.
+    </p>
+  </Callout>
+
+  <h2 id="reference">Full reference: CC 0–127</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th class="num">CC</th><th>Hex</th><th>Name</th><th>Type</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        {
+          rows.map((r) => (
+            <tr id={`cc-${r.n}`} class:list={[r.kind === 'undefined' && 'undef']}>
+              <td class="num">{r.to !== undefined ? `${r.n}–${r.to}` : r.n}</td>
+              <td>
+                <code>{r.to !== undefined ? `${hex(r.n)}–${hex(r.to)}` : hex(r.n)}</code>
+              </td>
+              <td>{r.name}</td>
+              <td>
+                <span class={`kind kind-${r.kind}`}>{kindLabel[r.kind]}</span>
+              </td>
+              <td>{r.note ?? ''}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>
+    "Undefined" means the MIDI specification assigns no meaning. Hardware and software often use these numbers for
+    MIDI-learn mappings, and that is the safest place to put custom mappings. Some numbers have specific uses in
+    particular ecosystems. GM2, for example, assigns defaults to Sound Controllers 1–10.
+  </p>
+
+  <h2 id="channel-mode">Channel mode messages (120–127)</h2>
+  <p>
+    These eight controllers change how a channel responds to messages. The Omni and Mono/Poly switches (124–127) are
+    normally recognized only on a receiver's <em>basic channel</em>. In multitimbral instruments, each part usually
+    honors All Sound Off, Reset All Controllers, and All Notes Off (120, 121, 123) on its own channel.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Bytes</th><th>Message</th><th>Effect</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">78</span> <span class="b b-d">00</span></td><td>All Sound Off</td><td>Cut all sound at once, including release phases and effect tails where possible.</td></tr>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">79</span> <span class="b b-d">00</span></td><td>Reset All Controllers</td><td>Return performance controllers to their defaults: pitch bend to center, mod wheel to 0, pedals off, pressure to 0, RPN/NRPN to null. Volume, pan, and bank are left alone (RP-015).</td></tr>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">7A</span> <span class="b b-d">00/7F</span></td><td>Local Control</td><td>Off: the keyboard sends MIDI but does not play the internal sound engine. Use it when a DAW echoes MIDI back to the instrument.</td></tr>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">7B</span> <span class="b b-d">00</span></td><td>All Notes Off</td><td>Release all notes that were started by MIDI Note Ons. Notes held by the sustain pedal keep sounding until it is lifted.</td></tr>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">7C</span> <span class="b b-d">00</span></td><td>Omni Off</td><td>Respond only to the basic channel. Also performs All Notes Off.</td></tr>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">7D</span> <span class="b b-d">00</span></td><td>Omni On</td><td>Respond to all channels. Also performs All Notes Off.</td></tr>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">7E</span> <span class="b b-d">mm</span></td><td>Mono On</td><td>One voice per channel across <code>mm</code> channels starting at the basic channel (0 = as many as there are voices). Also performs All Notes Off.</td></tr>
+        <tr><td><span class="b b-s">Bn</span> <span class="b b-d">7F</span> <span class="b b-d">00</span></td><td>Poly On</td><td>Polyphonic operation. Also performs All Notes Off.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="modes">The four modes</h3>
+  <p>The Omni and Mono/Poly switches combine into four receiver modes:</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Mode</th><th>Omni</th><th>Poly/Mono</th><th>Behavior</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>On</td><td>Poly</td><td>Receive on all channels and play them polyphonically as one part.</td></tr>
+        <tr><td>2</td><td>On</td><td>Mono</td><td>Receive on all channels and play one monophonic voice. Rarely used.</td></tr>
+        <tr><td>3</td><td>Off</td><td>Poly</td><td>Receive only on the basic channel, polyphonically. The usual multitimbral default.</td></tr>
+        <tr><td>4</td><td>Off</td><td>Mono</td><td>Each channel plays one monophonic voice. Guitar controllers use this, and it is the ancestor of <a href="/docs/mpe/">MPE</a>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <Callout type="warn" title="Panic buttons">
+    <p>
+      A reliable "panic" sends, on all 16 channels, CC 64 = 0 (release sustain), CC 120 (All Sound Off), CC 123 (All
+      Notes Off), and optionally CC 121. As a last resort it sends a Note Off for every key. Do not count on All Notes Off
+      alone: notes held by the sustain pedal ignore it.
+    </p>
+  </Callout>
+</Doc>
+
+<style>
+  .kind {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.05em 0.4em;
+    border-radius: 4px;
+    white-space: nowrap;
+    background: var(--surface-2);
+    color: var(--ink-2);
+  }
+  .kind-msb,
+  .kind-lsb {
+    background: var(--data-soft);
+    color: var(--data);
+  }
+  .kind-mode {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .kind-param {
+    background: var(--meta-soft);
+    color: var(--meta);
+  }
+  .kind-switch {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  tr.undef td {
+    color: var(--muted);
+  }
+</style>

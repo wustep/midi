@@ -1,0 +1,329 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+import MessageDecoder from '../../components/MessageDecoder.astro';
+---
+
+<Doc
+  title="Messages"
+  slug="messages"
+  description="MIDI 1.0 message reference: status and data bytes, channel voice and mode messages, system common and real-time messages, and running status, with byte-level tables."
+  specs={[
+    { label: 'MIDI 1.0 Core Specifications', href: 'https://midi.org/midi-1-0-core-specifications' },
+    { label: 'All specs', href: 'https://midi.org/specs' },
+  ]}
+>
+  <p class="lede">
+    A MIDI 1.0 stream is a sequence of 8-bit bytes. Each message is one <em>status byte</em> followed by zero, one, or
+    two <em>data bytes</em>. System Exclusive is the one exception: it can carry any number of data bytes.
+  </p>
+
+  <MessageDecoder initial="90 3C 64" />
+
+  <h2 id="status-and-data">Status bytes and data bytes</h2>
+  <p>
+    The most significant bit tells the two kinds of byte apart. Status bytes have the top bit set (<code>0x80</code>–<code
+      >0xFF</code
+    >). Data bytes have it clear (<code>0x00</code>–<code>0x7F</code>), so every data value is 7 bits wide: 0–127.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Byte</th><th>Bits</th><th>Range</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="b b-s">status</span></td>
+          <td><code>1sss nnnn</code></td>
+          <td><code>0x80</code>–<code>0xFF</code></td>
+          <td>
+            For channel messages, the high nibble <code>sss</code> is the message type and the low nibble <code>nnnn</code> is the
+            channel.
+          </td>
+        </tr>
+        <tr>
+          <td><span class="b b-d">data</span></td>
+          <td><code>0vvv vvvv</code></td>
+          <td><code>0x00</code>–<code>0x7F</code></td>
+          <td>Parameter values such as note number, velocity, controller number, or controller value.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Because the two ranges never overlap, a receiver can always resynchronize: whenever it sees a byte with the high bit
+    set, a new message starts.
+  </p>
+
+  <h3 id="channels">Channels</h3>
+  <p>
+    Channel messages carry the channel in the low nibble of the status byte. People count channels 1–16, but the nibble
+    holds 0–15. <span class="b b-s">90</span> is Note On on channel 1 and <span class="b b-s">9F</span> is Note On on
+    channel 16. In tables on this site, <code>n</code> stands for that channel nibble.
+  </p>
+
+  <h2 id="channel-voice">Channel voice messages</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Status</th><th>Message</th><th>Data 1</th><th>Data 2</th><th class="num">Length</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="b b-s">8n</span></td>
+          <td>Note Off</td>
+          <td><span class="b b-d">kk</span> note number</td>
+          <td><span class="b b-d">vv</span> release velocity</td>
+          <td class="num">3</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">9n</span></td>
+          <td>Note On</td>
+          <td><span class="b b-d">kk</span> note number</td>
+          <td><span class="b b-d">vv</span> velocity (0 = Note Off)</td>
+          <td class="num">3</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">An</span></td>
+          <td>Polyphonic Key Pressure (poly aftertouch)</td>
+          <td><span class="b b-d">kk</span> note number</td>
+          <td><span class="b b-d">vv</span> pressure</td>
+          <td class="num">3</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">Bn</span></td>
+          <td>Control Change</td>
+          <td><span class="b b-d">cc</span> controller number (0–119)</td>
+          <td><span class="b b-d">vv</span> value</td>
+          <td class="num">3</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">Cn</span></td>
+          <td>Program Change</td>
+          <td><span class="b b-d">pp</span> program number</td>
+          <td>none</td>
+          <td class="num">2</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">Dn</span></td>
+          <td>Channel Pressure (channel aftertouch)</td>
+          <td><span class="b b-d">vv</span> pressure</td>
+          <td>none</td>
+          <td class="num">2</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">En</span></td>
+          <td>Pitch Bend Change</td>
+          <td><span class="b b-d">ll</span> LSB (bits 0–6)</td>
+          <td><span class="b b-d">mm</span> MSB (bits 7–13)</td>
+          <td class="num">3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="note-on-velocity-zero">Note On with velocity 0</h3>
+  <p>
+    A Note On with velocity 0 means exactly the same as a Note Off with velocity 64. Many devices send
+    <span class="b b-s">9n</span>&nbsp;<span class="b b-d">kk</span>&nbsp;<span class="b b-d">00</span> in place of a
+    real Note Off so they can stay in running status (see below). Receivers <strong>must</strong> treat both forms as
+    note-off.
+  </p>
+
+  <h3 id="pitch-bend">Pitch bend</h3>
+  <p>
+    Pitch bend is a 14-bit value, sent LSB first: <code>value = (MSB &lt;&lt; 7) | LSB</code>. It runs from 0 to 16383,
+    and 8192 (<code>0x2000</code>, sent as <span class="b b-d">00</span>&nbsp;<span class="b b-d">40</span>) means no
+    bend. How far the extremes bend is set by the receiver, normally ±2 semitones. The <a href="/docs/rpn-nrpn/">pitch bend
+    sensitivity RPN</a> changes that range. See <a href="/docs/notes/#pitch-bend">Notes &amp; Pitch</a> for the math.
+  </p>
+
+  <h3 id="program-change">Program change numbering</h3>
+  <p>
+    Program Change data runs from 0 to 127 on the wire. Synth front panels and the General MIDI list usually show it as
+    1–128. To reach more than 128 sounds, send a <a href="/docs/control-change/">Bank Select</a> (CC 0 and CC 32) first,
+    then the Program Change.
+  </p>
+
+  <h2 id="channel-mode">Channel mode messages</h2>
+  <p>
+    Controller numbers 120–127 do not control sound parameters. They are reserved for <em>channel mode messages</em>, sent
+    as <span class="b b-s">Bn</span>&nbsp;<span class="b b-d">78</span>–<span class="b b-d">7F</span>: All Sound Off,
+    Reset All Controllers, Local Control, All Notes Off, and the Omni and Mono/Poly mode switches. The full list is on the
+    <a href="/docs/control-change/#channel-mode">Control Change</a> page.
+  </p>
+
+  <h2 id="system-common">System common messages</h2>
+  <p>System messages have no channel. They apply to the whole device or the whole MIDI cable.</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Status</th><th>Message</th><th>Data</th><th class="num">Length</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="b b-m">F0</span></td>
+          <td>System Exclusive start</td>
+          <td>Manufacturer ID, then any number of data bytes, ended by <span class="b b-m">F7</span></td>
+          <td class="num">var.</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">F1</span></td>
+          <td>MIDI Time Code Quarter Frame</td>
+          <td><span class="b b-d">0nnn dddd</span>: piece number <code>nnn</code>, value nibble <code>dddd</code></td>
+          <td class="num">2</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">F2</span></td>
+          <td>Song Position Pointer</td>
+          <td><span class="b b-d">ll</span> <span class="b b-d">mm</span>: 14-bit count of MIDI beats (1 beat = 6 clocks = a 16th note)</td>
+          <td class="num">3</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">F3</span></td>
+          <td>Song Select</td>
+          <td><span class="b b-d">ss</span> song number 0–127</td>
+          <td class="num">2</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">F4</span></td>
+          <td>Undefined (reserved)</td>
+          <td>none</td>
+          <td class="num">n/a</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">F5</span></td>
+          <td>Undefined (reserved)</td>
+          <td>none. Some vendors use it unofficially as a port/cable select.</td>
+          <td class="num">n/a</td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">F6</span></td>
+          <td>Tune Request</td>
+          <td>none. Asks analog synths to retune their oscillators.</td>
+          <td class="num">1</td>
+        </tr>
+        <tr>
+          <td><span class="b b-m">F7</span></td>
+          <td>End of Exclusive (EOX)</td>
+          <td>none. Ends a SysEx message.</td>
+          <td class="num">1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    SysEx has its own page: <a href="/docs/sysex/">System Exclusive</a>. Time code and song position are covered in
+    <a href="/docs/timing/">Timing &amp; Sync</a>.
+  </p>
+
+  <h2 id="system-real-time">System real-time messages</h2>
+  <p>
+    Real-time messages are single status bytes with no data. They carry timing, so they have top priority. They may be
+    sent <strong>at any point in the stream</strong>, even between the bytes of another message and inside a SysEx dump.
+    A receiver should act on a real-time byte immediately and then carry on parsing the surrounding message as though the
+    real-time byte had not been there.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Status</th><th>Message</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="b b-s">F8</span></td><td>Timing Clock</td><td>Sent 24 times per quarter note while the clock is running.</td></tr>
+        <tr><td><span class="b b-s">F9</span></td><td>Undefined (reserved)</td><td>Once proposed as a 10 ms "Tick". Not part of the standard.</td></tr>
+        <tr><td><span class="b b-s">FA</span></td><td>Start</td><td>Start playback from the beginning of the song (position 0).</td></tr>
+        <tr><td><span class="b b-s">FB</span></td><td>Continue</td><td>Resume from the current song position.</td></tr>
+        <tr><td><span class="b b-s">FC</span></td><td>Stop</td><td>Stop playback and keep the current position.</td></tr>
+        <tr><td><span class="b b-s">FD</span></td><td>Undefined (reserved)</td><td>none</td></tr>
+        <tr>
+          <td><span class="b b-s">FE</span></td>
+          <td>Active Sensing</td>
+          <td>
+            Optional keep-alive. A sender that uses it transmits at least every 300 ms. When a receiver has seen it once and
+            then hears nothing for more than 300 ms, it should turn off all voices and go back to normal operation.
+          </td>
+        </tr>
+        <tr>
+          <td><span class="b b-s">FF</span></td>
+          <td>System Reset</td>
+          <td>Reset the receiver to its power-up state. Use it sparingly and never send it automatically at power-up, or two devices can reset each other in a loop.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="running-status">Running status</h2>
+  <p>
+    If a channel message has the same status byte as the message before it, the sender may leave the status byte out and
+    send only the data bytes. The receiver remembers the last channel status (the <em>running status</em>) and applies it
+    to any data bytes that arrive without one. On a 5-pin DIN cable this cuts note traffic by up to a third.
+  </p>
+  <ul>
+    <li>Only <strong>channel</strong> messages (<code>0x80</code>–<code>0xEF</code>) set the running status.</li>
+    <li>
+      <strong>System common</strong> messages and SysEx (<code>0xF0</code>–<code>0xF7</code>) <strong>clear</strong> it.
+      The sender must send the next channel message with its status byte.
+    </li>
+    <li><strong>Real-time</strong> messages (<code>0xF8</code>–<code>0xFF</code>) do not affect running status.</li>
+    <li>Data bytes that arrive while no running status is set should be ignored.</li>
+  </ul>
+  <Callout title="Why devices send Note On, velocity 0">
+    <p>
+      With running status, a stream of Note Ons and Note Offs keeps switching between <span class="b b-s">9n</span> and
+      <span class="b b-s">8n</span>, and every switch costs a status byte. Sending note-offs as Note On with velocity 0
+      means a long run of notes needs only one status byte.
+    </p>
+  </Callout>
+
+  <h3 id="worked-example">Worked example</h3>
+  <p>
+    The bytes below play a C major triad on channel 1 and then release it. A MIDI clock byte lands in the middle of a
+    message:
+  </p>
+  <pre><code>90 3C 64 40 64 43 64   F8   3C 00 40 F8 00 43 00</code></pre>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Bytes</th><th>Decoded</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="b b-s">90</span> <span class="b b-d">3C</span> <span class="b b-d">64</span></td>
+          <td>Note On, ch 1, C4 (60), velocity 100. Running status is now <code>0x90</code>.</td>
+        </tr>
+        <tr><td><span class="b b-d">40</span> <span class="b b-d">64</span></td><td>Running status: Note On, E4 (64), velocity 100.</td></tr>
+        <tr><td><span class="b b-d">43</span> <span class="b b-d">64</span></td><td>Running status: Note On, G4 (67), velocity 100.</td></tr>
+        <tr><td><span class="b b-s">F8</span></td><td>Timing Clock. Running status is unchanged.</td></tr>
+        <tr><td><span class="b b-d">3C</span> <span class="b b-d">00</span></td><td>Note On, C4, velocity 0, which means Note Off.</td></tr>
+        <tr>
+          <td><span class="b b-d">40</span> <span class="b b-s">F8</span> <span class="b b-d">00</span></td>
+          <td>A Timing Clock arrives inside the message. Handle it, then finish: Note Off for E4.</td>
+        </tr>
+        <tr><td><span class="b b-d">43</span> <span class="b b-d">00</span></td><td>Note Off for G4.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="wire-timing">Timing on the wire</h2>
+  <p>
+    Classic serial MIDI runs at <strong>31,250 bits per second</strong>, 8-N-1: one start bit, eight data bits, no
+    parity, one stop bit. That is 10 bits per byte, so each byte takes <strong>320&nbsp;µs</strong>, a 3-byte message
+    takes about <strong>0.96&nbsp;ms</strong>, and a cable carries at most about 3,125 bytes per second. A ten-note chord
+    therefore takes around 6–10 ms to send in full, which is one reason running status matters. USB and network
+    transports send messages in packets at much higher rates; see <a href="/docs/transports/">Transports</a>.
+  </p>
+
+  <h2 id="parsing-checklist">Parser checklist</h2>
+  <ol>
+    <li>On a byte <code>&gt;= 0xF8</code>: handle the real-time message right away and change nothing else.</li>
+    <li>On <code>0xF0</code>: start collecting SysEx and clear running status.</li>
+    <li>
+      On <code>0xF7</code>, or on any other status byte while collecting SysEx: end the SysEx. A non-EOX status byte also
+      ends a SysEx, after which you process it normally.
+    </li>
+    <li>On <code>0xF1</code>–<code>0xF6</code>: clear running status and read the message's fixed number of data bytes.</li>
+    <li>On <code>0x80</code>–<code>0xEF</code>: set running status and expect 1 or 2 data bytes.</li>
+    <li>On a data byte: add it to the current message. Once the message is complete, emit it and stay in running status.</li>
+  </ol>
+</Doc>

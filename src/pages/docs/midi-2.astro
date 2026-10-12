@@ -1,0 +1,433 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+
+const mtRows = [
+  ['0x0', '32', 'Utility', 'NOOP, JR Clock, JR Timestamp, Delta Clockstamp Ticks Per Quarter Note (DCTPQ), Delta Clockstamp. No group.'],
+  ['0x1', '32', 'System Real Time & System Common', 'MIDI 1.0 F1–FF messages (clock, start/stop, MTC quarter frame, SPP, song select, tune request)'],
+  ['0x2', '32', 'MIDI 1.0 Channel Voice', 'The classic 8n–En messages with 7- and 14-bit values, carried in UMP'],
+  ['0x3', '64', 'Data (SysEx7)', 'MIDI 1.0 System Exclusive, split into packets of up to 6 data bytes'],
+  ['0x4', '64', 'MIDI 2.0 Channel Voice', 'High-resolution and per-note messages of the MIDI 2.0 Protocol'],
+  ['0x5', '128', 'Data 128', 'System Exclusive 8 (8-bit SysEx) and Mixed Data Set'],
+  ['0x6–0x7', '32', 'Reserved', ''],
+  ['0x8–0xA', '64', 'Reserved', ''],
+  ['0xB–0xC', '96', 'Reserved', ''],
+  ['0xD', '128', 'Flex Data', 'Tempo, time and key signature, metronome, chord names, lyrics and other text'],
+  ['0xE', '128', 'Reserved', ''],
+  ['0xF', '128', 'UMP Stream', 'Endpoint and Function Block discovery, stream configuration, clip start/end. No group.'],
+];
+
+const cvRows = [
+  ['0x0', 'Registered Per-Note Controller', 'Per-note controller, 256 defined indexes, 32-bit value'],
+  ['0x1', 'Assignable Per-Note Controller', 'Per-note controller, 256 free indexes, 32-bit value'],
+  ['0x2', 'Registered Controller', 'RPN: 128 banks × 128 indexes, 32-bit value, one message (no Data Entry sequence)'],
+  ['0x3', 'Assignable Controller', 'NRPN: 128 banks × 128 indexes, 32-bit value'],
+  ['0x4', 'Relative Registered Controller', 'Signed 32-bit increment/decrement of an RPN'],
+  ['0x5', 'Relative Assignable Controller', 'Signed 32-bit increment/decrement of an NRPN'],
+  ['0x6', 'Per-Note Pitch Bend', '32-bit unsigned, center 0x80000000'],
+  ['0x8', 'Note Off', '16-bit velocity + attribute'],
+  ['0x9', 'Note On', '16-bit velocity + attribute. Velocity 0 is a real Note On, not a Note Off.'],
+  ['0xA', 'Poly Pressure', '32-bit'],
+  ['0xB', 'Control Change', '7-bit index, 32-bit value'],
+  ['0xC', 'Program Change', 'Program number plus optional bank MSB/LSB in the same message'],
+  ['0xD', 'Channel Pressure', '32-bit'],
+  ['0xE', 'Pitch Bend', '32-bit unsigned, center 0x80000000'],
+  ['0xF', 'Per-Note Management', 'Detach (D) and/or reset (S) the per-note controllers of a note'],
+];
+
+const streamRows = [
+  ['0x000', 'Endpoint Discovery', 'Ask an Endpoint to describe itself'],
+  ['0x001', 'Endpoint Info Notification', 'UMP version, number of Function Blocks, supported protocols and JR timestamps'],
+  ['0x002', 'Device Identity Notification', 'Manufacturer, family, model and version (same fields as a SysEx Identity Reply)'],
+  ['0x003', 'Endpoint Name Notification', 'UTF-8 name, possibly across several packets'],
+  ['0x004', 'Product Instance Id Notification', 'Unique ID, such as a serial number'],
+  ['0x005', 'Stream Configuration Request', 'Ask to switch protocol (MIDI 1.0 / MIDI 2.0) and JR timestamp use'],
+  ['0x006', 'Stream Configuration Notification', 'Report the current protocol and JR settings'],
+  ['0x010', 'Function Block Discovery', 'Ask for one or all Function Blocks'],
+  ['0x011', 'Function Block Info Notification', 'Active flag, direction, first group and number of groups spanned, MIDI-CI version'],
+  ['0x012', 'Function Block Name Notification', 'UTF-8 name of a block'],
+  ['0x020', 'Start of Clip', 'Marks the start of a sequence (e.g. in a MIDI Clip File)'],
+  ['0x021', 'End of Clip', 'Marks the end of a sequence'],
+];
+
+/** Bit fields for the worked MIDI 2.0 Note On diagram: [label, bits, value hex, class] */
+const noteOnW1 = [
+  ['MT', 4, '4', 'mt'],
+  ['Group', 4, '0', 'grp'],
+  ['Status', 4, '9', 'st'],
+  ['Channel', 4, '0', 'st'],
+  ['Note', 8, '3C', 'dat'],
+  ['Attr type', 8, '00', 'attr'],
+];
+const noteOnW2 = [
+  ['Velocity (16-bit)', 16, 'FFFF', 'dat'],
+  ['Attribute data', 16, '0000', 'attr'],
+];
+const midi1W1 = [
+  ['MT', 4, '2', 'mt'],
+  ['Group', 4, '0', 'grp'],
+  ['Status', 4, '9', 'st'],
+  ['Channel', 4, '0', 'st'],
+  ['Note', 8, '3C', 'dat'],
+  ['Velocity', 8, '64', 'dat'],
+];
+---
+
+<Doc
+  title="MIDI 2.0 & the Universal MIDI Packet"
+  slug="midi-2"
+  specs={[
+    { label: 'MIDI 2.0 overview', href: 'https://midi.org/midi-2-0' },
+    { label: 'UMP & MIDI 2.0 Protocol (M2-104-UM)', href: 'https://midi.org/specs' },
+  ]}
+>
+  <p class="lede">
+    MIDI 2.0 is not a new cable or a new byte stream. It is a new <em>packet format</em>, the Universal MIDI Packet
+    (UMP), plus a higher-resolution set of messages and ways for devices to discover each other. MIDI 1.0 messages
+    still exist inside UMP, so the two protocols live side by side.
+  </p>
+
+  <h2 id="why">What changes, and why</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Limit in MIDI 1.0</th><th>MIDI 2.0 answer</th></tr></thead>
+      <tbody>
+        <tr><td>7-bit velocity and controllers (128 steps). 14-bit pairs are awkward to send.</td><td>16-bit velocity; 32-bit controllers, pressure and pitch bend</td></tr>
+        <tr><td>Pitch bend and controllers apply to the whole channel</td><td>Per-note pitch bend, per-note controllers, per-note management</td></tr>
+        <tr><td>16 channels per cable</td><td>16 <em>groups</em> × 16 channels = 256 channels per UMP Endpoint</td></tr>
+        <tr><td>Bank select, program change and RPN/NRPN take several messages each</td><td>Single atomic messages: Program Change carries its bank, and Registered/Assignable Controllers replace RPN/NRPN</td></tr>
+        <tr><td>Byte stream with no framing; parsing depends on running status</td><td>Fixed-size 32-bit-word packets whose size can be read from the first 4 bits</td></tr>
+        <tr><td>One-way: a sender can't tell what a receiver supports</td><td>Endpoint and Function Block discovery (UMP Stream) and <a href="/docs/midi-ci/">MIDI-CI</a></td></tr>
+        <tr><td>Timing depends on when bytes arrive</td><td>Jitter Reduction (JR) timestamps</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="ump">UMP basics</h2>
+  <p>
+    A UMP is made of 1 to 4 <strong>32-bit words</strong>, so packets are 32, 64, 96 or 128 bits long. The top four
+    bits of the first word are the <strong>Message Type (MT)</strong>, which also sets the packet size. A receiver
+    can always tell how long a packet is, even when it doesn't know the message.
+  </p>
+  <p>
+    For most message types, the next four bits are the <strong>group</strong> (0–15). Each group works like a
+    separate MIDI 1.0 cable with its own 16 channels. Utility (0x0) and UMP Stream (0xF) messages have no group;
+    they address the whole Endpoint.
+  </p>
+
+  <h3 id="message-types">Message types</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>MT</th><th class="num">Bits</th><th>Type</th><th>Contents</th></tr></thead>
+      <tbody>
+        {mtRows.map(([mt, bits, name, desc]) => (
+          <tr class:list={[name === 'Reserved' && 'reserved']}>
+            <td><code>{mt}</code></td>
+            <td class="num">{bits}</td>
+            <td>{name}</td>
+            <td>{desc}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="worked">Worked example: one Note On, two ways</h2>
+  <p>Middle C (note 60) on channel 1, group 1 (written as 0 in the packet), at full velocity.</p>
+
+  <h3 id="worked-midi2">MIDI 2.0 Protocol Note On (MT 0x4, 64 bits)</h3>
+  <p><code>0x40903C00 0xFFFF0000</code></p>
+  <figure class="bitfield" aria-label="Bit layout of a MIDI 2.0 Note On packet">
+    <div class="word">
+      <span class="word-label">Word 1</span>
+      <div class="fields">
+        {noteOnW1.map(([label, bits, value, cls]) => (
+          <div class:list={['field', cls]} style={`flex-grow:${bits}`}>
+            <span class="v">{value}</span>
+            <span class="l">{label}</span>
+            <span class="w">{bits}b</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div class="word">
+      <span class="word-label">Word 2</span>
+      <div class="fields">
+        {noteOnW2.map(([label, bits, value, cls]) => (
+          <div class:list={['field', cls]} style={`flex-grow:${bits}`}>
+            <span class="v">{value}</span>
+            <span class="l">{label}</span>
+            <span class="w">{bits}b</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </figure>
+  <ul>
+    <li><strong>MT = 4</strong>: MIDI 2.0 Channel Voice, so the packet is 64 bits.</li>
+    <li><strong>Group = 0</strong>, <strong>status = 9</strong> (Note On), <strong>channel = 0</strong> (channel 1).</li>
+    <li><strong>Note = 0x3C</strong> (60). The note number is still 7 bits; the top bit of that byte is 0.</li>
+    <li><strong>Attribute type = 0</strong> (none). Other defined types are 1 = manufacturer specific, 2 = profile specific, and 3 = pitch 7.9, a fixed-point pitch in semitones for microtonal notes.</li>
+    <li><strong>Velocity = 0xFFFF</strong>, the maximum of a 16-bit range.</li>
+  </ul>
+
+  <h3 id="worked-midi1">The same note as MIDI 1.0 in UMP (MT 0x2, 32 bits)</h3>
+  <p><code>0x20903C64</code>, which is the classic <span class="b b-s">90</span> <span class="b b-d">3C</span> <span class="b b-d">64</span> (velocity 100) with a one-byte MT and group prefix.</p>
+  <figure class="bitfield" aria-label="Bit layout of a MIDI 1.0 Note On in UMP">
+    <div class="word">
+      <span class="word-label">Word 1</span>
+      <div class="fields">
+        {midi1W1.map(([label, bits, value, cls]) => (
+          <div class:list={['field', cls]} style={`flex-grow:${bits}`}>
+            <span class="v">{value}</span>
+            <span class="l">{label}</span>
+            <span class="w">{bits}b</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </figure>
+
+  <h2 id="channel-voice">MIDI 2.0 Channel Voice messages</h2>
+  <p>
+    Every MT 0x4 message has the same first word: <code>MT | group | status | channel | index/note | ...</code>.
+    The status nibble picks the message:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Status</th><th>Message</th><th>Notes</th></tr></thead>
+      <tbody>
+        {cvRows.map(([s, name, desc]) => (
+          <tr><td><code>{s}</code></td><td>{name}</td><td>{desc}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <h3 id="layouts">Field layouts at a glance</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Message</th><th>Word 1 (after MT/group/status/channel)</th><th>Word 2</th></tr></thead>
+      <tbody>
+        <tr><td>Note On / Off</td><td>note (7) · attribute type (8)</td><td>velocity (16) · attribute data (16)</td></tr>
+        <tr><td>Poly Pressure</td><td>note (7) · reserved</td><td>pressure (32)</td></tr>
+        <tr><td>Control Change</td><td>index (7) · reserved</td><td>value (32)</td></tr>
+        <tr><td>Registered / Assignable Controller</td><td>bank (7) · index (7)</td><td>value (32)</td></tr>
+        <tr><td>Per-Note Controller (registered / assignable)</td><td>note (7) · index (8)</td><td>value (32)</td></tr>
+        <tr><td>Program Change</td><td>reserved (8) · option flags (8); bit 0 = <em>Bank Valid</em></td><td>program (7) · reserved (8) · bank MSB (7) · bank LSB (7)</td></tr>
+        <tr><td>Channel Pressure</td><td>reserved</td><td>pressure (32)</td></tr>
+        <tr><td>Pitch Bend / Per-Note Pitch Bend</td><td>reserved / note (7)</td><td>bend (32), center 0x80000000</td></tr>
+        <tr><td>Per-Note Management</td><td>note (7) · flags: D (detach), S (reset)</td><td>reserved</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <Callout type="warn" title="Velocity zero">
+    <p>
+      In MIDI 1.0, a Note On with velocity 0 means Note Off. In the MIDI 2.0 Protocol it doesn't, so senders must use
+      Note Off (0x8). When translating MIDI 2.0 to MIDI 1.0, a velocity that scales down to 0 is sent as 1.
+    </p>
+  </Callout>
+
+  <h2 id="scaling">Value scaling: Min-Center-Max</h2>
+  <p>
+    Converting a 7-bit value to 16 or 32 bits is <em>not</em> just a left shift. A plain shift turns 127 into 0xFE00,
+    so the maximum would no longer be the maximum. The spec defines a <strong>Min-Center-Max</strong> upscaling
+    rule that keeps three points exact:
+  </p>
+  <ul>
+    <li><strong>Minimum</strong>: 0 always maps to 0.</li>
+    <li><strong>Center</strong>: the source midpoint (64 for 7-bit, 8192 for 14-bit) maps to the exact destination midpoint (0x8000, 0x80000000).</li>
+    <li><strong>Maximum</strong>: the source maximum maps to all ones.</li>
+  </ul>
+  <p>
+    Values at or below the center are shifted left. For values above the center, the bits <em>below</em> the
+    source's top bit are repeated into the empty low-order bits of the result. Values above the center are spread
+    evenly up to the maximum, and values below it keep the plain shift.
+  </p>
+  <pre><code>// Reference algorithm from the UMP spec (abridged)
+function scaleUp(srcVal, srcBits, dstBits) {'{'}
+  const scaleBits = dstBits - srcBits;
+  let out = srcVal &lt;&lt; scaleBits;               // plain shift
+  const center = 1 &lt;&lt; (srcBits - 1);
+  if (srcVal &lt;= center) return out;            // min .. center: done
+  const repeatBits = srcBits - 1;
+  let repeat = srcVal &amp; ((1 &lt;&lt; repeatBits) - 1);  // bits below the top bit
+  repeat = scaleBits &gt; repeatBits
+    ? repeat &lt;&lt; (scaleBits - repeatBits)
+    : repeat &gt;&gt; (repeatBits - scaleBits);
+  while (repeat) {'{'} out |= repeat; repeat &gt;&gt;= repeatBits; {'}'}
+  return out;
+{'}'}</code></pre>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th class="num">7-bit</th><th>→ 16-bit</th><th>→ 32-bit</th></tr></thead>
+      <tbody>
+        <tr><td class="num">0</td><td><code>0x0000</code></td><td><code>0x00000000</code></td></tr>
+        <tr><td class="num">1</td><td><code>0x0200</code></td><td><code>0x02000000</code></td></tr>
+        <tr><td class="num">64</td><td><code>0x8000</code></td><td><code>0x80000000</code></td></tr>
+        <tr><td class="num">65</td><td><code>0x8208</code></td><td><code>0x82082082</code></td></tr>
+        <tr><td class="num">100</td><td><code>0xC924</code></td><td><code>0xC9249249</code></td></tr>
+        <tr><td class="num">127</td><td><code>0xFFFF</code></td><td><code>0xFFFFFFFF</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Downscaling is a simple right shift. For example, a 16-bit velocity becomes 7 bits with <code>v &gt;&gt; 9</code>.</p>
+
+  <h2 id="stream">Endpoints, Function Blocks and the UMP Stream</h2>
+  <p>
+    A <strong>UMP Endpoint</strong> is one end of a bidirectional UMP connection, such as a USB MIDI 2.0 device or a
+    virtual port. It may contain up to 32 <strong>Function Blocks</strong>, each a logical unit (a synth engine, a
+    keyboard, a DIN port) that spans one or more groups. Hosts learn this layout from <strong>UMP Stream</strong>
+    messages (MT 0xF), which identify themselves with a 2-bit format and a 10-bit status:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Status</th><th>Message</th><th>Purpose</th></tr></thead>
+      <tbody>
+        {streamRows.map(([s, name, desc]) => (
+          <tr><td><code>{s}</code></td><td>{name}</td><td>{desc}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <h3 id="negotiation">Choosing a protocol</h3>
+  <p>
+    An Endpoint may support the MIDI 1.0 Protocol, the MIDI 2.0 Protocol, or both. Since UMP 1.1 (2023), the host
+    picks one with <strong>Stream Configuration Request/Notification</strong>, and the same exchange turns JR
+    timestamps on or off. MIDI-CI 1.1 negotiated the protocol with its own SysEx messages; MIDI-CI 1.2 deprecated that
+    mechanism, so new implementations should use UMP Stream messages.
+  </p>
+
+  <h2 id="jr">Jitter Reduction timestamps</h2>
+  <p>
+    A sender can put a <strong>JR Timestamp</strong> utility message (MT 0x0) in front of other messages. It records
+    when the event happened, as a 16-bit count in units of 1/31,250 second (32 µs). The receiver tracks the sender's
+    clock from periodic <strong>JR Clock</strong> messages and uses the timestamps to undo transport jitter. This
+    helps most on buffered links such as USB and networks. Musical timing, as opposed to transport timing, uses
+    <strong>Delta Clockstamps</strong> in ticks (with DCTPQ) in MIDI Clip Files.
+  </p>
+
+  <h2 id="other-data">SysEx, Flex Data and files</h2>
+  <ul>
+    <li><strong>SysEx7 (MT 0x3)</strong> carries MIDI 1.0 SysEx, up to six bytes per 64-bit packet, with a status of complete, start, continue or end. The F0 and F7 framing bytes are not sent.</li>
+    <li><strong>SysEx8 (MT 0x5)</strong> carries full 8-bit data with a stream ID, so binary payloads don't need 7-bit encoding.</li>
+    <li><strong>Flex Data (MT 0xD)</strong> holds tempo, time signature, key signature, metronome and chord-name messages, plus text such as lyrics and metadata. It replaces many SMF meta events for live streams.</li>
+    <li><strong>MIDI Clip File</strong> and <strong>MIDI Container File</strong> are the UMP-based successors to the <a href="/docs/smf/">Standard MIDI File</a>.</li>
+  </ul>
+
+  <h2 id="platforms">Platform support</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Platform</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>macOS / iOS</td><td>CoreMIDI has UMP APIs (<code>MIDIEventList</code>) since macOS 11 / iOS 14, and supports USB MIDI 2.0 devices.</td></tr>
+        <tr><td>Windows</td><td><a href="https://github.com/microsoft/MIDI">Windows MIDI Services</a>, a new UMP-native MIDI stack for Windows 11 with MIDI 2.0, multi-client ports and a compatibility layer for older APIs.</td></tr>
+        <tr><td>Linux</td><td>ALSA gained UMP and USB MIDI 2.0 support in kernel 6.5, with matching userspace support in alsa-lib 1.2.10 and later.</td></tr>
+        <tr><td>Android</td><td>USB MIDI 2.0 host support since Android 13.</td></tr>
+        <tr><td>Web</td><td>The Web MIDI API is still MIDI 1.0 only.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Libraries with UMP support include <a href="/libraries/?cat=midi2">AM_MIDI2.0Lib, ni-midi2, ktmidi, cmidi2
+    and libremidi</a>. For moving UMP over USB, BLE and networks, see <a href="/docs/transports/">Transports</a>.
+  </p>
+</Doc>
+
+<style>
+  .reserved td {
+    color: var(--muted);
+  }
+  .bitfield {
+    margin: 1rem 0 1.5rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .word {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .word-label {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    align-self: center;
+  }
+  .fields {
+    display: flex;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .field {
+    flex-basis: 0;
+    min-width: 0;
+    padding: 0.4rem 0.35rem;
+    text-align: center;
+    border-right: 1px solid var(--line-strong);
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .field:last-child {
+    border-right: 0;
+  }
+  .field .v {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .field .l {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  .field .w {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+  .mt {
+    background: var(--meta-soft);
+  }
+  .mt .v {
+    color: var(--meta);
+  }
+  .grp {
+    background: var(--surface-2);
+  }
+  .st {
+    background: var(--accent-soft);
+  }
+  .st .v {
+    color: var(--accent);
+  }
+  .dat {
+    background: var(--data-soft);
+  }
+  .dat .v {
+    color: var(--data);
+  }
+  .attr {
+    background: var(--surface);
+  }
+  @media (max-width: 560px) {
+    .word {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+    .field .l {
+      font-size: 0.62rem;
+    }
+    .field .v {
+      font-size: 0.85rem;
+    }
+  }
+</style>

@@ -1,0 +1,95 @@
+---
+---
+
+<section class="widget tempo" data-tempo aria-labelledby="tempo-title">
+  <div class="widget-head">
+    <h3 class="widget-title" id="tempo-title">Tempo calculator</h3>
+    <span class="widget-tag">BPM · µs/quarter · ticks</span>
+  </div>
+  <div class="tempo-grid">
+    <div>
+      <label class="field-label" for="t-bpm">Tempo (BPM)</label>
+      <input id="t-bpm" class="t-bpm" type="number" min="1" max="1000" step="any" value="120" />
+    </div>
+    <div>
+      <label class="field-label" for="t-ppq">Division (PPQ)</label>
+      <input id="t-ppq" class="t-ppq" type="number" min="1" max="32767" step="1" value="480" />
+    </div>
+    <div>
+      <label class="field-label" for="t-ticks">Ticks</label>
+      <input id="t-ticks" class="t-ticks" type="number" min="0" step="1" value="960" />
+    </div>
+  </div>
+  <dl class="tempo-out" aria-live="polite"></dl>
+</section>
+
+<script>
+  import { hex } from '../lib/midi';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-tempo]')) {
+    const bpm = root.querySelector<HTMLInputElement>('.t-bpm')!;
+    const ppq = root.querySelector<HTMLInputElement>('.t-ppq')!;
+    const ticks = root.querySelector<HTMLInputElement>('.t-ticks')!;
+    const out = root.querySelector<HTMLElement>('.tempo-out')!;
+    const fmt = (n: number, d = 3) => (Number.isFinite(n) ? Number(n.toFixed(d)).toLocaleString('en-US') : 'n/a');
+
+    const update = () => {
+      const b = Number(bpm.value);
+      const q = Math.round(Number(ppq.value));
+      const t = Number(ticks.value);
+      if (!(b > 0) || !(q > 0)) {
+        out.innerHTML = '<div><dt>Error</dt><dd>Enter a positive tempo and division.</dd></div>';
+        return;
+      }
+      const usPerQuarter = Math.round(60_000_000 / b);
+      const clamped = Math.min(usPerQuarter, 0xffffff);
+      const msPerTick = usPerQuarter / q / 1000;
+      const clockMs = 60_000 / b / 24;
+      const rows: [string, string][] = [
+        ['µs per quarter note', `${usPerQuarter.toLocaleString('en-US')}${usPerQuarter > 0xffffff ? ' (exceeds 24 bits!)' : ''}`],
+        ['Set Tempo meta event', `FF 51 03 ${hex((clamped >> 16) & 0xff)} ${hex((clamped >> 8) & 0xff)} ${hex(clamped & 0xff)}`],
+        ['One tick', `${fmt(msPerTick, 4)} ms`],
+        [`${t || 0} ticks`, `${fmt((t || 0) * msPerTick)} ms · ${fmt((t || 0) / q, 4)} quarter notes`],
+        ['MIDI clock (F8) interval', `${fmt(clockMs)} ms · ${fmt(1000 / clockMs, 2)} per second`],
+        ['Sixteenth note', `${fmt(15_000 / b)} ms · ${fmt(q / 4, 2)} ticks`],
+      ];
+      out.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+    };
+    for (const el of [bpm, ppq, ticks]) el.addEventListener('input', update);
+    update();
+  }
+</script>
+
+<style>
+  .tempo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .tempo-grid input {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+  }
+  .tempo-out {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem 1.5rem;
+    margin: 1.1rem 0 0;
+  }
+  .tempo-out :global(dt) {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .tempo-out :global(dd) {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+  @media (max-width: 560px) {
+    .tempo-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>

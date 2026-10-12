@@ -1,0 +1,280 @@
+---
+import Base from './Base.astro';
+import { docGroups, docsFlat } from '../lib/docs-nav';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Slug of this page, matching an entry in docs-nav.ts */
+  slug: string;
+  /** Short eyebrow label shown above the title */
+  eyebrow?: string;
+  /** Links to the relevant official specs, shown under the title */
+  specs?: { label: string; href: string }[];
+}
+
+const { title, description, slug, eyebrow, specs = [] } = Astro.props;
+const i = docsFlat.findIndex((d) => d.slug === slug);
+const prev = i > 0 ? docsFlat[i - 1] : undefined;
+const next = i >= 0 && i < docsFlat.length - 1 ? docsFlat[i + 1] : undefined;
+const group = docGroups.find((g) => g.items.some((d) => d.slug === slug));
+---
+
+<Base title={title} description={description ?? docsFlat[i]?.summary} section="/docs">
+  <div class="doc-shell">
+    <aside class="doc-sidebar" aria-label="Documentation">
+      <details class="doc-nav-mobile">
+        <summary>Docs menu <span aria-hidden="true">· {title}</span></summary>
+        <nav aria-label="Documentation pages (mobile)">
+          <a href="/docs/" class="nav-index">Overview</a>
+          {
+            docGroups.map((g) => (
+              <div class="nav-group">
+                <p class="nav-group-title">{g.title}</p>
+                <ul>
+                  {g.items.map((d) => (
+                    <li>
+                      <a href={`/docs/${d.slug}/`} aria-current={d.slug === slug ? 'page' : undefined}>
+                        {d.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+        </nav>
+      </details>
+      <nav class="doc-nav" aria-label="Documentation pages">
+        <a href="/docs/" class="nav-index">Overview</a>
+        {
+          docGroups.map((g) => (
+            <div class="nav-group">
+              <p class="nav-group-title">{g.title}</p>
+              <ul>
+                {g.items.map((d) => (
+                  <li>
+                    <a href={`/docs/${d.slug}/`} aria-current={d.slug === slug ? 'page' : undefined}>
+                      {d.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+        <div class="nav-group">
+          <p class="nav-group-title">Hands-on</p>
+          <ul>
+            <li><a href="/tools/">Tools</a></li>
+            <li><a href="/try/">Try Web MIDI</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <article class="doc">
+      <header class="doc-header">
+        <p class="eyebrow">{eyebrow ?? group?.title ?? 'Docs'}</p>
+        <h1>{title}</h1>
+        {
+          specs.length > 0 && (
+            <p class="doc-specs">
+              <span>Spec:</span>
+              {specs.map((s, k) => (
+                <>
+                  {k > 0 && <span aria-hidden="true"> · </span>}
+                  <a href={s.href}>{s.label}</a>
+                </>
+              ))}
+            </p>
+          )
+        }
+      </header>
+      <div class="prose">
+        <slot />
+      </div>
+      <nav class="pager" aria-label="Previous and next">
+        {
+          prev ? (
+            <a class="pager-link prev" href={`/docs/${prev.slug}/`}>
+              <span>Previous</span>
+              {prev.title}
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          next && (
+            <a class="pager-link next" href={`/docs/${next.slug}/`}>
+              <span>Next</span>
+              {next.title}
+            </a>
+          )
+        }
+      </nav>
+      <p class="edit-link">
+        Spotted an error? <a href={`https://github.com/wustep/midi-new/edit/main/src/pages/docs/${slug}.astro`}>Edit this page on GitHub</a>.
+      </p>
+    </article>
+  </div>
+</Base>
+
+<style>
+  .doc-shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2.5rem var(--gutter) 0;
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 3.5rem;
+  }
+  .doc-sidebar {
+    position: relative;
+  }
+  .doc-nav {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+    padding-bottom: 2rem;
+    font-size: 0.94rem;
+  }
+  .nav-index {
+    display: block;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    margin-bottom: 1rem;
+  }
+  .nav-group {
+    margin-bottom: 1.25rem;
+  }
+  .nav-group-title {
+    font-family: var(--font-display);
+    font-stretch: 118%;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.35rem;
+  }
+  .nav-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--line);
+  }
+  .nav-group a {
+    display: block;
+    padding: 0.22rem 0 0.22rem 0.85rem;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+  .nav-group a:hover {
+    color: var(--ink);
+    border-left-color: var(--line-strong);
+  }
+  .nav-group a[aria-current='page'] {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 700;
+  }
+  .doc-nav-mobile {
+    display: none;
+  }
+  .doc {
+    min-width: 0;
+    max-width: 860px;
+  }
+  .doc-specs {
+    color: var(--muted);
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .prose {
+    max-width: 100%;
+  }
+  .prose :global(> p),
+  .prose :global(> ul),
+  .prose :global(> ol) {
+    max-width: var(--measure);
+  }
+  .prose :global(h2) {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .prose :global(li) {
+    margin-bottom: 0.3em;
+  }
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 4rem;
+  }
+  .pager-link {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.9rem 1.1rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-weight: 700;
+    font-family: var(--font-display);
+    font-stretch: 110%;
+  }
+  .pager-link:hover {
+    border-color: var(--accent);
+  }
+  .pager-link span {
+    display: block;
+    font-family: var(--font-text);
+    font-weight: 400;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .pager-link.next {
+    text-align: right;
+    grid-column: 2;
+  }
+  .edit-link {
+    margin-top: 1.5rem;
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+  @media (max-width: 900px) {
+    .doc-shell {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1rem;
+      padding-top: 1rem;
+    }
+    .doc-nav {
+      display: none;
+    }
+    .doc-nav-mobile {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 0.6rem 0.9rem;
+    }
+    .doc-nav-mobile summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .doc-nav-mobile summary span {
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .doc-nav-mobile nav {
+      padding-top: 0.9rem;
+    }
+  }
+</style>

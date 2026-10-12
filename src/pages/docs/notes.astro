@@ -1,0 +1,142 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+import NoteTable from '../../components/NoteTable.astro';
+---
+
+<Doc
+  title="Notes & Pitch"
+  slug="notes"
+  description="MIDI note numbers, octave naming conventions (C3 vs C4), note-to-frequency conversion, velocity, and 14-bit pitch bend math."
+  specs={[{ label: 'MIDI 1.0 Core Specifications', href: 'https://midi.org/midi-1-0-core-specifications' }]}
+>
+  <p class="lede">
+    MIDI 1.0 does not carry pitch as a frequency. It carries a <em>key number</em> from 0 to 127, and the receiving
+    instrument decides what that key sounds like. On standard 12-tone equal temperament instruments, the mapping below is
+    the one everyone uses.
+  </p>
+
+  <h2 id="note-numbers">Note numbers</h2>
+  <p>
+    Key numbers go from 0 to 127 in semitone steps, more than ten octaves, from C five octaves below middle C up to G
+    about five and a half octaves above it. A standard 88-key piano covers <strong>21</strong> (A0) through
+    <strong>108</strong> (C8).
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th class="num">Note #</th><th>Hex</th><th>Scientific name</th><th>Yamaha name</th><th class="num">Frequency (Hz)</th><th>Landmark</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">0</td><td><code>0x00</code></td><td>C-1</td><td>C-2</td><td class="num">8.18</td><td>Lowest MIDI note</td></tr>
+        <tr><td class="num">21</td><td><code>0x15</code></td><td>A0</td><td>A-1</td><td class="num">27.50</td><td>Lowest piano key</td></tr>
+        <tr><td class="num">36</td><td><code>0x24</code></td><td>C2</td><td>C1</td><td class="num">65.41</td><td>Common drum pad base; GM Bass Drum 1</td></tr>
+        <tr><td class="num">60</td><td><code>0x3C</code></td><td>C4</td><td>C3</td><td class="num">261.63</td><td>Middle C</td></tr>
+        <tr><td class="num">69</td><td><code>0x45</code></td><td>A4</td><td>A3</td><td class="num">440.00</td><td>Concert pitch reference</td></tr>
+        <tr><td class="num">108</td><td><code>0x6C</code></td><td>C8</td><td>C7</td><td class="num">4186.01</td><td>Highest piano key</td></tr>
+        <tr><td class="num">127</td><td><code>0x7F</code></td><td>G9</td><td>G8</td><td class="num">12543.85</td><td>Highest MIDI note</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="octave-naming">C3 or C4? Octave naming</h3>
+  <p>
+    Every implementation agrees that note 60 is middle C. They disagree about what to call it. MIDI defines only the
+    numbers, so software has to pick a convention:
+  </p>
+  <ul>
+    <li>
+      <strong>Scientific pitch notation</strong>: 60 = <strong>C4</strong>. Used by acoustics, music education, and
+      many tools, including MuseScore and most programming libraries.
+    </li>
+    <li>
+      <strong>Yamaha convention</strong>: 60 = <strong>C3</strong>. Used by Yamaha gear and by many DAWs and
+      synthesizers, including Ableton Live, Logic Pro, and Cubase (Cubase's display is configurable). FL Studio goes one step further
+      and labels note 60 as C5.
+    </li>
+  </ul>
+  <p>
+    Roland has used both conventions over the years. When documentation gives a note name, look for the number as well.
+    If you write a library, say which convention it uses or let the user choose. This site uses scientific notation (C4 =
+    60).
+  </p>
+
+  <h2 id="frequency">Note number to frequency</h2>
+  <p>In 12-tone equal temperament with A4 = 440 Hz:</p>
+  <pre><code>f = 440 × 2^((n − 69) / 12)
+n = 69 + 12 × log2(f / 440)</code></pre>
+  <p>
+    A fractional <code>n</code> from the inverse formula is the distance from the nearest key: the fractional part times
+    100 is the offset in cents. A tuner reading 445 Hz gets <code>n ≈ 69.196</code>, which is A4 plus 19.6 cents.
+  </p>
+  <NoteTable />
+
+  <h2 id="velocity">Velocity</h2>
+  <p>
+    Note On velocity runs from 1 to 127, because 0 means note-off (see <a href="/docs/messages/#note-on-velocity-zero"
+      >Messages</a
+    >). Each instrument decides how velocity maps to loudness or timbre. A common default treats velocity as amplitude on
+    a squared curve, roughly <code>gain = (v / 127)²</code>, but curves vary widely between instruments. Devices without velocity
+    sensing should send <strong>64</strong> (<code>0x40</code>).
+  </p>
+  <p>
+    Note Off velocity (release velocity) is defined but rarely used. Senders that do not measure it should send 64. For
+    finer resolution, CC 88 (High Resolution Velocity Prefix) can add 7 more bits of velocity. See <a
+      href="/docs/control-change/">Control Change</a
+    >.
+  </p>
+
+  <h2 id="pitch-bend">Pitch bend</h2>
+  <p>
+    Pitch Bend (<span class="b b-s">En</span>&nbsp;<span class="b b-d">ll</span>&nbsp;<span class="b b-d">mm</span>)
+    carries a 14-bit unsigned value:
+  </p>
+  <pre><code>value  = (mm &lt;&lt; 7) | ll          // 0 … 16383
+signed = value − 8192               // −8192 … +8191
+center = 8192 = 0x2000  →  ll = 0x00, mm = 0x40</code></pre>
+  <p>
+    The receiver decides what the extremes mean. The default <strong>pitch bend sensitivity</strong> is
+    <strong>±2 semitones</strong>, and senders change it with <a href="/docs/rpn-nrpn/#pitch-bend-sensitivity">RPN 0</a>.
+    Pitch bend applies to the whole channel, which is why expressive controllers use <a href="/docs/mpe/">MPE</a> to give
+    each note its own channel.
+  </p>
+
+  <h3 id="bend-math">Converting to cents</h3>
+  <pre><code>cents = (value − 8192) / 8192 × range_semitones × 100</code></pre>
+  <p>
+    The scale is not perfectly symmetric. The maximum positive value is 8191, one step short of the full range. Most
+    implementations divide by 8192 for both directions and accept the tiny shortfall at the top. Others divide positive
+    values by 8191 so that full up-bend lands exactly on the range.
+  </p>
+
+  <h3 id="bend-example">Worked example</h3>
+  <p>Bend up a whole tone (+200 cents) with the default ±2 semitone range:</p>
+  <ol>
+    <li><code>offset = 200 / 200 × 8192 = 8192</code>, which clamps to 8191 because the scale tops out there.</li>
+    <li><code>value = 8192 + 8191 = 16383 = 0x3FFF</code></li>
+    <li><code>ll = value &amp; 0x7F = 0x7F</code>, <code>mm = value &gt;&gt; 7 = 0x7F</code></li>
+    <li>Send <span class="b b-s">E0</span> <span class="b b-d">7F</span> <span class="b b-d">7F</span>.</li>
+  </ol>
+  <p>Bend down a quarter tone (−50 cents) with a ±2 semitone range:</p>
+  <ol>
+    <li><code>offset = −50 / 200 × 8192 = −2048</code></li>
+    <li><code>value = 8192 − 2048 = 6144 = 0x1800</code></li>
+    <li><code>ll = 0x00</code>, <code>mm = 0x30</code>, so you send <span class="b b-s">E0</span> <span class="b b-d">00</span> <span class="b b-d">30</span>.</li>
+  </ol>
+  <Callout type="warn" title="Byte order">
+    <p>
+      Pitch bend sends the <strong>LSB first</strong>. 14-bit controller pairs (CC 0–31 with 32–63) send the MSB first,
+      as separate messages. Mixing up the two orders is a common parser bug.
+    </p>
+  </Callout>
+
+  <h2 id="tuning">Alternate tunings</h2>
+  <p>
+    MIDI 1.0 offers three ways to play outside 12-TET: the channel tuning RPNs (coarse and fine; see <a
+      href="/docs/rpn-nrpn/">RPN &amp; NRPN</a
+    >), the MIDI Tuning Standard (a set of Universal SysEx messages that retune individual keys; see <a href="/docs/sysex/"
+      >System Exclusive</a
+    >), and per-note pitch bend with <a href="/docs/mpe/">MPE</a>. MIDI 2.0 adds per-note pitch and pitch attributes in
+    the Note On message itself; see <a href="/docs/midi-2/">MIDI 2.0 &amp; UMP</a>.
+  </p>
+</Doc>

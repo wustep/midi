@@ -1,0 +1,223 @@
+---
+interface Props {
+  initial?: string;
+}
+const { initial = '90 3C 64' } = Astro.props;
+const presets = [
+  { label: 'Note On', bytes: '90 3C 64' },
+  { label: 'Running status', bytes: '90 3C 64 40 64 3C 00 40 00' },
+  { label: 'Sustain', bytes: 'B0 40 7F' },
+  { label: 'Pitch bend', bytes: 'E0 00 60' },
+  { label: 'Drums', bytes: '99 26 70' },
+  { label: 'Clock inside a message', bytes: '90 3C F8 64' },
+  { label: 'Identity Request', bytes: 'F0 7E 7F 06 01 F7' },
+  { label: 'GS Reset', bytes: 'F0 41 10 42 12 40 00 7F 00 41 F7' },
+];
+---
+
+<section class="widget decoder" data-decoder aria-labelledby="decoder-title">
+  <div class="widget-head">
+    <h3 class="widget-title" id="decoder-title">Message decoder</h3>
+    <span class="widget-tag">MIDI 1.0 byte stream</span>
+  </div>
+  <label class="field-label" for="decoder-input">Hex bytes</label>
+  <input
+    id="decoder-input"
+    class="decoder-input"
+    type="text"
+    value={initial}
+    spellcheck="false"
+    autocomplete="off"
+    autocapitalize="characters"
+    aria-describedby="decoder-hint"
+  />
+  <p class="hint" id="decoder-hint">Paste or type bytes, e.g. <code>B0 07 64</code> or <code>0x90,0x3C,0x64</code>. Running status and interleaved real-time bytes are handled like a real receiver.</p>
+  <div class="presets" role="group" aria-label="Examples">
+    {presets.map((p) => <button type="button" class="chip" data-bytes={p.bytes}>{p.label}</button>)}
+  </div>
+  <div class="decoder-out" aria-live="polite"></div>
+</section>
+
+<script>
+  import { parseHex, parseStream, hex, type Decoded } from '../lib/midi';
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  function chips(d: Decoded) {
+    return d.bytes
+      .map((b) => {
+        const isStatus = b >= 0x80;
+        const cls = d.kind === 'sysex' && b !== 0xf0 && b !== 0xf7 ? 'b-m' : isStatus ? 'b-s' : 'b-d';
+        return `<span class="b ${cls}">${hex(b)}</span>`;
+      })
+      .join(' ');
+  }
+
+  function bits(d: Decoded) {
+    const s = d.runningStatus ? undefined : d.bytes[0];
+    if (s === undefined || s < 0x80 || s >= 0xf0) return '';
+    const b = s.toString(2).padStart(8, '0');
+    return `<div class="bits" aria-label="Status byte bits"><span class="bits-hi" title="Message type">${b.slice(0, 4)}</span><span class="bits-lo" title="Channel">${b.slice(4)}</span><span class="bits-legend">type ${hex(s >> 4, 1)} · channel nibble ${hex(s & 0xf, 1)}</span></div>`;
+  }
+
+  function render(root: HTMLElement) {
+    const input = root.querySelector<HTMLInputElement>('.decoder-input')!;
+    const out = root.querySelector<HTMLElement>('.decoder-out')!;
+    const { bytes, error } = parseHex(input.value);
+    input.setAttribute('aria-invalid', String(Boolean(error)));
+    if (error) {
+      out.innerHTML = `<p class="err">${esc(error)}</p>`;
+      return;
+    }
+    if (!bytes.length) {
+      out.innerHTML = `<p class="muted">Enter some bytes to decode.</p>`;
+      return;
+    }
+    const msgs = parseStream(bytes);
+    out.innerHTML = msgs
+      .map(
+        (d) => `<div class="msg kind-${d.kind}">
+          <div class="msg-top">
+            <div class="msg-bytes">${chips(d)}</div>
+            <div class="msg-name"><strong>${esc(d.name)}</strong>${d.channel ? ` <span class="ch">ch ${d.channel}</span>` : ''}${d.runningStatus ? ' <span class="rs">running status</span>' : ''}</div>
+          </div>
+          ${bits(d)}
+          ${d.fields.length ? `<dl>${d.fields.map((f) => `<div><dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd></div>`).join('')}</dl>` : ''}
+          ${d.error ? `<p class="err">${esc(d.error)}</p>` : ''}
+        </div>`,
+      )
+      .join('');
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-decoder]')) {
+    const input = root.querySelector<HTMLInputElement>('.decoder-input')!;
+    input.addEventListener('input', () => render(root));
+    for (const btn of root.querySelectorAll<HTMLButtonElement>('.chip')) {
+      btn.addEventListener('click', () => {
+        input.value = btn.dataset.bytes ?? '';
+        render(root);
+      });
+    }
+    render(root);
+  }
+</script>
+
+<style>
+  .decoder-input {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+  }
+  .hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.45rem 0 0.75rem;
+  }
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .chip {
+    border: 1px solid var(--line-strong);
+    background: transparent;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    min-height: 2rem;
+  }
+  .chip:hover {
+    background: var(--surface-2);
+  }
+  .decoder-out {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .decoder-out :global(.msg) {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 0.85rem;
+    background: var(--bg);
+  }
+  .decoder-out :global(.kind-realtime),
+  .decoder-out :global(.kind-common) {
+    border-left-color: var(--data);
+  }
+  .decoder-out :global(.kind-sysex) {
+    border-left-color: var(--meta);
+  }
+  .decoder-out :global(.msg-top) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.4rem 1rem;
+  }
+  .decoder-out :global(.msg-bytes) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .decoder-out :global(.ch),
+  .decoder-out :global(.rs) {
+    font-size: 0.78rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0 0.45rem;
+    margin-left: 0.25rem;
+    color: var(--muted);
+  }
+  .decoder-out :global(.bits) {
+    font-family: var(--font-mono);
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+  }
+  .decoder-out :global(.bits-hi) {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .decoder-out :global(.bits-lo) {
+    color: var(--data);
+    font-weight: 700;
+  }
+  .decoder-out :global(.bits-legend) {
+    letter-spacing: 0;
+    font-family: var(--font-text);
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-left: 0.5rem;
+  }
+  .decoder-out :global(dl) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.35rem 1.25rem;
+    margin: 0.6rem 0 0;
+    font-size: 0.9rem;
+  }
+  .decoder-out :global(dt) {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .decoder-out :global(dd) {
+    margin: 0;
+  }
+  .decoder-out :global(.err) {
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0.4rem 0 0;
+    font-size: 0.9rem;
+  }
+  .decoder-out :global(.muted) {
+    color: var(--muted);
+  }
+</style>

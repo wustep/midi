@@ -1,0 +1,311 @@
+---
+import Base from '../../layouts/Base.astro';
+import { docGroups } from '../../lib/docs-nav';
+
+const types = [
+  ['8', 'Note Off', '2'],
+  ['9', 'Note On', '2'],
+  ['A', 'Poly Pressure', '2'],
+  ['B', 'Control Change', '2'],
+  ['C', 'Program Change', '1'],
+  ['D', 'Channel Pressure', '1'],
+  ['E', 'Pitch Bend', '2'],
+  ['F', 'System', 'varies'],
+];
+---
+
+<Base
+  title="Docs"
+  section="/docs"
+  description="A practical reference to the MIDI protocol: messages, Standard MIDI Files, timing, SysEx, General MIDI, MPE, MIDI 2.0, MIDI-CI and transports."
+>
+  <div class="docs-home">
+    <header class="intro">
+      <p class="eyebrow">Protocol reference</p>
+      <h1>How MIDI actually works</h1>
+      <p class="lede">
+        A byte-level guide to the protocol: messages, files, clocks, expressive extensions and MIDI 2.0. Written for
+        people building instruments, plugins, firmware and tools, and checked against the official specifications.
+      </p>
+    </header>
+
+    <section class="anatomy" aria-labelledby="anatomy-title">
+      <div class="anatomy-text">
+        <h2 id="anatomy-title">Byte anatomy</h2>
+        <p>
+          A MIDI 1.0 message starts with a <strong>status byte</strong> (top bit 1), followed by zero or more
+          <strong>data bytes</strong> (top bit 0, values 0–127). For channel messages, the status byte's
+          <span class="hi-s">high nibble</span> is the message type and its <span class="hi-c">low nibble</span> is the
+          channel, 0–15 on the wire and 1–16 in user interfaces.
+        </p>
+        <p class="anatomy-links">
+          <a href="/docs/messages/">Read the message reference →</a>
+          <a href="/tools/">Decode your own bytes →</a>
+        </p>
+      </div>
+
+      <figure class="anatomy-fig">
+        <figcaption class="visually-hidden">Note On, channel 1, middle C, velocity 100: bytes 90 3C 64</figcaption>
+        <div class="bytes" aria-hidden="true">
+          <div class="byte status">
+            <span class="hex"><span class="hi-s">9</span><span class="hi-c">0</span></span>
+            <span class="bits"><span class="hi-s">1001</span><span class="hi-c">0000</span></span>
+            <span class="cap">Status · Note On · ch 1</span>
+          </div>
+          <div class="byte data">
+            <span class="hex">3C</span>
+            <span class="bits"><b>0</b>0111100</span>
+            <span class="cap">Data 1 · note 60 (C4)</span>
+          </div>
+          <div class="byte data">
+            <span class="hex">64</span>
+            <span class="bits"><b>0</b>1100100</span>
+            <span class="cap">Data 2 · velocity 100</span>
+          </div>
+        </div>
+        <div class="types">
+          <table>
+            <thead>
+              <tr><th>High nibble</th><th>Message</th><th class="num">Data bytes</th></tr>
+            </thead>
+            <tbody>
+              {types.map(([n, name, count]) => (
+                <tr>
+                  <td><code>{n}n</code></td>
+                  <td>{name}</td>
+                  <td class="num">{count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </figure>
+    </section>
+
+    {
+      docGroups.map((g) => (
+        <section class="group" aria-labelledby={`g-${g.title.replace(/\W+/g, '-').toLowerCase()}`}>
+          <h2 id={`g-${g.title.replace(/\W+/g, '-').toLowerCase()}`} class="group-title">
+            {g.title}
+          </h2>
+          <ul class="cards">
+            {g.items.map((d) => (
+              <li>
+                <a class="card" href={`/docs/${d.slug}/`}>
+                  <span class="card-title">{d.title}</span>
+                  <span class="card-summary">{d.summary}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    <section class="hands-on" aria-labelledby="hands-on-title">
+      <h2 id="hands-on-title" class="group-title">Hands-on</h2>
+      <ul class="cards">
+        <li>
+          <a class="card card-alt" href="/tools/">
+            <span class="card-title">Tools</span>
+            <span class="card-summary">Message decoder, VLQ encoder, note and frequency table, tempo and tick math.</span>
+          </a>
+        </li>
+        <li>
+          <a class="card card-alt" href="/try/">
+            <span class="card-title">Try Web MIDI</span>
+            <span class="card-summary">Connect a controller and watch its messages arrive live in your browser.</span>
+          </a>
+        </li>
+        <li>
+          <a class="card card-alt" href="/libraries/">
+            <span class="card-title">Libraries</span>
+            <span class="card-summary">A curated, verified catalog of open-source MIDI code in every major language.</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .docs-home {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 0;
+  }
+  .intro {
+    max-width: 52rem;
+    margin-bottom: 3rem;
+  }
+
+  /* ---- Byte anatomy ---- */
+  .anatomy {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 2.5rem;
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    box-shadow: var(--shadow);
+    margin-bottom: 3.5rem;
+  }
+  .anatomy h2 {
+    margin-top: 0;
+  }
+  .anatomy-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    font-weight: 600;
+  }
+  .hi-s {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .hi-c {
+    color: var(--meta);
+    font-weight: 700;
+  }
+  .anatomy-fig {
+    margin: 0;
+    display: grid;
+    gap: 1.25rem;
+  }
+  .bytes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .byte {
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 0.75rem;
+    display: grid;
+    gap: 0.3rem;
+    border: 1px solid var(--line);
+  }
+  .byte.status {
+    background: var(--accent-soft);
+  }
+  .byte.data {
+    background: var(--data-soft);
+  }
+  .hex {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    line-height: 1;
+  }
+  .byte.data .hex {
+    color: var(--data);
+  }
+  .bits {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
+  }
+  .bits b {
+    color: var(--data);
+  }
+  .cap {
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .types table {
+    font-size: 0.88rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+  }
+  .types td,
+  .types th {
+    padding: 0.35rem 0.7rem;
+  }
+
+  /* ---- Cards ---- */
+  .group,
+  .hands-on {
+    margin-bottom: 2.75rem;
+  }
+  .group-title {
+    font-size: 0.82rem;
+    font-stretch: 120%;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 0.9rem;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    height: 100%;
+    padding: 1.1rem 1.2rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--ink);
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-stretch: 115%;
+    font-weight: 750;
+    font-size: 1.15rem;
+  }
+  .card-summary {
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+  .card-alt {
+    background: transparent;
+    border-style: dashed;
+  }
+
+  @media (max-width: 860px) {
+    .anatomy {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  @media (max-width: 480px) {
+    .docs-home {
+      padding-top: 2rem;
+    }
+    .bytes {
+      gap: 0.4rem;
+    }
+    .byte {
+      padding: 0.65rem 0.5rem;
+    }
+    .bits {
+      font-size: 0.72rem;
+      letter-spacing: 0;
+    }
+  }
+</style>

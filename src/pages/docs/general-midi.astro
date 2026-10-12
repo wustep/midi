@@ -1,0 +1,241 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+
+const families: [string, string[]][] = [
+  ['Piano', ['Acoustic Grand Piano', 'Bright Acoustic Piano', 'Electric Grand Piano', 'Honky-tonk Piano', 'Electric Piano 1', 'Electric Piano 2', 'Harpsichord', 'Clavi']],
+  ['Chromatic Percussion', ['Celesta', 'Glockenspiel', 'Music Box', 'Vibraphone', 'Marimba', 'Xylophone', 'Tubular Bells', 'Dulcimer']],
+  ['Organ', ['Drawbar Organ', 'Percussive Organ', 'Rock Organ', 'Church Organ', 'Reed Organ', 'Accordion', 'Harmonica', 'Tango Accordion']],
+  ['Guitar', ['Acoustic Guitar (nylon)', 'Acoustic Guitar (steel)', 'Electric Guitar (jazz)', 'Electric Guitar (clean)', 'Electric Guitar (muted)', 'Overdriven Guitar', 'Distortion Guitar', 'Guitar harmonics']],
+  ['Bass', ['Acoustic Bass', 'Electric Bass (finger)', 'Electric Bass (pick)', 'Fretless Bass', 'Slap Bass 1', 'Slap Bass 2', 'Synth Bass 1', 'Synth Bass 2']],
+  ['Strings', ['Violin', 'Viola', 'Cello', 'Contrabass', 'Tremolo Strings', 'Pizzicato Strings', 'Orchestral Harp', 'Timpani']],
+  ['Ensemble', ['String Ensemble 1', 'String Ensemble 2', 'SynthStrings 1', 'SynthStrings 2', 'Choir Aahs', 'Voice Oohs', 'Synth Voice', 'Orchestra Hit']],
+  ['Brass', ['Trumpet', 'Trombone', 'Tuba', 'Muted Trumpet', 'French Horn', 'Brass Section', 'SynthBrass 1', 'SynthBrass 2']],
+  ['Reed', ['Soprano Sax', 'Alto Sax', 'Tenor Sax', 'Baritone Sax', 'Oboe', 'English Horn', 'Bassoon', 'Clarinet']],
+  ['Pipe', ['Piccolo', 'Flute', 'Recorder', 'Pan Flute', 'Blown Bottle', 'Shakuhachi', 'Whistle', 'Ocarina']],
+  ['Synth Lead', ['Lead 1 (square)', 'Lead 2 (sawtooth)', 'Lead 3 (calliope)', 'Lead 4 (chiff)', 'Lead 5 (charang)', 'Lead 6 (voice)', 'Lead 7 (fifths)', 'Lead 8 (bass + lead)']],
+  ['Synth Pad', ['Pad 1 (new age)', 'Pad 2 (warm)', 'Pad 3 (polysynth)', 'Pad 4 (choir)', 'Pad 5 (bowed)', 'Pad 6 (metallic)', 'Pad 7 (halo)', 'Pad 8 (sweep)']],
+  ['Synth Effects', ['FX 1 (rain)', 'FX 2 (soundtrack)', 'FX 3 (crystal)', 'FX 4 (atmosphere)', 'FX 5 (brightness)', 'FX 6 (goblins)', 'FX 7 (echoes)', 'FX 8 (sci-fi)']],
+  ['Ethnic', ['Sitar', 'Banjo', 'Shamisen', 'Koto', 'Kalimba', 'Bag pipe', 'Fiddle', 'Shanai']],
+  ['Percussive', ['Tinkle Bell', 'Agogo', 'Steel Drums', 'Woodblock', 'Taiko Drum', 'Melodic Tom', 'Synth Drum', 'Reverse Cymbal']],
+  ['Sound Effects', ['Guitar Fret Noise', 'Breath Noise', 'Seashore', 'Bird Tweet', 'Telephone Ring', 'Helicopter', 'Applause', 'Gunshot']],
+];
+
+const drums = [
+  'Acoustic Bass Drum', 'Bass Drum 1', 'Side Stick', 'Acoustic Snare', 'Hand Clap', 'Electric Snare', 'Low Floor Tom',
+  'Closed Hi Hat', 'High Floor Tom', 'Pedal Hi-Hat', 'Low Tom', 'Open Hi-Hat', 'Low-Mid Tom', 'Hi-Mid Tom',
+  'Crash Cymbal 1', 'High Tom', 'Ride Cymbal 1', 'Chinese Cymbal', 'Ride Bell', 'Tambourine', 'Splash Cymbal',
+  'Cowbell', 'Crash Cymbal 2', 'Vibraslap', 'Ride Cymbal 2', 'Hi Bongo', 'Low Bongo', 'Mute Hi Conga',
+  'Open Hi Conga', 'Low Conga', 'High Timbale', 'Low Timbale', 'High Agogo', 'Low Agogo', 'Cabasa', 'Maracas',
+  'Short Whistle', 'Long Whistle', 'Short Guiro', 'Long Guiro', 'Claves', 'Hi Wood Block', 'Low Wood Block',
+  'Mute Cuica', 'Open Cuica', 'Mute Triangle', 'Open Triangle',
+].map((name, i) => {
+  const note = 35 + i;
+  const names = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+  return { note, name, pitch: `${names[note % 12]}${Math.floor(note / 12) - 1}` };
+});
+
+const hex = (n: number) => n.toString(16).toUpperCase().padStart(2, '0');
+---
+
+<Doc
+  title="General MIDI"
+  slug="general-midi"
+  specs={[
+    { label: 'General MIDI', href: 'https://midi.org/general-midi' },
+    { label: 'MIDI specs', href: 'https://midi.org/specs' },
+  ]}
+>
+  <p class="lede">
+    General MIDI (GM, 1991) standardized what a program number <em>sounds like</em>. Program 1 is always a piano and
+    channel 10 is always drums, so a file plays back recognizably on any compliant synth.
+  </p>
+
+  <h2 id="requirements">GM1 requirements</h2>
+  <ul>
+    <li>At least <strong>24 voices</strong> of polyphony (or 16 melodic + 8 percussive), allocated dynamically.</li>
+    <li>All <strong>16 channels</strong>, each able to play a different program.</li>
+    <li><strong>Channel 10</strong> (<code>9</code> on the wire) is reserved for percussion, using the key map below.</li>
+    <li>The <strong>128-program sound set</strong> below, in that order.</li>
+    <li>
+      Controllers: Modulation (CC 1), Channel Volume (7), Pan (10), Expression (11), Sustain (64), Reset All
+      Controllers (121), All Notes Off (123). See <a href="/docs/control-change/">Control Change</a>.
+    </li>
+    <li>
+      Registered parameters: Pitch Bend Sensitivity (RPN 0), Fine Tuning (RPN 1), Coarse Tuning (RPN 2). See
+      <a href="/docs/rpn-nrpn/">RPN &amp; NRPN</a>.
+    </li>
+    <li>Channel Pressure (aftertouch) and Pitch Bend, with a default bend range of ±2 semitones.</li>
+    <li>
+      Turned on by GM System On, <code>F0 7E 7F 09 01 F7</code>. See <a href="/docs/sysex/#gm-messages">SysEx</a>.
+    </li>
+  </ul>
+
+  <Callout title="Program numbers are 1-based in docs, 0-based on the wire">
+    <p>
+      The GM list and most synths number programs 1–128. The Program Change data byte is 0–127. "Program 1, Acoustic
+      Grand Piano" is sent as <code>Cn 00</code>. The same off-by-one applies to channels: channel 10 is
+      <code>n = 9</code>, so <code>99 24 64</code> is a kick drum.
+    </p>
+  </Callout>
+
+  <h2 id="programs">Sound set</h2>
+  <p>Programs are grouped in 16 families of 8. Wire values are shown in hex.</p>
+  <div class="gm-grid">
+    {
+      families.map(([family, names], f) => (
+        <section class="gm-family" aria-labelledby={`fam-${f}`}>
+          <h3 id={`fam-${f}`}>
+            {family}
+            <span>
+              {f * 8 + 1}–{f * 8 + 8}
+            </span>
+          </h3>
+          <ol>
+            {names.map((n, i) => (
+              <li>
+                <span class="pn">{f * 8 + i + 1}</span>
+                <span class="nm">{n}</span>
+                <code class="hx">{hex(f * 8 + i)}</code>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))
+    }
+  </div>
+
+  <h2 id="percussion">Percussion key map (channel 10)</h2>
+  <p>
+    On channel 10, the note number picks the instrument. Program changes on channel 10 are ignored in GM1 (GS, XG and
+    GM2 use them to select drum kits). Note names use the C4 = 60 convention (see
+    <a href="/docs/notes/">Notes &amp; Pitch</a>).
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th class="num">Note</th><th class="num">Hex</th><th>Key</th><th>Sound</th></tr></thead>
+      <tbody>
+        {
+          drums.map((d) => (
+            <tr>
+              <td class="num">{d.note}</td>
+              <td class="num">
+                <code>{hex(d.note)}</code>
+              </td>
+              <td>{d.pitch}</td>
+              <td>{d.name}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The hi-hats (42, 44, 46) form an exclusive group: a closed or pedal hat chokes a ringing open hat. Short and long
+    whistle, guiro, and cuica pairs are often choked the same way.
+  </p>
+
+  <h2 id="extensions">GS, XG and GM2</h2>
+  <p>
+    GM1 left out bank selection, effects and most sound editing, and manufacturers filled the gaps in different ways.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Standard</th><th>From</th><th>What it adds</th><th>Reset</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>GS</strong></td>
+          <td>Roland, 1991</td>
+          <td>Variation banks via CC 0, drum kits via program change on ch 10, reverb/chorus sends (CC 91/93), NRPN sound editing.</td>
+          <td><code>F0 41 10 42 12 40 00 7F 00 41 F7</code></td>
+        </tr>
+        <tr>
+          <td><strong>XG</strong></td>
+          <td>Yamaha, 1994</td>
+          <td>Banks via CC 0 and CC 32, many more voices, three effect blocks plus insertion effects, extensive NRPN and SysEx editing.</td>
+          <td><code>F0 43 10 4C 00 00 7E 00 F7</code></td>
+        </tr>
+        <tr>
+          <td><strong>GM2</strong></td>
+          <td>MMA / AMEI, 1999</td>
+          <td>Standardized variation banks, 9 drum kits, extended percussion map (notes 27–87), more controllers and RPNs, MIDI Tuning, global effect parameters, 32-voice minimum polyphony.</td>
+          <td><code>F0 7E 7F 09 03 F7</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="gm2-banks">Bank select in GM2</h3>
+  <p>
+    GM2 selects sounds with Bank Select MSB (CC 0), Bank Select LSB (CC 32) and then Program Change, sent in that
+    order. The bank change takes effect only with the next Program Change.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>CC 0 (MSB)</th><th>Meaning</th><th>CC 32 (LSB)</th></tr></thead>
+      <tbody>
+        <tr><td><code>79</code> (121)</td><td>Melodic sounds. The default on every channel except 10.</td><td>Variation number: 0 = the GM1 capital tone, 1+ = variations</td></tr>
+        <tr><td><code>78</code> (120)</td><td>Rhythm (drum kit) bank. The default on channel 10; may be used on channel 11 as well.</td><td>0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <pre><code>B0 00 79   B0 20 01   C0 04     ch 1: bank 121/1, program 5 → a variation of Electric Piano 1
+B9 00 78   B9 20 00   C9 00     ch 10: rhythm bank, program 1 → Standard kit</code></pre>
+</Doc>
+
+<style>
+  .gm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0 2rem;
+  }
+  .gm-family {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.75rem 0.9rem 0.6rem;
+  }
+  .gm-family h3 {
+    margin: 0 0 0.5rem;
+    font-size: 0.95rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border: 0;
+    padding: 0;
+  }
+  .gm-family h3 span {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .gm-family ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.88rem;
+  }
+  .gm-family li {
+    display: grid;
+    grid-template-columns: 2.2rem 1fr auto;
+    gap: 0.4rem;
+    padding: 0.12rem 0;
+    margin: 0;
+    border-top: 1px dashed var(--line);
+  }
+  .gm-family li:first-child {
+    border-top: 0;
+  }
+  .pn {
+    font-family: var(--font-mono);
+    color: var(--muted);
+    text-align: right;
+  }
+  .hx {
+    background: none !important;
+    color: var(--data);
+    font-size: 0.8rem;
+  }
+</style>

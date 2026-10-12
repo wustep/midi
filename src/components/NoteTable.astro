@@ -1,0 +1,195 @@
+---
+import { noteName, noteFrequency, GM_DRUMS } from '../lib/midi';
+const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
+---
+
+<section class="widget notes" data-notes aria-labelledby="notes-title">
+  <div class="widget-head">
+    <h3 class="widget-title" id="notes-title">Note number & frequency table</h3>
+    <span class="widget-tag">f = A4 · 2^((n − 69) / 12)</span>
+  </div>
+  <div class="notes-controls">
+    <div>
+      <label class="field-label" for="n-a4">A4 reference (Hz)</label>
+      <input id="n-a4" class="n-a4" type="number" min="200" max="600" step="0.1" value="440" />
+    </div>
+    <div>
+      <label class="field-label" for="n-oct">Middle C (note 60) is called</label>
+      <select id="n-oct" class="n-oct">
+        <option value="4">C4 (scientific, Roland, most DAWs)</option>
+        <option value="3">C3 (Yamaha, Ableton, Logic Pro)</option>
+      </select>
+    </div>
+    <div>
+      <label class="field-label" for="n-hz">Find note for frequency (Hz)</label>
+      <input id="n-hz" class="n-hz" type="number" min="1" step="any" placeholder="e.g. 261.63" />
+    </div>
+  </div>
+  <p class="n-result" aria-live="polite"></p>
+  <div class="table-wrap notes-scroll" tabindex="0" role="region" aria-label="All 128 MIDI notes">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" class="num">Note</th>
+          <th scope="col">Hex</th>
+          <th scope="col">Name</th>
+          <th scope="col" class="num">Frequency (Hz)</th>
+          <th scope="col">GM drum (ch 10)</th>
+          <th scope="col"><span class="visually-hidden">Play</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          notes.map((n) => (
+            <tr data-n={n} class:list={[n % 12 === 0 && 'is-c', n === 60 && 'is-middle', n === 69 && 'is-a4']}>
+              <td class="num"><code>{n}</code></td>
+              <td><code>{n.toString(16).toUpperCase().padStart(2, '0')}</code></td>
+              <td class="n-name">{noteName(n)}</td>
+              <td class="num n-freq">{noteFrequency(n).toFixed(2)}</td>
+              <td class="drum">{GM_DRUMS[n] ?? ''}</td>
+              <td>
+                <button type="button" class="play" data-n={n} aria-label={`Play note ${n}`}>▶</button>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  import { noteName, noteFrequency, frequencyToNote } from '../lib/midi';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-notes]')) {
+    const a4 = root.querySelector<HTMLInputElement>('.n-a4')!;
+    const oct = root.querySelector<HTMLSelectElement>('.n-oct')!;
+    const hz = root.querySelector<HTMLInputElement>('.n-hz')!;
+    const result = root.querySelector<HTMLElement>('.n-result')!;
+    const rows = [...root.querySelectorAll<HTMLTableRowElement>('tbody tr')];
+    let ctx: AudioContext | undefined;
+
+    const ref = () => (Number(a4.value) > 0 ? Number(a4.value) : 440);
+    const update = () => {
+      const r = ref();
+      const o = Number(oct.value);
+      for (const row of rows) {
+        const n = Number(row.dataset.n);
+        row.querySelector('.n-name')!.textContent = noteName(n, o);
+        row.querySelector('.n-freq')!.textContent = noteFrequency(n, r).toFixed(2);
+      }
+      find();
+    };
+    const find = () => {
+      for (const row of rows) row.classList.remove('is-hit');
+      const f = Number(hz.value);
+      if (!hz.value || !(f > 0)) return (result.textContent = '');
+      const exact = frequencyToNote(f, ref());
+      const n = Math.round(exact);
+      const cents = Math.round((exact - n) * 100);
+      if (n < 0 || n > 127) return (result.textContent = `${f} Hz is outside the MIDI note range.`);
+      result.textContent = `${f} Hz ≈ note ${n} (${noteName(n, Number(oct.value))}) ${cents >= 0 ? '+' : ''}${cents} cents`;
+      const row = rows.find((r) => Number(r.dataset.n) === n);
+      row?.classList.add('is-hit');
+      row?.scrollIntoView({ block: 'nearest' });
+    };
+    const play = (n: number) => {
+      ctx ??= new AudioContext();
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = noteFrequency(n, ref());
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.2, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 1);
+    };
+
+    a4.addEventListener('input', update);
+    oct.addEventListener('change', update);
+    hz.addEventListener('input', find);
+    root.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('.play');
+      if (btn) play(Number(btn.dataset.n));
+    });
+    // Start scrolled near middle C.
+    const scroller = root.querySelector<HTMLElement>('.notes-scroll')!;
+    const middle = rows.find((r) => r.dataset.n === '72');
+    if (middle) scroller.scrollTop = middle.offsetTop - 40;
+  }
+</script>
+
+<style>
+  .notes-controls {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+  .n-result {
+    min-height: 1.6em;
+    font-weight: 600;
+    margin: 0.75rem 0 0;
+  }
+  .notes-scroll {
+    max-height: 26rem;
+    overflow: auto;
+    margin-bottom: 0;
+  }
+  .notes-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .notes-scroll td {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+  .is-c td {
+    border-bottom-color: var(--line-strong);
+  }
+  .is-middle,
+  .is-a4 {
+    background: var(--accent-soft);
+  }
+  .is-hit {
+    outline: 2px solid var(--data);
+    outline-offset: -2px;
+    background: var(--data-soft);
+  }
+  .n-name {
+    font-weight: 700;
+  }
+  .drum {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .play {
+    border: 1px solid var(--line-strong);
+    background: transparent;
+    border-radius: 999px;
+    width: 1.9rem;
+    height: 1.9rem;
+    font-size: 0.7rem;
+    cursor: pointer;
+    color: var(--ink-2);
+  }
+  .play:hover {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  @media (max-width: 640px) {
+    .notes-controls {
+      grid-template-columns: 1fr;
+    }
+    .drum {
+      display: none;
+    }
+    th:nth-child(5) {
+      display: none;
+    }
+  }
+</style>

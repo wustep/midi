@@ -1,0 +1,380 @@
+---
+import Base from '../layouts/Base.astro';
+import libraries from '../../data/libraries.json';
+import categories from '../../data/categories.json';
+
+type Lib = (typeof libraries)[number];
+
+const byStars = (a: Lib, b: Lib) => Number(a.archived) - Number(b.archived) || (b.stars ?? 0) - (a.stars ?? 0);
+const sorted = [...libraries].sort(byStars);
+
+// Top languages by count for the filter (rest grouped under "Other").
+const langCounts = new Map<string, number>();
+for (const l of libraries) langCounts.set(l.language, (langCounts.get(l.language) ?? 0) + 1);
+const languages = [...langCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
+const catTitle = Object.fromEntries(categories.map((c) => [c.id, c.short]));
+const fmtStars = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
+const verifiedAt = libraries.map((l) => l.verifiedAt).sort().at(-1);
+const year = (d: string | null) => (d ? d.slice(0, 4) : '');
+---
+
+<Base title="Libraries" section="/libraries" description={`${libraries.length} open-source MIDI libraries and tools, verified against GitHub: parsing, realtime I/O, Web MIDI, synthesis, firmware, DAWs, notation, ML and MIDI 2.0.`}>
+  <div class="lib-page">
+    <header class="lib-header">
+      <p class="eyebrow">Catalog</p>
+      <h1>Open-source MIDI libraries</h1>
+      <p class="lede">
+        {libraries.length} projects across {categories.length} categories. Every entry is checked against the GitHub API
+        for existence, stars, license, and activity{verifiedAt && <> (last checked <time datetime={verifiedAt}>{verifiedAt}</time>)</>}.
+        Also available as a plain <a href="https://github.com/wustep/midi-new#readme">awesome list on GitHub</a>.
+      </p>
+    </header>
+
+    <form class="filters" role="search" aria-label="Filter libraries" onsubmit="return false">
+      <div class="f-search">
+        <label class="field-label" for="q">Search</label>
+        <input id="q" type="search" placeholder="name, description, owner…" autocomplete="off" />
+      </div>
+      <div>
+        <label class="field-label" for="f-lang">Language</label>
+        <select id="f-lang">
+          <option value="">All languages</option>
+          {languages.map(([l, n]) => <option value={l}>{l} ({n})</option>)}
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="f-sort">Sort</label>
+        <select id="f-sort">
+          <option value="stars">Most stars</option>
+          <option value="recent">Recently updated</option>
+          <option value="name">Name A–Z</option>
+        </select>
+      </div>
+      <label class="f-check">
+        <input id="f-archived" type="checkbox" checked />
+        Show archived
+      </label>
+    </form>
+
+    <div class="cats" role="group" aria-label="Category">
+      <button type="button" class="cat" data-cat="" aria-pressed="true">All <span>{libraries.length}</span></button>
+      {
+        categories.map((c) => (
+          <button type="button" class="cat" data-cat={c.id} aria-pressed="false" title={c.blurb}>
+            {c.short} <span>{libraries.filter((l) => l.category === c.id).length}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <p class="count" aria-live="polite"><span id="count">{libraries.length}</span> shown</p>
+
+    <ul class="grid" id="grid">
+      {
+        sorted.map((l) => (
+          <li
+            class="card"
+            data-cat={l.category}
+            data-lang={l.language}
+            data-stars={l.stars}
+            data-pushed={l.pushedAt}
+            data-name={l.name.toLowerCase()}
+            data-archived={String(l.archived)}
+            data-search={`${l.name} ${l.repo} ${l.description} ${l.language} ${catTitle[l.category]}`.toLowerCase()}
+          >
+            <div class="card-top">
+              <h2 class="card-title">
+                <a href={`https://github.com/${l.repo}`}>{l.name}</a>
+              </h2>
+              <span class="stars" title={`${l.stars} stars`}>
+                <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+                  <path fill="currentColor" d="M8 .8l2.2 4.6 5 .7-3.6 3.5.9 5L8 12.3l-4.5 2.3.9-5L.8 6.1l5-.7z" />
+                </svg>
+                <span class="visually-hidden">Stars: </span>
+                {fmtStars(l.stars ?? 0)}
+              </span>
+            </div>
+            <p class="repo">{l.repo}</p>
+            <p class="desc">{l.description}</p>
+            <div class="meta">
+              <span class="tag tag-cat">{catTitle[l.category]}</span>
+              <span class="tag">{l.language}</span>
+              {l.license && <span class="tag tag-quiet">{l.license}</span>}
+              {l.archived ? (
+                <span class="tag tag-warn">Archived</span>
+              ) : (
+                l.pushedAt && <span class="tag tag-quiet" title={`Last push ${l.pushedAt}`}>Active {year(l.pushedAt)}</span>
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="empty" id="empty" hidden>No libraries match. Try clearing a filter, or <a href="https://github.com/wustep/midi-new/blob/main/CONTRIBUTING.md">suggest one</a>.</p>
+  </div>
+</Base>
+
+<script>
+  const q = document.querySelector<HTMLInputElement>('#q')!;
+  const lang = document.querySelector<HTMLSelectElement>('#f-lang')!;
+  const sort = document.querySelector<HTMLSelectElement>('#f-sort')!;
+  const archived = document.querySelector<HTMLInputElement>('#f-archived')!;
+  const grid = document.querySelector<HTMLUListElement>('#grid')!;
+  const count = document.querySelector<HTMLElement>('#count')!;
+  const empty = document.querySelector<HTMLElement>('#empty')!;
+  const catBtns = [...document.querySelectorAll<HTMLButtonElement>('.cat')];
+  const cards = [...grid.querySelectorAll<HTMLLIElement>('.card')];
+  let cat = '';
+
+  // Restore state from the URL so filtered views are shareable.
+  const params = new URLSearchParams(location.search);
+  q.value = params.get('q') ?? '';
+  lang.value = params.get('lang') ?? '';
+  sort.value = params.get('sort') ?? 'stars';
+  cat = params.get('cat') ?? '';
+  archived.checked = params.get('archived') !== '0';
+
+  function apply() {
+    const terms = q.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    for (const c of cards) {
+      const ok =
+        (!cat || c.dataset.cat === cat) &&
+        (!lang.value || c.dataset.lang === lang.value) &&
+        (archived.checked || c.dataset.archived !== 'true') &&
+        terms.every((t) => c.dataset.search!.includes(t));
+      c.hidden = !ok;
+      if (ok) shown++;
+    }
+    const key = sort.value;
+    const sorted = [...cards].sort((a, b) => {
+      if (key === 'name') return a.dataset.name!.localeCompare(b.dataset.name!);
+      if (key === 'recent') return (b.dataset.pushed ?? '').localeCompare(a.dataset.pushed ?? '');
+      return (
+        Number(a.dataset.archived === 'true') - Number(b.dataset.archived === 'true') ||
+        Number(b.dataset.stars) - Number(a.dataset.stars)
+      );
+    });
+    grid.append(...sorted);
+    count.textContent = String(shown);
+    empty.hidden = shown > 0;
+    for (const b of catBtns) b.setAttribute('aria-pressed', String(b.dataset.cat === cat));
+
+    const p = new URLSearchParams();
+    if (q.value) p.set('q', q.value);
+    if (cat) p.set('cat', cat);
+    if (lang.value) p.set('lang', lang.value);
+    if (sort.value !== 'stars') p.set('sort', sort.value);
+    if (!archived.checked) p.set('archived', '0');
+    const qs = p.toString();
+    history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+  }
+
+  q.addEventListener('input', apply);
+  lang.addEventListener('change', apply);
+  sort.addEventListener('change', apply);
+  archived.addEventListener('change', apply);
+  for (const b of catBtns)
+    b.addEventListener('click', () => {
+      cat = b.dataset.cat ?? '';
+      apply();
+    });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') {
+      e.preventDefault();
+      q.focus();
+    }
+  });
+  apply();
+</script>
+
+<style>
+  .lib-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 0;
+  }
+  .lib-header {
+    margin-bottom: 2rem;
+  }
+  .filters {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: end;
+    margin-bottom: 1rem;
+  }
+  .f-check {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.5rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+  .f-check input {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+  }
+  .cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  .cat {
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 2.25rem;
+  }
+  .cat span {
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 0.15rem;
+  }
+  .cat:hover {
+    border-color: var(--ink-2);
+  }
+  .cat[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+  }
+  .cat[aria-pressed='true'] span {
+    color: inherit;
+    opacity: 0.7;
+  }
+  .count {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1rem;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem 0.9rem;
+    position: relative;
+    transition: border-color 0.15s ease;
+  }
+  .card:hover,
+  .card:focus-within {
+    border-color: var(--line-strong);
+  }
+  .card[hidden] {
+    display: none;
+  }
+  .card[data-archived='true'] {
+    opacity: 0.78;
+  }
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .card-title {
+    font-size: 1.08rem;
+    margin: 0;
+    font-stretch: 108%;
+  }
+  .card-title a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .card-title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+  }
+  .card-title a:hover {
+    color: var(--accent);
+  }
+  .card-title a:focus-visible {
+    outline: none;
+  }
+  .card-title a:focus-visible::after {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .repo {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0.1rem 0 0.5rem;
+    overflow-wrap: anywhere;
+  }
+  .desc {
+    font-size: 0.94rem;
+    color: var(--ink-2);
+    line-height: 1.5;
+    flex: 1;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .tag {
+    font-size: 0.74rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 0.1rem 0.45rem;
+    background: var(--surface-2);
+    color: var(--ink-2);
+  }
+  .tag-cat {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .tag-quiet {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-weight: 400;
+  }
+  .tag-warn {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .empty {
+    padding: 3rem 0;
+    text-align: center;
+    color: var(--muted);
+  }
+  @media (max-width: 820px) {
+    .filters {
+      grid-template-columns: 1fr 1fr;
+    }
+    .f-search {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

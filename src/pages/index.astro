@@ -1,0 +1,469 @@
+---
+import Base from '../layouts/Base.astro';
+import libraries from '../../data/libraries.json';
+import categories from '../../data/categories.json';
+import { docGroups } from '../lib/docs-nav';
+
+const quickRef = [
+  ['8n', 'Note Off', 'note, velocity'],
+  ['9n', 'Note On', 'note, velocity'],
+  ['An', 'Poly Pressure', 'note, pressure'],
+  ['Bn', 'Control Change', 'controller, value'],
+  ['Cn', 'Program Change', 'program'],
+  ['Dn', 'Channel Pressure', 'pressure'],
+  ['En', 'Pitch Bend', 'LSB, MSB'],
+  ['F0', 'System Exclusive', '… F7'],
+];
+const languages = new Set(libraries.map((l) => l.language)).size;
+const docCount = docGroups.reduce((n, g) => n + g.items.length, 0);
+---
+
+<Base title="MIDI Field Guide">
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">midi.community</p>
+      <h1>The field guide<br />to <span class="hl">MIDI</span>.</h1>
+      <p class="lede">
+        Byte-level protocol docs from MIDI 1.0 to MIDI 2.0, small interactive tools, a live Web MIDI monitor, and a
+        curated catalog of {libraries.length} open-source libraries, each one checked against GitHub.
+      </p>
+      <div class="cta">
+        <a class="btn btn-primary" href="/docs/">Read the docs</a>
+        <a class="btn" href="/libraries/">Browse libraries</a>
+        <a class="btn" href="/try/">Plug something in</a>
+      </div>
+    </div>
+
+    <figure class="anatomy" aria-label="Anatomy of a Note On message">
+      <div class="bytes">
+        <div class="byte status">
+          <span class="hexv">90</span>
+          <span class="bin"><b>1001</b><i>0000</i></span>
+          <span class="lbl">Status<br /><small>Note On · channel 1</small></span>
+        </div>
+        <div class="byte data">
+          <span class="hexv">3C</span>
+          <span class="bin"><b>0</b>0111100</span>
+          <span class="lbl">Data 1<br /><small>note 60 · C4</small></span>
+        </div>
+        <div class="byte data">
+          <span class="hexv">64</span>
+          <span class="bin"><b>0</b>1100100</span>
+          <span class="lbl">Data 2<br /><small>velocity 100</small></span>
+        </div>
+      </div>
+      <figcaption>
+        Three bytes, 960 µs on a 5-pin DIN cable. Status bytes have the top bit set; data bytes never do.
+        <a href="/docs/messages/">How messages work →</a>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="band">
+    <div class="band-inner stats">
+      <a href="/docs/"><strong>{docCount}</strong><span>reference chapters</span></a>
+      <a href="/libraries/"><strong>{libraries.length}</strong><span>verified libraries</span></a>
+      <a href="/libraries/"><strong>{languages}</strong><span>languages & ecosystems</span></a>
+      <a href="/tools/"><strong>4</strong><span>interactive tools</span></a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner split">
+      <div>
+        <p class="eyebrow">Docs</p>
+        <h2>Everything on the wire, explained</h2>
+        <p>
+          Written as a working reference: tables you can scan, worked byte examples, and the edge cases that bite,
+          like running status, velocity-zero note offs, and Roland checksums.
+        </p>
+        <ul class="doc-list">
+          {
+            docGroups.flatMap((g) =>
+              g.items.map((d) => (
+                <li>
+                  <a href={`/docs/${d.slug}/`}>{d.title}</a>
+                </li>
+              )),
+            )
+          }
+        </ul>
+      </div>
+      <div class="qr">
+        <div class="table-wrap">
+          <table>
+            <caption class="visually-hidden">Channel message status bytes</caption>
+            <thead>
+              <tr><th scope="col">Status</th><th scope="col">Message</th><th scope="col">Data</th></tr>
+            </thead>
+            <tbody>
+              {
+                quickRef.map(([s, m, d]) => (
+                  <tr>
+                    <td><span class="b b-s">{s}</span></td>
+                    <td>{m}</td>
+                    <td class="dim">{d}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="qr-note"><code>n</code> = channel − 1 (0–F). Full tables in <a href="/docs/messages/">Messages</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt">
+    <div class="section-inner">
+      <p class="eyebrow">Catalog</p>
+      <h2>Open-source MIDI, organized</h2>
+      <p class="section-lede">
+        From parsing <code>.mid</code> files to USB-MIDI firmware and symbolic-music models. Also published as an
+        <a href="https://github.com/wustep/midi-new#readme">awesome list on GitHub</a>.
+      </p>
+      <ul class="cat-grid">
+        {
+          categories.map((c) => {
+            const items = libraries.filter((l) => l.category === c.id && !l.archived).sort((a, b) => b.stars - a.stars);
+            return (
+              <li>
+                <a href={`/libraries/?cat=${c.id}`}>
+                  <span class="cat-count">{libraries.filter((l) => l.category === c.id).length}</span>
+                  <strong>{c.title}</strong>
+                  <span class="cat-blurb">{c.blurb}</span>
+                  <span class="cat-top">{items.slice(0, 3).map((l) => l.name).join(' · ')}</span>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner split try">
+      <div>
+        <p class="eyebrow">Try it</p>
+        <h2>See your controller think</h2>
+        <p>
+          The <a href="/try/">Web MIDI monitor</a> lists connected devices and decodes every incoming message live, with
+          a keyboard view, controller meters, and a clock-tempo readout. Works in Chromium browsers and Firefox.
+        </p>
+        <a class="btn btn-primary" href="/try/">Open the monitor</a>
+      </div>
+      <div class="fake-log" aria-hidden="true">
+        <div><span class="t">0.512</span><span class="b b-s">90</span> <span class="b b-d">3C</span> <span class="b b-d">64</span><span class="m">Note On C4 vel 100</span></div>
+        <div><span class="t">0.538</span><span class="b b-s">B0</span> <span class="b b-d">40</span> <span class="b b-d">7F</span><span class="m">CC 64 Sustain = 127</span></div>
+        <div><span class="t">0.701</span><span class="b b-s">E0</span> <span class="b b-d">00</span> <span class="b b-d">50</span><span class="m">Pitch Bend +2048</span></div>
+        <div><span class="t">0.944</span><span class="b b-s">B0</span> <span class="b b-d">01</span> <span class="b b-d">2A</span><span class="m">CC 1 Modulation = 42</span></div>
+        <div><span class="t">1.103</span><span class="b b-s">80</span> <span class="b b-d">3C</span> <span class="b b-d">40</span><span class="m">Note Off C4 vel 64</span></div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: clamp(3rem, 8vw, 6.5rem) var(--gutter) clamp(2.5rem, 6vw, 5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: center;
+  }
+  .hero h1 {
+    font-size: clamp(2.8rem, 7vw, 5.4rem);
+    line-height: 0.98;
+    font-stretch: 125%;
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    margin-bottom: 1.5rem;
+  }
+  .hl {
+    color: var(--accent);
+  }
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.75rem;
+  }
+  .anatomy {
+    margin: 0;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 16px;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    box-shadow: var(--shadow);
+  }
+  .bytes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+  }
+  .byte {
+    display: grid;
+    gap: 0.6rem;
+    justify-items: center;
+    text-align: center;
+  }
+  .hexv {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1;
+    width: 100%;
+    padding: 0.9rem 0;
+    border-radius: 12px;
+  }
+  .status .hexv {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .data .hexv {
+    background: var(--data-soft);
+    color: var(--data);
+  }
+  .bin {
+    font-family: var(--font-mono);
+    font-size: clamp(0.72rem, 1.4vw, 0.9rem);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .bin b {
+    color: var(--accent);
+  }
+  .status .bin i {
+    font-style: normal;
+    color: var(--data);
+    font-weight: 700;
+  }
+  .lbl {
+    font-family: var(--font-display);
+    font-stretch: 115%;
+    font-weight: 700;
+    font-size: 0.85rem;
+    line-height: 1.3;
+  }
+  .lbl small {
+    font-family: var(--font-text);
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .anatomy figcaption {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+  .band {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .band-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stats a {
+    display: grid;
+    padding: 1.4rem 1rem 1.3rem 0;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .stats a + a {
+    border-left: 1px solid var(--line);
+    padding-left: 1.25rem;
+  }
+  .stats strong {
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 900;
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    line-height: 1;
+  }
+  .stats span {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .stats a:hover strong {
+    color: var(--accent);
+  }
+  .section {
+    padding: clamp(3rem, 7vw, 5.5rem) 0;
+  }
+  .section.alt {
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .section-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+  }
+  .section h2 {
+    margin-top: 0;
+    font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+    font-stretch: 120%;
+  }
+  .section-lede {
+    max-width: 62ch;
+    color: var(--ink-2);
+  }
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+  .split > div > p {
+    max-width: 52ch;
+    color: var(--ink-2);
+  }
+  .doc-list {
+    list-style: none;
+    padding: 0;
+    columns: 2;
+    column-gap: 2rem;
+    margin-top: 1.5rem;
+  }
+  .doc-list li {
+    break-inside: avoid;
+    border-top: 1px solid var(--line);
+  }
+  .doc-list a {
+    display: block;
+    padding: 0.5rem 0;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .doc-list a:hover {
+    color: var(--accent);
+  }
+  .doc-list a::after {
+    content: ' →';
+    color: var(--muted);
+  }
+  .qr .table-wrap {
+    margin-top: 0;
+  }
+  .dim {
+    color: var(--muted);
+  }
+  .qr-note {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .cat-grid {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+  .cat-grid a {
+    display: grid;
+    gap: 0.35rem;
+    height: 100%;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--ink);
+    text-decoration: none;
+    position: relative;
+  }
+  .cat-grid a:hover {
+    border-color: var(--accent);
+  }
+  .cat-grid strong {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-size: 1.05rem;
+    padding-right: 2.5rem;
+  }
+  .cat-count {
+    position: absolute;
+    top: 1rem;
+    right: 1.1rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .cat-blurb {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+  .cat-top {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+  }
+  .try .btn {
+    margin-top: 0.5rem;
+  }
+  .fake-log {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.75rem 1rem;
+    font-size: 0.88rem;
+    box-shadow: var(--shadow);
+  }
+  .fake-log div {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .fake-log div:last-child {
+    border-bottom: 0;
+  }
+  .fake-log .t {
+    font-family: var(--font-mono);
+    color: var(--muted);
+    width: 3.5rem;
+  }
+  .fake-log .m {
+    margin-left: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 900px) {
+    .hero,
+    .split {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .stats a:nth-child(3) {
+      border-left: 0;
+      padding-left: 0;
+    }
+    .stats a:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+  @media (max-width: 520px) {
+    .doc-list {
+      columns: 1;
+    }
+  }
+</style>

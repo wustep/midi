@@ -1,0 +1,177 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+---
+
+<Doc
+  title="MPE: MIDI Polyphonic Expression"
+  slug="mpe"
+  specs={[
+    { label: 'MPE specification (MMA RP-053)', href: 'https://midi.org/mpe-midi-polyphonic-expression' },
+    { label: 'All MIDI specs', href: 'https://midi.org/specs' },
+  ]}
+>
+  <p class="lede">
+    MIDI 1.0 puts pitch bend, channel pressure and most controllers on the <em>channel</em>, so every note on that
+    channel bends together. MPE works around that by giving each sounding note its own channel. The result is
+    per-note pitch, pressure and timbre that still runs over plain MIDI 1.0 cables and drivers.
+  </p>
+
+  <p>
+    MPE was adopted by the MMA in 2018 as Recommended Practice RP-053. It is used by expressive controllers such as
+    the ROLI Seaboard, Expressive E Osmose, LinnStrument, Haken Continuum, Sensel Morph and Ableton Push 3, and it
+    is supported by most current DAWs and many soft synths.
+  </p>
+
+  <h2 id="dimensions">The five dimensions of touch</h2>
+  <p>A typical MPE controller tracks a note along five axes, each mapped to a standard MIDI 1.0 message on the note's own channel:</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Dimension</th><th>Gesture</th><th>Message</th><th>Bytes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Strike</td><td>How hard the key is hit</td><td>Note On velocity</td><td><span class="b b-s">9n</span> <span class="b b-d">kk</span> <span class="b b-d">vv</span></td></tr>
+        <tr><td>Lift</td><td>How fast the finger leaves</td><td>Note Off (release) velocity</td><td><span class="b b-s">8n</span> <span class="b b-d">kk</span> <span class="b b-d">vv</span></td></tr>
+        <tr><td>Glide (X)</td><td>Sliding left/right</td><td>Pitch Bend (14-bit)</td><td><span class="b b-s">En</span> <span class="b b-d">ll</span> <span class="b b-d">mm</span></td></tr>
+        <tr><td>Slide (Y)</td><td>Moving up/down the key</td><td>Control Change 74</td><td><span class="b b-s">Bn</span> <span class="b b-d">4A</span> <span class="b b-d">vv</span></td></tr>
+        <tr><td>Press (Z)</td><td>Pressure after the strike</td><td>Channel Pressure</td><td><span class="b b-s">Dn</span> <span class="b b-d">vv</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The spec permits Polyphonic Key Pressure (<span class="b b-s">An</span>) in place of Channel Pressure, but Channel
+    Pressure is the norm and what receivers should expect by default.
+  </p>
+
+  <h2 id="zones">Zones, master channels and member channels</h2>
+  <p>
+    The 16 channels of a MIDI port are split into at most two <strong>zones</strong>. Each zone has one
+    <strong>master channel</strong>, which carries messages that apply to the whole zone, and a range of
+    <strong>member channels</strong> that carry individual notes.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Zone</th><th>Master channel</th><th>Member channels</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Lower zone</td><td>Channel 1</td><td>2 upward: 2 … (1 + <var>n</var>)</td></tr>
+        <tr><td>Upper zone</td><td>Channel 16</td><td>15 downward: 15 … (16 − <var>n</var>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul>
+    <li>A single Lower zone with 15 member channels (2–16) is the most common setup and is what most controllers send out of the box.</li>
+    <li>Two zones split the channels, for example a Lower zone of 7 members (2–8) and an Upper zone of 7 members (9–15). The zones may not overlap. If a new configuration makes them overlap, the zone that was configured first shrinks.</li>
+    <li>Messages on the master channel, such as sustain pedal, program change, or a zone-wide pitch bend, apply to every note in the zone. They combine with each note's own member-channel values.</li>
+  </ul>
+
+  <h2 id="mcm">The MPE Configuration Message (MCM)</h2>
+  <p>
+    A zone is set up with <strong>Registered Parameter Number 6</strong>, sent on the zone's master channel. The Data
+    Entry MSB gives the number of member channels. A value of <code>0</code> turns the zone off.
+  </p>
+  <pre><code>Lower zone, 15 member channels (sent on channel 1)
+B0 65 00   CC 101 RPN MSB = 0
+B0 64 06   CC 100 RPN LSB = 6   → RPN 6: MPE Configuration
+B0 06 0F   CC 6   Data Entry MSB = 15 member channels
+
+Upper zone, 4 member channels (sent on channel 16)
+BF 65 00
+BF 64 06
+BF 06 04   → master = 16, members = 15, 14, 13, 12</code></pre>
+  <p>
+    Senders often follow with the <a href="/docs/rpn-nrpn/#null-rpn">null RPN</a> (<code>CC 101 = 127</code>,
+    <code>CC 100 = 127</code>) so that later Data Entry messages can't change the parameter by accident.
+  </p>
+  <p>Receiving an MCM also resets pitch bend sensitivity to its MPE defaults:</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Channel type</th><th>Default pitch bend range</th><th>Changed with</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Member channels</td><td>±48 semitones</td><td>RPN 0 on any member channel; applies to all members of the zone</td></tr>
+        <tr><td>Master channel</td><td>±2 semitones</td><td>RPN 0 on the master channel</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    ±48 semitones (four octaves) lets a finger slide across most of a playing surface with one bend. The 14-bit
+    value gives a step of about 0.59 cents (96 semitones / 16384), which is fine enough for smooth glides.
+  </p>
+
+  <h2 id="stream">A single note, byte by byte</h2>
+  <p>
+    A player in the Lower zone presses middle C, slides up a whole tone, leans into the key, and lets go. The
+    controller picked channel 3 for the note. Per-note state is sent <em>before</em> the Note On, so the synth's
+    voice starts with the right pitch, timbre and pressure:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Bytes</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="b b-s">B2</span> <span class="b b-d">4A</span> <span class="b b-d">40</span></td><td>Ch 3, CC 74 (Slide) = 64, the neutral starting point</td></tr>
+        <tr><td><span class="b b-s">D2</span> <span class="b b-d">00</span></td><td>Ch 3, Channel Pressure = 0</td></tr>
+        <tr><td><span class="b b-s">E2</span> <span class="b b-d">00</span> <span class="b b-d">40</span></td><td>Ch 3, Pitch Bend = 8192 (centered)</td></tr>
+        <tr><td><span class="b b-s">92</span> <span class="b b-d">3C</span> <span class="b b-d">5A</span></td><td>Ch 3, Note On, C4 (60), velocity 90</td></tr>
+        <tr><td><span class="b b-s">D2</span> <span class="b b-d">30</span></td><td>Pressure rises to 48 …</td></tr>
+        <tr><td><span class="b b-s">E2</span> <span class="b b-d">55</span> <span class="b b-d">42</span></td><td>Pitch Bend = 8533 → +2 semitones at ±48 (8192 + 2 × 8192⁄48 ≈ 8533)</td></tr>
+        <tr><td><span class="b b-s">B2</span> <span class="b b-d">4A</span> <span class="b b-d">5C</span></td><td>Slide moves to 92</td></tr>
+        <tr><td><span class="b b-s">82</span> <span class="b b-d">3C</span> <span class="b b-d">28</span></td><td>Note Off, release velocity 40. Channel 3 is free again.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <Callout type="note" title="Running status still works">
+    <p>
+      MPE streams contain long runs of pitch bend and pressure on the same channel, which suits
+      <a href="/docs/messages/#running-status">running status</a>. Senders may also thin out these streams (for
+      example, cap them at a few hundred messages per second) when the link is a 31.25 kbaud DIN cable.
+    </p>
+  </Callout>
+
+  <h2 id="allocation">Channel allocation</h2>
+  <p>The spec leaves the allocation algorithm to the sender but recommends behavior along these lines:</p>
+  <ul>
+    <li><strong>Use the least-recently-used free channel</strong> for a new note. That way the release tail of the previous note on that channel has the longest time to fade before the channel's pitch bend and CC 74 change.</li>
+    <li>When every member channel is busy, <strong>share a channel</strong> with the note that has been active the longest or is quietest. Notes that share a channel also share its expression, so senders avoid it where they can.</li>
+    <li>Receivers should treat each member channel as monophonic per note and keep a voice's expression bound to its channel until Note Off.</li>
+    <li>Reset per-channel values (pitch bend to center, pressure to 0, CC 74 to a sensible default) before reusing a channel, as in the example above.</li>
+  </ul>
+
+  <h2 id="receivers">Receiver behavior</h2>
+  <ul>
+    <li>Combine a voice's member-channel pitch bend with the zone's master-channel pitch bend, each scaled by its own bend range.</li>
+    <li>Apply master-channel controllers (sustain, modulation, volume) to every voice in the zone.</li>
+    <li>CC 74 is often sent as an absolute value from 0 to 127 starting near 64. Some controllers instead start each note at 0 and send motion relative to the initial touch point. Synths usually let you set this per patch.</li>
+    <li>A receiver in "MPE mode" should accept an MCM at any time and reconfigure. If it receives no MCM, it should still accept the common default of one Lower zone with 15 members.</li>
+  </ul>
+
+  <h2 id="compat">Compatibility notes</h2>
+  <ul>
+    <li><strong>Non-MPE synths</strong>: an MPE stream played into an ordinary multitimbral synth sounds right only if the same patch is loaded on every member channel. Otherwise notes jump between patches.</li>
+    <li><strong>Recording</strong>: a DAW has to keep notes and their per-channel data together. Editors that merge channels into a single-channel clip will smear one note's bends across all notes.</li>
+    <li><strong>Bend range mismatches</strong> are the most common MPE bug. If a controller assumes ±48 but the synth uses ±2 (or the reverse), slides overshoot or barely move. Send the MCM, or RPN 0, explicitly.</li>
+    <li><strong>MPE 1.1</strong> is a later revision of the spec. It clarifies defaults and receiver behavior; the basic MIDI 1.0 message scheme described here is unchanged. The MPE MIDI-CI <em>profile</em> lets devices discover and switch on MPE automatically.</li>
+  </ul>
+
+  <h2 id="midi2">MPE and MIDI 2.0</h2>
+  <p>
+    The <a href="/docs/midi-2/">MIDI 2.0 Protocol</a> makes the one-channel-per-note approach unnecessary. On a
+    single channel, each note can have its own:
+  </p>
+  <ul>
+    <li><strong>Per-Note Pitch Bend</strong> (32-bit),</li>
+    <li><strong>Registered and Assignable Per-Note Controllers</strong> (256 of each per note, 32-bit values),</li>
+    <li><strong>Polyphonic Pressure</strong> at 32-bit resolution,</li>
+    <li><strong>Per-Note Management</strong> messages that detach or reset a note's controllers.</li>
+  </ul>
+  <p>
+    MPE is still useful in the MIDI 2.0 world. Most existing hardware speaks it, the MPE Profile negotiated over
+    <a href="/docs/midi-ci/">MIDI-CI</a> can switch it on automatically, and translators can map MPE member-channel
+    data onto MIDI 2.0 per-note messages.
+  </p>
+</Doc>

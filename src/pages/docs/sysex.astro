@@ -1,0 +1,236 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+
+const manufacturers = [
+  ['01', 'Sequential Circuits'],
+  ['04', 'Moog'],
+  ['07', 'Kurzweil'],
+  ['18', 'E-mu'],
+  ['40', 'Kawai'],
+  ['41', 'Roland'],
+  ['42', 'Korg'],
+  ['43', 'Yamaha'],
+  ['44', 'Casio'],
+  ['47', 'Akai'],
+  ['00 20 29', 'Focusrite / Novation'],
+  ['00 20 32', 'Behringer'],
+  ['00 20 33', 'Access Music'],
+  ['00 20 3C', 'Elektron'],
+  ['7D', 'Non-commercial / educational use (never in shipping products)'],
+  ['7E', 'Universal Non-Real Time'],
+  ['7F', 'Universal Real Time'],
+];
+---
+
+<Doc
+  title="System Exclusive"
+  slug="sysex"
+  specs={[
+    { label: 'MIDI 1.0 Detailed Specification', href: 'https://midi.org/specs' },
+    { label: 'Manufacturer SysEx ID list', href: 'https://midi.org/sysexidtable' },
+  ]}
+>
+  <p class="lede">
+    System Exclusive (SysEx) is MIDI's escape hatch: an arbitrary-length message whose meaning is defined by a
+    manufacturer, or by the MIDI Association for the "Universal" messages every device can share.
+  </p>
+
+  <h2 id="framing">Framing</h2>
+  <p>
+    A SysEx message opens with <span class="b b-s">F0</span> (Start of Exclusive), carries an ID that says who defines
+    the payload, then any number of 7-bit data bytes, and closes with <span class="b b-s">F7</span> (End of Exclusive,
+    EOX).
+  </p>
+  <pre><code><span class="b b-s">F0</span> <span class="b b-m">id</span> <span class="b b-d">dd dd dd …</span> <span class="b b-s">F7</span></code></pre>
+  <ul>
+    <li>
+      Every byte between <code>F0</code> and <code>F7</code> must be <code>00</code>–<code>7F</code>. Binary payloads
+      (samples, firmware) are packed into 7-bit groups, a common scheme being 7 bytes of 8-bit data spread over 8 MIDI
+      bytes with a leading byte that holds the high bits.
+    </li>
+    <li>
+      There is no length field. The receiver reads until <code>F7</code>. Any other status byte except a System
+      Real-Time message also ends the SysEx, and the message is treated as terminated.
+    </li>
+    <li>
+      <strong>System Real-Time</strong> messages (<code>F8</code>–<code>FF</code>) may appear in the middle of a SysEx
+      stream, for example a <code>F8</code> clock tick, and must not end it. Parsers should handle them and keep
+      collecting SysEx bytes.
+    </li>
+    <li>SysEx carries no channel and clears running status (see <a href="/docs/messages/">Messages</a>).</li>
+  </ul>
+
+  <h2 id="ids">Manufacturer IDs</h2>
+  <p>
+    The byte after <code>F0</code> identifies the owner of the message. One-byte IDs <code>01</code>–<code>7C</code>
+    were assigned in MIDI's early years. When those ran out, <code>00</code> became a prefix for three-byte IDs
+    (<code>00 xx xx</code>). Three IDs are reserved for special uses:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><span class="b b-m">7D</span></td><td>Non-commercial: research, education, prototypes. Never used in products sold to the public.</td></tr>
+        <tr><td><span class="b b-m">7E</span></td><td>Universal Non-Real Time: dumps, handshaking, device inquiry, GM on/off, MIDI-CI.</td></tr>
+        <tr><td><span class="b b-m">7F</span></td><td>Universal Real Time: MIDI Time Code, device control, MIDI Machine Control, realtime tuning.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="common-ids">Some well-known IDs</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>ID (hex)</th><th>Manufacturer</th></tr></thead>
+      <tbody>
+        {
+          manufacturers.map(([id, name]) => (
+            <tr>
+              <td><span class="b b-m">{id}</span></td>
+              <td>{name}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p>The full, current list lives on <a href="https://midi.org/sysexidtable">midi.org</a>.</p>
+
+  <h2 id="universal">Universal System Exclusive</h2>
+  <p>Universal messages share a fixed structure:</p>
+  <pre><code><span class="b b-s">F0</span> <span class="b b-m">7E|7F</span> <span class="b b-d">dev</span> <span class="b b-d">sub-id#1</span> <span class="b b-d">sub-id#2</span> <span class="b b-d">data …</span> <span class="b b-s">F7</span></code></pre>
+  <p>
+    <code>dev</code> is the <strong>device ID</strong> (often called the SysEx channel), <code>00</code>–<code>7F</code>.
+    Devices usually default to <code>7F</code> or to a user-set value. <code>7F</code> in a message means "all call":
+    every device should respond.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Sub-ID #1</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Non-RT <code>7E</code></td><td><code>06</code></td><td>General Information (Identity Request <code>06 01</code> / Reply <code>06 02</code>)</td></tr>
+        <tr><td>Non-RT <code>7E</code></td><td><code>08</code></td><td>MIDI Tuning Standard (bulk dumps and requests)</td></tr>
+        <tr><td>Non-RT <code>7E</code></td><td><code>09</code></td><td>General MIDI system messages</td></tr>
+        <tr><td>Non-RT <code>7E</code></td><td><code>0D</code></td><td><a href="/docs/midi-ci/">MIDI Capability Inquiry (MIDI-CI)</a></td></tr>
+        <tr><td>Non-RT <code>7E</code></td><td><code>7C</code>–<code>7F</code></td><td>Handshaking: Wait, Cancel, NAK, ACK</td></tr>
+        <tr><td>RT <code>7F</code></td><td><code>01</code></td><td><a href="/docs/timing/#mtc">MIDI Time Code</a> full message and user bits</td></tr>
+        <tr><td>RT <code>7F</code></td><td><code>04</code></td><td>Device Control: master volume, balance, fine and coarse tuning</td></tr>
+        <tr><td>RT <code>7F</code></td><td><code>06</code> / <code>07</code></td><td>MIDI Machine Control commands / responses</td></tr>
+        <tr><td>RT <code>7F</code></td><td><code>08</code></td><td>MIDI Tuning Standard (realtime note tuning changes)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="identity">Device Inquiry (Identity Request / Reply)</h3>
+  <p>The quickest way to find out what is on the other end of a cable:</p>
+  <pre><code><span class="b b-s">F0</span> <span class="b b-m">7E</span> <span class="b b-d">7F</span> <span class="b b-d">06 01</span> <span class="b b-s">F7</span>      Identity Request, sent to all devices</code></pre>
+  <p>A device that supports it answers with:</p>
+  <pre><code><span class="b b-s">F0</span> <span class="b b-m">7E</span> <span class="b b-d">dev</span> <span class="b b-d">06 02</span> <span class="b b-d">mm</span> <span class="b b-d">ff ff</span> <span class="b b-d">dd dd</span> <span class="b b-d">ss ss ss ss</span> <span class="b b-s">F7</span></code></pre>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Field</th><th>Bytes</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>dev</code></td><td>1</td><td>The responder's own device ID</td></tr>
+        <tr><td><code>mm</code></td><td>1 or 3</td><td>Manufacturer ID. If the first byte is <code>00</code>, two more follow.</td></tr>
+        <tr><td><code>ff ff</code></td><td>2</td><td>Device family code, LSB first</td></tr>
+        <tr><td><code>dd dd</code></td><td>2</td><td>Family member (model) code, LSB first</td></tr>
+        <tr><td><code>ss ss ss ss</code></td><td>4</td><td>Software revision. Format is manufacturer-specific.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="gm-messages">General MIDI system messages</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Message</th><th>Bytes</th></tr></thead>
+      <tbody>
+        <tr><td>GM1 System On</td><td><code>F0 7E 7F 09 01 F7</code></td></tr>
+        <tr><td>GM System Off</td><td><code>F0 7E 7F 09 02 F7</code></td></tr>
+        <tr><td>GM2 System On</td><td><code>F0 7E 7F 09 03 F7</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    A receiver needs time to reset after GM System On. Leave a gap (commonly 100–200 ms) before sending further
+    messages. See <a href="/docs/general-midi/">General MIDI</a>.
+  </p>
+
+  <h3 id="master-volume">Master Volume</h3>
+  <pre><code><span class="b b-s">F0</span> <span class="b b-m">7F</span> <span class="b b-d">7F</span> <span class="b b-d">04 01</span> <span class="b b-d">ll</span> <span class="b b-d">mm</span> <span class="b b-s">F7</span></code></pre>
+  <p>
+    A 14-bit value sent LSB first: <code>ll</code> is the low 7 bits and <code>mm</code> the high 7 bits.
+    <code>F0 7F 7F 04 01 7F 7F F7</code> sets maximum volume. Unlike CC 7, it applies to the whole device, not one
+    channel.
+  </p>
+
+  <h2 id="manufacturer">Manufacturer-specific messages</h2>
+  <p>
+    Everything after the manufacturer ID belongs to that manufacturer. Many follow a similar pattern: device ID, model
+    ID, command (for example "data set" or "data request"), an address in the device's parameter memory, data, and a
+    checksum. Two widely used resets:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Message</th><th>Bytes</th></tr></thead>
+      <tbody>
+        <tr><td>Roland GS Reset</td><td><code>F0 41 10 42 12 40 00 7F 00 41 F7</code></td></tr>
+        <tr><td>Yamaha XG System On</td><td><code>F0 43 10 4C 00 00 7E 00 F7</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="roland-checksum">Roland checksum</h3>
+  <p>
+    Roland "Data Set 1" (DT1, command <code>12</code>) and "Request Data 1" (RQ1, command <code>11</code>) messages end
+    with a checksum computed over the address and data bytes. The sum of address + data + checksum must be
+    <code>0</code> modulo 128:
+  </p>
+  <pre><code>checksum = (128 − (sum of address and data bytes mod 128)) mod 128</code></pre>
+  <p>Worked example: the GS Reset above.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Bytes</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>F0</code></td><td>Start of Exclusive</td></tr>
+        <tr><td><code>41</code></td><td>Roland</td></tr>
+        <tr><td><code>10</code></td><td>Device ID: <code>10</code> hex (16), Roland's default, shown to users 1-based as device 17</td></tr>
+        <tr><td><code>42</code></td><td>Model ID: GS</td></tr>
+        <tr><td><code>12</code></td><td>Command: DT1 (data set)</td></tr>
+        <tr><td><code>40 00 7F</code></td><td>Address</td></tr>
+        <tr><td><code>00</code></td><td>Data</td></tr>
+        <tr><td><code>41</code></td><td>Checksum</td></tr>
+        <tr><td><code>F7</code></td><td>End of Exclusive</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <code>40 + 00 + 7F + 00</code> = <code>0xBF</code> = 191. 191 mod 128 = 63. 128 − 63 = 65 = <code>0x41</code>.
+  </p>
+
+  <h2 id="practice">In practice</h2>
+  <ul>
+    <li>
+      <strong>Pace your dumps.</strong> Many devices have small receive buffers. Large dumps often need a few
+      milliseconds between messages, or a handshake (ACK/NAK) where the device supports one.
+    </li>
+    <li>
+      <strong>USB and network transports split SysEx</strong> into packets. USB-MIDI 1.0 uses code index numbers
+      <code>4</code>–<code>7</code> to mark continuation and end packets, and UMP carries SysEx in 64-bit Data
+      Messages. Your API usually reassembles them for you. See <a href="/docs/transports/">Transports</a> and
+      <a href="/docs/midi-2/">MIDI 2.0</a>.
+    </li>
+    <li>
+      <strong>In Standard MIDI Files</strong>, SysEx is stored with a length prefix (<code>F0 len …</code>), not
+      framed by <code>F7</code> alone. See <a href="/docs/smf/#sysex-events">SMF SysEx events</a>.
+    </li>
+  </ul>
+
+  <Callout type="warn" title="Web MIDI needs permission">
+    <p>
+      Browsers strip SysEx unless you ask for it explicitly, and the user is shown a stronger permission prompt because
+      SysEx can rewrite firmware:
+    </p>
+    <pre><code>{`const access = await navigator.requestMIDIAccess({ sysex: true });`}</code></pre>
+  </Callout>
+</Doc>

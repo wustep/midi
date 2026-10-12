@@ -1,0 +1,163 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+---
+
+<Doc
+  title="RPN & NRPN"
+  slug="rpn-nrpn"
+  description="Registered and Non-Registered Parameter Numbers in MIDI 1.0: parameter selection, data entry, the RPN list, pitch bend range, and the null RPN."
+  specs={[
+    { label: 'MIDI 1.0 Core Specifications', href: 'https://midi.org/midi-1-0-core-specifications' },
+    { label: 'All specs', href: 'https://midi.org/specs' },
+  ]}
+>
+  <p class="lede">
+    MIDI 1.0 has only 128 controller numbers. Parameter numbers get around that by using a few controllers to pick one of
+    16,384 parameters and then setting its value with Data Entry. <strong>RPNs</strong> are parameters defined by the
+    MIDI specification. <strong>NRPNs</strong> are left to each manufacturer.
+  </p>
+
+  <h2 id="controllers">The controllers involved</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th class="num">CC</th><th>Hex</th><th>Function</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">101</td><td><code>0x65</code></td><td>RPN MSB (parameter number, high 7 bits)</td></tr>
+        <tr><td class="num">100</td><td><code>0x64</code></td><td>RPN LSB (parameter number, low 7 bits)</td></tr>
+        <tr><td class="num">99</td><td><code>0x63</code></td><td>NRPN MSB</td></tr>
+        <tr><td class="num">98</td><td><code>0x62</code></td><td>NRPN LSB</td></tr>
+        <tr><td class="num">6</td><td><code>0x06</code></td><td>Data Entry MSB (value, high 7 bits)</td></tr>
+        <tr><td class="num">38</td><td><code>0x26</code></td><td>Data Entry LSB (value, low 7 bits)</td></tr>
+        <tr><td class="num">96</td><td><code>0x60</code></td><td>Data Increment (+1; value byte ignored)</td></tr>
+        <tr><td class="num">97</td><td><code>0x61</code></td><td>Data Decrement (−1; value byte ignored)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="sequence">The message sequence</h2>
+  <p>A parameter change is a short series of Control Change messages on one channel:</p>
+  <ol>
+    <li>
+      <strong>Select the parameter.</strong> Send the parameter number MSB (CC 101 or 99), then the LSB (CC 100 or 98).
+    </li>
+    <li><strong>Set the value.</strong> Send Data Entry MSB (CC 6), then, if needed, Data Entry LSB (CC 38).</li>
+    <li>
+      <strong>Deselect.</strong> Send the <a href="#null-rpn">null RPN</a> (CC 101 = 127, CC 100 = 127). Later Data Entry
+      messages then change nothing by accident.
+    </li>
+  </ol>
+  <p>
+    Once a parameter is selected it stays selected. Further Data Entry, Increment, or Decrement messages keep changing it
+    until another parameter is chosen. Selecting an RPN deselects any NRPN, and the reverse, because both share Data
+    Entry.
+  </p>
+  <Callout type="warn" title="Order matters">
+    <p>
+      Send the parameter number <strong>MSB before LSB</strong> and the data <strong>MSB before LSB</strong>. A Data Entry
+      MSB resets the stored LSB on many receivers, so a lone LSB sent first is lost. Never interleave messages for two parameters on the
+      same channel. Running status is fine.
+    </p>
+  </Callout>
+
+  <h2 id="rpn-list">Registered Parameter Numbers</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>MSB, LSB</th><th>Parameter</th><th>Data Entry meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr id="pitch-bend-sensitivity">
+          <td><code>00, 00</code></td>
+          <td>Pitch Bend Sensitivity</td>
+          <td>MSB = semitones, LSB = cents. Default 2 semitones, 0 cents.</td>
+        </tr>
+        <tr>
+          <td><code>00, 01</code></td>
+          <td>Channel Fine Tuning</td>
+          <td>14-bit, center 8192 (<code>40 00</code>) = A440. Range −100 cents to just under +100 cents, in steps of 100/8192 cent.</td>
+        </tr>
+        <tr>
+          <td><code>00, 02</code></td>
+          <td>Channel Coarse Tuning</td>
+          <td>MSB only, center 64 = 0. Range −64 to +63 semitones. LSB ignored.</td>
+        </tr>
+        <tr>
+          <td><code>00, 03</code></td>
+          <td>Tuning Program Change</td>
+          <td>MSB selects a MIDI Tuning Standard program (0–127).</td>
+        </tr>
+        <tr>
+          <td><code>00, 04</code></td>
+          <td>Tuning Bank Select</td>
+          <td>MSB selects a MIDI Tuning Standard bank (0–127).</td>
+        </tr>
+        <tr>
+          <td><code>00, 05</code></td>
+          <td>Modulation Depth Range</td>
+          <td>MSB = semitones, LSB = 128ths of a semitone (≈ 0.78 cents) of vibrato for full modulation (GM2).</td>
+        </tr>
+        <tr>
+          <td><code>00, 06</code></td>
+          <td>MPE Configuration Message</td>
+          <td>Sent on the manager channel (1 or 16). MSB = number of member channels (0 disables the zone). See <a href="/docs/mpe/">MPE</a>.</td>
+        </tr>
+        <tr>
+          <td><code>3D, 00</code>–<code>3D, 08</code></td>
+          <td>Three-Dimensional Sound Controllers</td>
+          <td>Azimuth, elevation, gain, distance, and related parameters for positioning sound in 3D (RP-049).</td>
+        </tr>
+        <tr id="null-rpn">
+          <td><code>7F, 7F</code></td>
+          <td>Null Function (RPN Null)</td>
+          <td>Deselects the current RPN/NRPN. Data Entry is ignored until a new parameter is chosen.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Every other RPN number is reserved for future definition. NRPN numbers are left entirely to manufacturers. Check the
+    instrument's MIDI implementation documentation.
+  </p>
+
+  <h2 id="example">Example: set pitch bend range to ±12 semitones</h2>
+  <p>On channel 1:</p>
+  <pre><code>B0 65 00   ; CC 101 RPN MSB = 0
+B0 64 00   ; CC 100 RPN LSB = 0   → Pitch Bend Sensitivity selected
+B0 06 0C   ; CC 6   Data Entry MSB = 12 semitones
+B0 26 00   ; CC 38  Data Entry LSB = 0 cents
+B0 65 7F   ; CC 101 = 127
+B0 64 7F   ; CC 100 = 127         → Null RPN, deselect</code></pre>
+  <p>With running status the same change takes 13 bytes:</p>
+  <pre><code>B0 65 00 64 00 06 0C 26 00 65 7F 64 7F</code></pre>
+
+  <h2 id="nrpn-example">Example: an NRPN</h2>
+  <p>
+    Suppose a synth's manual says NRPN <code>MSB 0x01, LSB 0x08</code> is the vibrato rate. To set it to 80 on channel 3:
+  </p>
+  <pre><code>B2 63 01   ; CC 99 NRPN MSB = 1
+B2 62 08   ; CC 98 NRPN LSB = 8
+B2 06 50   ; CC 6  Data Entry MSB = 80
+B2 65 7F   ; CC 101 = 127
+B2 64 7F   ; CC 100 = 127  → Null</code></pre>
+  <p>
+    Some NRPNs use the full 14-bit value (CC 6 followed by CC 38). Others use only the MSB. The manufacturer's
+    documentation says which.
+  </p>
+
+  <h2 id="increment-decrement">Data Increment and Decrement</h2>
+  <p>
+    CC 96 and CC 97 step the selected parameter up or down. The specification leaves the step size to the parameter. For
+    Pitch Bend Sensitivity, many devices step by one cent (the LSB) and carry into semitones. Support varies, so prefer
+    absolute Data Entry when you can.
+  </p>
+
+  <h2 id="midi-2">In MIDI 2.0</h2>
+  <p>
+    The MIDI 2.0 protocol drops the CC sequence. It has dedicated <em>Registered Controller</em> and <em>Assignable
+    Controller</em> messages (the new names for RPN and NRPN) that carry the bank, index, and a 32-bit value in one atomic
+    packet, plus <em>per-note</em> versions. See <a href="/docs/midi-2/">MIDI 2.0 &amp; UMP</a>.
+  </p>
+</Doc>

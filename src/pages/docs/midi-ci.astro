@@ -1,0 +1,226 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+
+const mgmt = [
+  ['0x70', 'Discovery', 'Inquiry broadcast to find MIDI-CI devices; carries identity and capabilities'],
+  ['0x71', 'Reply to Discovery', 'Responder identity, capabilities and its MUID'],
+  ['0x72', 'Inquiry: Endpoint Information', 'Ask for endpoint data such as a product instance ID (v1.2)'],
+  ['0x73', 'Reply to Endpoint Information', '(v1.2)'],
+  ['0x7D', 'ACK', 'Generic acknowledgement with status code and optional text (v1.2)'],
+  ['0x7E', 'Invalidate MUID', 'Tell others to forget a MUID (e.g. on reset or collision)'],
+  ['0x7F', 'NAK', 'Negative acknowledgement; v1.2 adds status codes and an optional message'],
+];
+
+const profiles = [
+  ['0x20', 'Profile Inquiry'],
+  ['0x21', 'Reply to Profile Inquiry'],
+  ['0x22', 'Set Profile On'],
+  ['0x23', 'Set Profile Off'],
+  ['0x24', 'Profile Enabled Report'],
+  ['0x25', 'Profile Disabled Report'],
+  ['0x26', 'Profile Added Report'],
+  ['0x27', 'Profile Removed Report'],
+  ['0x28', 'Profile Details Inquiry'],
+  ['0x29', 'Reply to Profile Details Inquiry'],
+  ['0x2F', 'Profile Specific Data'],
+];
+
+const pe = [
+  ['0x30', 'Inquiry: Property Exchange Capabilities'],
+  ['0x31', 'Reply to Property Exchange Capabilities'],
+  ['0x34', 'Inquiry: Get Property Data'],
+  ['0x35', 'Reply to Get Property Data'],
+  ['0x36', 'Inquiry: Set Property Data'],
+  ['0x37', 'Reply to Set Property Data'],
+  ['0x38', 'Subscription'],
+  ['0x39', 'Reply to Subscription'],
+  ['0x3F', 'Notify'],
+];
+
+const pi = [
+  ['0x40', 'Inquiry: Process Inquiry Capabilities'],
+  ['0x41', 'Reply to Process Inquiry Capabilities'],
+  ['0x42', 'Inquiry: MIDI Message Report'],
+  ['0x43', 'Reply to MIDI Message Report'],
+  ['0x44', 'End of MIDI Message Report'],
+];
+
+const peExample = `F0 7E 7F 0D 34 02  <src MUID>  <dst MUID>
+   01                       request ID
+   19 00                    header length (25, 14-bit LSB first)
+   {"resource":"DeviceInfo"}
+   01 00                    number of chunks = 1
+   01 00                    this chunk = 1
+   00 00                    property data length = 0
+F7`;
+---
+
+<Doc
+  title="MIDI-CI: Capability Inquiry"
+  slug="midi-ci"
+  specs={[
+    { label: 'MIDI-CI (M2-101-UM)', href: 'https://midi.org/specs' },
+    { label: 'MIDI 2.0 overview', href: 'https://midi.org/midi-2-0' },
+  ]}
+>
+  <p class="lede">
+    MIDI-CI lets two devices find each other, see what the other supports, and agree on how to work together, all
+    without user setup. It is made of <a href="/docs/sysex/">Universal System Exclusive</a> messages, so it works
+    over MIDI 1.0 byte streams as well as over UMP.
+  </p>
+
+  <p>MIDI-CI covers four areas:</p>
+  <ul>
+    <li><strong>Management</strong>: discovery, MUIDs, ACK/NAK.</li>
+    <li><strong>Profile Configuration</strong>: switch on standard behaviors such as "Drawbar Organ", "MPE" or "Orchestral Articulation".</li>
+    <li><strong>Property Exchange</strong>: get and set structured data (patch lists, device info, parameter state) as JSON.</li>
+    <li><strong>Process Inquiry</strong>: ask a device for its current MIDI state, such as controller values (added in v1.2).</li>
+  </ul>
+  <Callout type="note" title="Scope of this page">
+    <p>
+      This is a structural summary of MIDI-CI 1.2 meant for orientation. Field-level layouts, timeouts and the
+      full Property Exchange resource definitions are in the official specifications (M2-101-UM and the M2-103/M2-105
+      Property Exchange documents), which are free to download after registering at midi.org.
+    </p>
+  </Callout>
+
+  <h2 id="layout">Message layout</h2>
+  <p>Every MIDI-CI message starts with the same header:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Byte(s)</th><th>Value</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><span class="b b-m">F0</span></td><td>Start of SysEx</td></tr>
+        <tr><td>2</td><td><span class="b b-m">7E</span></td><td>Universal SysEx, non-real time</td></tr>
+        <tr><td>3</td><td><span class="b b-d">dd</span></td><td>Device ID / destination: <code>00</code>–<code>0F</code> = a MIDI channel, <code>7E</code> = the whole group, <code>7F</code> = the whole Function Block (earlier versions: the whole port)</td></tr>
+        <tr><td>4</td><td><span class="b b-d">0D</span></td><td>Sub-ID#1: MIDI-CI</td></tr>
+        <tr><td>5</td><td><span class="b b-d">ss</span></td><td>Sub-ID#2: the message (tables below)</td></tr>
+        <tr><td>6</td><td><span class="b b-d">vv</span></td><td>MIDI-CI message version/format (<code>01</code> = v1.1, <code>02</code> = v1.2)</td></tr>
+        <tr><td>7–10</td><td><span class="b b-d">MUID</span></td><td>Source MUID, 28 bits as four 7-bit bytes, LSB first</td></tr>
+        <tr><td>11–14</td><td><span class="b b-d">MUID</span></td><td>Destination MUID (<code>7F 7F 7F 7F</code> = broadcast)</td></tr>
+        <tr><td>15…</td><td><span class="b b-d">…</span></td><td>Message-specific data</td></tr>
+        <tr><td>last</td><td><span class="b b-m">F7</span></td><td>End of SysEx</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="muid">MUIDs</h3>
+  <p>
+    A <strong>MUID</strong> (MIDI Unique Identifier) is a random 28-bit number that a device makes for itself when
+    it starts MIDI-CI. It identifies the device for the rest of the session. <code>0x0FFFFFFF</code> is reserved for
+    broadcast and <code>0x0FFFFF00</code>–<code>0x0FFFFFFE</code> are reserved. If a device sees another device using
+    its MUID, it picks a new one and sends <strong>Invalidate MUID</strong>.
+  </p>
+
+  <h2 id="management">Management and discovery</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sub-ID#2</th><th>Message</th><th>Notes</th></tr></thead>
+      <tbody>
+        {mgmt.map(([id, name, desc]) => (
+          <tr><td><code>{id}</code></td><td>{name}</td><td>{desc}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Discovery is the first step. An <em>Initiator</em> broadcasts a Discovery Inquiry, and each <em>Responder</em>
+    answers with its own MUID, its identity (SysEx manufacturer ID, family, model and software revision, the same
+    fields as a <a href="/docs/sysex/#identity">Device Inquiry</a> reply), a capability category bitmap saying which
+    MIDI-CI areas it supports, and the largest SysEx message it can receive. After that, the two devices address each
+    other directly by MUID.
+  </p>
+  <Callout type="warn" title="Protocol Negotiation is deprecated">
+    <p>
+      MIDI-CI 1.1 had messages for switching between the MIDI 1.0 and MIDI 2.0 Protocols. MIDI-CI 1.2 deprecated
+      them. Protocol selection now uses <a href="/docs/midi-2/#negotiation">UMP Stream Configuration</a> messages.
+    </p>
+  </Callout>
+
+  <h2 id="profiles">Profile Configuration</h2>
+  <p>
+    A <strong>Profile</strong> is a published agreement about how a device of some kind responds to MIDI: which
+    controllers do what, how notes map, and similar rules. Turning a profile on is a promise to behave that way.
+    Profiles are named by a 5-byte <strong>Profile ID</strong>. Standard profiles begin with <code>7E</code>;
+    manufacturer-specific ones begin with the manufacturer's SysEx ID. A profile can apply to a single channel,
+    several channels, a whole group, or a whole Function Block.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sub-ID#2</th><th>Message</th></tr></thead>
+      <tbody>
+        {profiles.map(([id, name]) => (
+          <tr><td><code>{id}</code></td><td>{name}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Adopted and in-progress profiles include the MPE Profile, Drawbar Organ, Rotary Speaker, Orchestral Articulation,
+    Default Control Change Mapping, and others. See midi.org for the current list.
+  </p>
+
+  <h2 id="property-exchange">Property Exchange</h2>
+  <p>
+    Property Exchange (PE) moves structured data between devices: what patches exist, what the device is called,
+    what its parameters are. Each request has a <strong>JSON header</strong> naming a <strong>resource</strong>, and
+    an optional body that is usually JSON too. Large payloads are split into numbered chunks to fit the receiver's
+    maximum SysEx size.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sub-ID#2</th><th>Message</th></tr></thead>
+      <tbody>
+        {pe.map(([id, name]) => (
+          <tr><td><code>{id}</code></td><td>{name}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p>A <em>Get</em> for the device info resource looks roughly like this (shown with the JSON header as text):</p>
+  <pre><code>{peExample}</code></pre>
+  <p>Commonly used resources:</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Resource</th><th>Contains</th></tr></thead>
+      <tbody>
+        <tr><td><code>ResourceList</code></td><td>Which resources this device supports. Usually the first thing requested.</td></tr>
+        <tr><td><code>DeviceInfo</code></td><td>Manufacturer, family, model and version strings, serial number</td></tr>
+        <tr><td><code>ChannelList</code></td><td>Which channels are in use and what each one is for</td></tr>
+        <tr><td><code>ProgramList</code></td><td>Patch names with their bank and program numbers</td></tr>
+        <tr><td><code>State</code></td><td>Opaque snapshot of a device's state, for save and recall</td></tr>
+        <tr><td>Controller lists</td><td>Names, ranges and defaults of controllers, so a host can label them automatically</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    With <strong>Subscription</strong>, an Initiator can ask to hear about changes to a resource, and the Responder
+    sends updates as they happen. A DAW can use this to keep a patch name on screen in sync with the hardware.
+  </p>
+
+  <h2 id="process-inquiry">Process Inquiry</h2>
+  <p>
+    Added in MIDI-CI 1.2, Process Inquiry asks a device to report its current MIDI state, such as the present value
+    of each controller or pitch bend on chosen channels. The device answers with ordinary MIDI messages, framed
+    between a reply and an end marker.
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Sub-ID#2</th><th>Message</th></tr></thead>
+      <tbody>
+        {pi.map(([id, name]) => (
+          <tr><td><code>{id}</code></td><td>{name}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="in-practice">In practice</h2>
+  <ul>
+    <li>MIDI-CI needs a <strong>bidirectional</strong> connection: a cable or port pair in each direction, USB, or a UMP Endpoint.</li>
+    <li>Over UMP, MIDI-CI messages are carried as SysEx7 (MT 0x3) in the group that the Function Block uses.</li>
+    <li>Devices must ignore MIDI-CI messages they don't understand. A Responder that doesn't support something answers with NAK.</li>
+    <li>The <a href="https://github.com/midi2-dev/MIDI2.0Workbench">MIDI 2.0 Workbench</a> is the reference tool for testing MIDI-CI. The libraries listed under <a href="/libraries/?cat=midi2">MIDI 2.0</a> include CI implementations.</li>
+  </ul>
+</Doc>

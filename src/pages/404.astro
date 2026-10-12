@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not found">
+  <div class="nf">
+    <p class="eyebrow">404</p>
+    <h1>Note Off.</h1>
+    <p class="lede">
+      This page doesn't exist, or it got a <code>B0 7B 00</code> (All Notes Off) before we could play it.
+    </p>
+    <p><a class="btn btn-primary" href="/">Back to the guide</a> <a class="btn" href="/docs/">Docs</a></p>
+  </div>
+</Base>
+
+<style>
+  .nf {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 6rem var(--gutter) 2rem;
+  }
+</style>

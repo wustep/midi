@@ -1,0 +1,681 @@
+---
+import Base from '../layouts/Base.astro';
+import Callout from '../components/Callout.astro';
+
+// 4 octaves + 1 of keyboard visualization: C2 (36) to C7 (96).
+const LOW = 36;
+const HIGH = 96;
+const keys = Array.from({ length: HIGH - LOW + 1 }, (_, i) => LOW + i);
+const isBlack = (n: number) => [1, 3, 6, 8, 10].includes(n % 12);
+const whiteIndex = (n: number) => keys.filter((k) => k < n && !isBlack(k)).length;
+const whiteCount = keys.filter((k) => !isBlack(k)).length;
+---
+
+<Base title="Try Web MIDI" section="/try" description="Plug in a MIDI controller and watch messages arrive live in your browser via the Web MIDI API. Nothing is uploaded.">
+  <div class="try-page">
+    <header class="try-header">
+      <p class="eyebrow">Live monitor</p>
+      <h1>Try it: Web MIDI</h1>
+      <p class="lede">
+        Connect a keyboard, controller, or virtual port and see every message decoded byte-by-byte. Everything runs
+        locally in your browser; nothing is sent anywhere.
+      </p>
+    </header>
+
+    <section class="connect" aria-labelledby="connect-title">
+      <h2 id="connect-title" class="visually-hidden">Connection</h2>
+      <div class="connect-row">
+        <button type="button" class="btn btn-primary" id="connect">Connect MIDI devices</button>
+        <label class="check">
+          <input type="checkbox" id="want-sysex" />
+          Request SysEx access
+        </label>
+        <p class="status" id="status" role="status">Not connected.</p>
+      </div>
+      <div id="unsupported" hidden>
+        <Callout type="warn" title="Web MIDI isn't available here">
+          <p>
+            This browser doesn't expose <code>navigator.requestMIDIAccess</code>. Web MIDI works in Chrome, Edge,
+            Opera, and other Chromium browsers, and in Firefox 108+ (which asks you to approve a site permission
+            add-on). Safari does not support Web MIDI. The page must also be served over HTTPS.
+          </p>
+        </Callout>
+      </div>
+    </section>
+
+    <div class="layout">
+      <div class="col-main">
+        <section class="panel" aria-labelledby="kb-title">
+          <div class="panel-head">
+            <h2 id="kb-title" class="panel-title">Keyboard</h2>
+            <span class="panel-tag">notes {LOW}–{HIGH} · all channels</span>
+          </div>
+          <div class="kb" style={`--whites: ${whiteCount}`} aria-hidden="true">
+            {
+              keys.map((n) => (
+                <span
+                  class:list={['key', isBlack(n) ? 'black' : 'white']}
+                  data-key={n}
+                  style={isBlack(n) ? `--x: ${whiteIndex(n)}` : undefined}
+                />
+              ))
+            }
+          </div>
+          <p class="visually-hidden" id="kb-live" aria-live="polite"></p>
+        </section>
+
+        <section class="panel log-panel" aria-labelledby="log-title">
+          <div class="panel-head">
+            <h2 id="log-title" class="panel-title">Incoming messages</h2>
+            <div class="log-actions">
+              <label class="check small"><input type="checkbox" id="hide-clock" checked /> Hide clock & active sensing</label>
+              <button type="button" class="btn small" id="pause" aria-pressed="false">Pause</button>
+              <button type="button" class="btn small" id="clear">Clear</button>
+            </div>
+          </div>
+          <div class="log-wrap" tabindex="0" role="region" aria-label="Message log">
+            <table class="log">
+              <thead>
+                <tr>
+                  <th scope="col">Time</th>
+                  <th scope="col">Port</th>
+                  <th scope="col">Bytes</th>
+                  <th scope="col">Ch</th>
+                  <th scope="col">Message</th>
+                </tr>
+              </thead>
+              <tbody id="log"></tbody>
+            </table>
+            <p class="log-empty" id="log-empty">Waiting for messages… play a note or move a knob.</p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="col-side">
+        <section class="panel" aria-labelledby="ports-title">
+          <div class="panel-head">
+            <h2 id="ports-title" class="panel-title">Ports</h2>
+          </div>
+          <h3 class="sub">Inputs</h3>
+          <ul class="ports" id="inputs"><li class="muted">None yet</li></ul>
+          <h3 class="sub">Outputs</h3>
+          <ul class="ports" id="outputs"><li class="muted">None yet</li></ul>
+        </section>
+
+        <section class="panel" aria-labelledby="stats-title">
+          <div class="panel-head">
+            <h2 id="stats-title" class="panel-title">Activity</h2>
+          </div>
+          <dl class="stats">
+            <div><dt>Messages</dt><dd id="s-count">0</dd></div>
+            <div><dt>Per second</dt><dd id="s-rate">0</dd></div>
+            <div><dt>Clock tempo</dt><dd id="s-bpm">–</dd></div>
+            <div><dt>Transport</dt><dd id="s-transport">–</dd></div>
+          </dl>
+          <h3 class="sub">Controllers</h3>
+          <ul class="ccs" id="ccs"><li class="muted">Move a knob or fader</li></ul>
+        </section>
+
+        <section class="panel" aria-labelledby="send-title">
+          <div class="panel-head">
+            <h2 id="send-title" class="panel-title">Send</h2>
+          </div>
+          <label class="field-label" for="out-select">Output</label>
+          <select id="out-select" disabled><option>No outputs</option></select>
+          <div class="send-row">
+            <button type="button" class="btn small" id="send-note" disabled>Play middle C</button>
+            <button type="button" class="btn small" id="send-panic" disabled title="CC 123 All Notes Off and CC 120 All Sound Off on all channels">Panic</button>
+          </div>
+          <label class="field-label" for="send-hex">Raw bytes (hex)</label>
+          <div class="send-row">
+            <input type="text" id="send-hex" value="B0 07 64" spellcheck="false" autocomplete="off" />
+            <button type="button" class="btn small" id="send-raw" disabled>Send</button>
+          </div>
+          <p class="send-msg" id="send-msg" role="status"></p>
+        </section>
+      </aside>
+    </div>
+
+    <section class="help">
+      <h2>No hardware?</h2>
+      <ul>
+        <li><strong>macOS:</strong> enable the IAC Driver in <em>Audio MIDI Setup → MIDI Studio</em> to get a virtual port, then send to it from any DAW.</li>
+        <li><strong>Windows:</strong> Windows MIDI Services provides loopback endpoints; older systems can use a third-party loopback driver.</li>
+        <li><strong>Linux:</strong> <code>sudo modprobe snd-virmidi</code> creates virtual raw MIDI ports; <code>aconnect -l</code> lists ALSA sequencer clients.</li>
+        <li>Or send from the command line with <a href="https://github.com/gbevin/SendMIDI">SendMIDI</a>, e.g. <code>sendmidi dev "IAC" on 60 100</code>.</li>
+      </ul>
+      <p>Want to understand what you're seeing? Start with <a href="/docs/messages/">Messages</a> or paste bytes into the <a href="/tools/#decoder">decoder</a>.</p>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { decodeMessage, parseHex, hexBytes, hex, ccName } from '../lib/midi';
+
+  const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+  const connectBtn = $<HTMLButtonElement>('#connect');
+  const wantSysex = $<HTMLInputElement>('#want-sysex');
+  const statusEl = $('#status');
+  const inputsEl = $('#inputs');
+  const outputsEl = $('#outputs');
+  const logEl = $('#log');
+  const logEmpty = $('#log-empty');
+  const hideClock = $<HTMLInputElement>('#hide-clock');
+  const pauseBtn = $<HTMLButtonElement>('#pause');
+  const clearBtn = $<HTMLButtonElement>('#clear');
+  const outSelect = $<HTMLSelectElement>('#out-select');
+  const sendNote = $<HTMLButtonElement>('#send-note');
+  const sendPanic = $<HTMLButtonElement>('#send-panic');
+  const sendRaw = $<HTMLButtonElement>('#send-raw');
+  const sendHex = $<HTMLInputElement>('#send-hex');
+  const sendMsg = $('#send-msg');
+  const ccsEl = $('#ccs');
+  const kbLive = $('#kb-live');
+
+  const MAX_ROWS = 400;
+  let access: MIDIAccess | undefined;
+  let paused = false;
+  let total = 0;
+  let windowCount = 0;
+  const clockTimes: number[] = [];
+  const held = new Map<string, number>(); // "ch:note" -> note
+  const ccValues = new Map<string, { ch: number; cc: number; value: number }>();
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  if (!('requestMIDIAccess' in navigator)) {
+    $('#unsupported').hidden = false;
+    connectBtn.disabled = true;
+    statusEl.textContent = 'Web MIDI is not supported in this browser.';
+  }
+
+  connectBtn.addEventListener('click', async () => {
+    statusEl.textContent = 'Requesting access…';
+    try {
+      access = await navigator.requestMIDIAccess({ sysex: wantSysex.checked });
+      statusEl.textContent = `Connected${access.sysexEnabled ? ' with SysEx' : ''}.`;
+      connectBtn.textContent = 'Reconnect';
+      access.addEventListener('statechange', refreshPorts);
+      refreshPorts();
+    } catch (err) {
+      statusEl.textContent = `Access denied or unavailable: ${(err as Error).message || err}`;
+    }
+  });
+
+  function portItem(p: MIDIPort) {
+    const state = p.state === 'connected' ? (p.connection === 'open' ? 'open' : 'connected') : 'disconnected';
+    return `<li><span class="dot dot-${state}" aria-hidden="true"></span><span class="pname">${esc(p.name ?? 'Unnamed port')}</span>${
+      p.manufacturer ? `<span class="pmfr">${esc(p.manufacturer)}</span>` : ''
+    }<span class="visually-hidden"> (${state})</span></li>`;
+  }
+
+  function refreshPorts() {
+    if (!access) return;
+    const ins = [...access.inputs.values()];
+    const outs = [...access.outputs.values()];
+    inputsEl.innerHTML = ins.length ? ins.map(portItem).join('') : '<li class="muted">No inputs found</li>';
+    outputsEl.innerHTML = outs.length ? outs.map(portItem).join('') : '<li class="muted">No outputs found</li>';
+    for (const input of ins) input.onmidimessage = (e) => onMessage(e as MIDIMessageEvent, input);
+    const prev = outSelect.value;
+    outSelect.innerHTML = outs.length
+      ? outs.map((o) => `<option value="${esc(o.id)}">${esc(o.name ?? o.id)}</option>`).join('')
+      : '<option>No outputs</option>';
+    if (outs.some((o) => o.id === prev)) outSelect.value = prev;
+    for (const el of [outSelect, sendNote, sendPanic, sendRaw]) el.disabled = !outs.length;
+    // Inputs need to be re-rendered once onmidimessage opens them.
+    setTimeout(() => {
+      inputsEl.innerHTML = ins.length ? ins.map(portItem).join('') : '<li class="muted">No inputs found</li>';
+    }, 150);
+  }
+
+  function setKey(note: number, on: boolean, velocity = 0) {
+    const el = document.querySelector<HTMLElement>(`[data-key="${note}"]`);
+    if (!el) return;
+    el.classList.toggle('on', on);
+    el.style.setProperty('--vel', String(velocity / 127));
+  }
+
+  function onMessage(e: MIDIMessageEvent, port: MIDIInput) {
+    if (!e.data) return;
+    const bytes = Array.from(e.data);
+    const d = decodeMessage(bytes);
+    const status = bytes[0];
+    total++;
+    windowCount++;
+
+    // Track state regardless of display filters.
+    if (status === 0xf8) {
+      clockTimes.push(e.timeStamp);
+      if (clockTimes.length > 48) clockTimes.shift();
+    } else if (status === 0xfa) $('#s-transport').textContent = 'Playing (Start)';
+    else if (status === 0xfb) $('#s-transport').textContent = 'Playing (Continue)';
+    else if (status === 0xfc) $('#s-transport').textContent = 'Stopped';
+
+    const type = status & 0xf0;
+    const ch = (status & 0x0f) + 1;
+    if (status < 0xf0) {
+      if (type === 0x90 && bytes[2] > 0) {
+        held.set(`${ch}:${bytes[1]}`, bytes[1]);
+        setKey(bytes[1], true, bytes[2]);
+        kbLive.textContent = d.summary;
+      } else if (type === 0x80 || (type === 0x90 && bytes[2] === 0)) {
+        held.delete(`${ch}:${bytes[1]}`);
+        if (![...held.values()].includes(bytes[1])) setKey(bytes[1], false);
+      } else if (type === 0xb0) {
+        if (bytes[1] === 123 || bytes[1] === 120) {
+          for (const [k, n] of held) if (k.startsWith(`${ch}:`)) { held.delete(k); setKey(n, false); }
+        } else if (bytes[1] < 120) {
+          ccValues.set(`${ch}:${bytes[1]}`, { ch, cc: bytes[1], value: bytes[2] });
+          renderCCs();
+        }
+      }
+    }
+
+    if (paused) return;
+    if (hideClock.checked && (status === 0xf8 || status === 0xfe)) return;
+
+    const row = document.createElement('tr');
+    row.className = `k-${d.kind}`;
+    const t = (e.timeStamp / 1000).toFixed(3);
+    const chips = bytes
+      .map((b, i) => {
+        const cls = status === 0xf0 && i > 0 && b !== 0xf7 ? 'b-m' : b >= 0x80 ? 'b-s' : 'b-d';
+        return `<span class="b ${cls}">${hex(b)}</span>`;
+      })
+      .join(' ');
+    const shown = bytes.length > 24 ? `${chips.split(' ').slice(0, 24).join(' ')} <span class="more">+${bytes.length - 24}</span>` : chips;
+    row.innerHTML = `<td class="t">${t}</td><td class="p">${esc(port.name ?? '')}</td><td class="by">${shown}</td><td class="c">${d.channel ?? ''}</td><td class="m">${esc(d.summary)}${d.error ? ` <span class="err">${esc(d.error)}</span>` : ''}</td>`;
+    row.title = hexBytes(bytes);
+    logEl.prepend(row);
+    while (logEl.childElementCount > MAX_ROWS) logEl.lastElementChild?.remove();
+    logEmpty.hidden = true;
+  }
+
+  function renderCCs() {
+    const items = [...ccValues.values()].sort((a, b) => a.ch - b.ch || a.cc - b.cc).slice(0, 24);
+    ccsEl.innerHTML = items
+      .map(
+        (c) =>
+          `<li><span class="cc-label"><b>CC ${c.cc}</b> <span>ch ${c.ch} · ${esc(ccName(c.cc))}</span></span><span class="bar" style="--v:${c.value / 127}"><span></span></span><span class="cc-val">${c.value}</span></li>`,
+      )
+      .join('');
+  }
+
+  setInterval(() => {
+    $('#s-count').textContent = total.toLocaleString('en-US');
+    $('#s-rate').textContent = String(windowCount);
+    windowCount = 0;
+    const now = performance.now();
+    if (clockTimes.length > 4 && now - clockTimes[clockTimes.length - 1] < 1000) {
+      const span = clockTimes[clockTimes.length - 1] - clockTimes[0];
+      const bpm = (60000 / ((span / (clockTimes.length - 1)) * 24));
+      $('#s-bpm').textContent = `${bpm.toFixed(1)} BPM`;
+    } else {
+      $('#s-bpm').textContent = '–';
+    }
+  }, 1000);
+
+  pauseBtn.addEventListener('click', () => {
+    paused = !paused;
+    pauseBtn.setAttribute('aria-pressed', String(paused));
+    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+  });
+  clearBtn.addEventListener('click', () => {
+    logEl.innerHTML = '';
+    logEmpty.hidden = false;
+    ccValues.clear();
+    ccsEl.innerHTML = '<li class="muted">Move a knob or fader</li>';
+  });
+
+  const output = () => access?.outputs.get(outSelect.value);
+  function send(bytes: number[], label: string) {
+    const out = output();
+    if (!out) return;
+    try {
+      out.send(bytes);
+      sendMsg.textContent = `Sent ${label}: ${hexBytes(bytes)}`;
+    } catch (err) {
+      sendMsg.textContent = `Couldn't send: ${(err as Error).message}`;
+    }
+  }
+  sendNote.addEventListener('click', () => {
+    const out = output();
+    if (!out) return;
+    send([0x90, 60, 100], 'Note On');
+    setTimeout(() => out.send([0x80, 60, 0]), 500);
+  });
+  sendPanic.addEventListener('click', () => {
+    const out = output();
+    if (!out) return;
+    for (let c = 0; c < 16; c++) out.send([0xb0 | c, 123, 0, 0xb0 | c, 120, 0]);
+    sendMsg.textContent = 'Sent All Notes Off + All Sound Off on channels 1–16';
+  });
+  sendRaw.addEventListener('click', () => {
+    const { bytes, error } = parseHex(sendHex.value);
+    if (error || !bytes.length) return (sendMsg.textContent = error ?? 'Enter some bytes');
+    if (bytes[0] === 0xf0 && !access?.sysexEnabled) return (sendMsg.textContent = 'Reconnect with SysEx access to send SysEx.');
+    send(bytes, 'raw bytes');
+  });
+</script>
+
+<style>
+  .try-page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 0;
+  }
+  .connect {
+    margin: 1.5rem 0 1.5rem;
+  }
+  .connect-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+  }
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .check input {
+    accent-color: var(--accent);
+    width: 1rem;
+    height: 1rem;
+  }
+  .check.small {
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .status {
+    margin: 0;
+    color: var(--muted);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .col-main,
+  .col-side {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+  }
+  .panel {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    min-width: 0;
+  }
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.85rem;
+  }
+  .panel-title {
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+    font-stretch: 115%;
+  }
+  .panel-tag {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .sub {
+    font-size: 0.75rem;
+    font-family: var(--font-text);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 1rem 0 0.4rem;
+    font-weight: 600;
+  }
+  .sub:first-of-type {
+    margin-top: 0;
+  }
+  .btn.small {
+    min-height: 2.1rem;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.85rem;
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .log-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Keyboard */
+  .kb {
+    position: relative;
+    height: 96px;
+    display: grid;
+    grid-template-columns: repeat(var(--whites), 1fr);
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--line-strong);
+    gap: 1px;
+  }
+  .key.white {
+    background: #fbfaf6;
+    position: relative;
+  }
+  .key.black {
+    position: absolute;
+    top: 0;
+    height: 60%;
+    width: calc(100% / var(--whites) * 0.62);
+    left: calc(100% / var(--whites) * var(--x) - (100% / var(--whites) * 0.31));
+    background: #1d1c19;
+    border-radius: 0 0 3px 3px;
+    z-index: 1;
+  }
+  .key.on {
+    background: color-mix(in srgb, var(--accent) calc(55% + var(--vel, 1) * 45%), #fff);
+  }
+  .key.black.on {
+    background: color-mix(in srgb, var(--accent) calc(60% + var(--vel, 1) * 40%), #000);
+  }
+
+  /* Log */
+  .log-wrap {
+    max-height: 30rem;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+  }
+  .log {
+    font-size: 0.85rem;
+  }
+  .log thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .log :global(td) {
+    padding: 0.3rem 0.6rem;
+    white-space: nowrap;
+  }
+  .log :global(td.t),
+  .log :global(td.c) {
+    font-family: var(--font-mono);
+    color: var(--muted);
+  }
+  .log :global(td.p) {
+    max-width: 10rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--muted);
+  }
+  .log :global(td.m) {
+    white-space: normal;
+    min-width: 12rem;
+  }
+  .log :global(.err) {
+    color: var(--accent);
+    font-size: 0.8rem;
+  }
+  .log :global(.more) {
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+  .log :global(tr.k-realtime td.m),
+  .log :global(tr.k-common td.m) {
+    color: var(--data);
+  }
+  .log-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  /* Ports */
+  .ports {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+    font-size: 0.9rem;
+  }
+  .ports :global(li) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.5rem;
+    align-items: center;
+  }
+  .ports :global(.pmfr) {
+    grid-column: 2;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .ports :global(.dot) {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .ports :global(.dot-open) {
+    background: var(--data);
+    box-shadow: 0 0 0 3px var(--data-soft);
+  }
+  .ports :global(.dot-connected) {
+    background: var(--data);
+  }
+  .muted,
+  .ports :global(.muted),
+  .ccs :global(.muted) {
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  /* Stats */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin: 0;
+  }
+  .stats dt {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .stats dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .ccs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .ccs :global(li) {
+    display: grid;
+    grid-template-columns: 1fr 2.2rem;
+    gap: 0.15rem 0.5rem;
+    align-items: center;
+    font-size: 0.82rem;
+  }
+  .ccs :global(.cc-label) {
+    grid-column: 1 / -1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ccs :global(.cc-label span) {
+    color: var(--muted);
+  }
+  .ccs :global(.bar) {
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .ccs :global(.bar span) {
+    display: block;
+    height: 100%;
+    width: calc(var(--v) * 100%);
+    background: var(--data);
+  }
+  .ccs :global(.cc-val) {
+    font-family: var(--font-mono);
+    text-align: right;
+  }
+
+  /* Send */
+  .send-row {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.6rem 0 0.9rem;
+  }
+  .send-row input {
+    font-family: var(--font-mono);
+  }
+  .send-msg {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin: 0;
+    min-height: 1.2em;
+    overflow-wrap: anywhere;
+  }
+
+  .help {
+    margin-top: 3rem;
+    max-width: var(--measure);
+  }
+
+  @media (max-width: 960px) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 520px) {
+    .kb {
+      height: 70px;
+    }
+  }
+</style>

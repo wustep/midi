@@ -1,0 +1,13 @@
+[
+  { "id": "smf", "title": "Parsing & Standard MIDI Files", "short": "SMF", "blurb": "Read, write, and transform .mid files and MIDI byte streams." },
+  { "id": "realtime", "title": "Realtime I/O", "short": "Realtime", "blurb": "Cross-platform access to MIDI ports: CoreMIDI, ALSA, WinMM, JACK and friends." },
+  { "id": "web", "title": "Web MIDI & JavaScript", "short": "Web", "blurb": "MIDI in the browser and Node.js: Web MIDI API wrappers, players, and editors." },
+  { "id": "synthesis", "title": "Synthesis & SoundFonts", "short": "Synthesis", "blurb": "Turn MIDI into sound: SoundFont/SFZ players, software synths, and audio languages." },
+  { "id": "hardware", "title": "Hardware & Firmware", "short": "Hardware", "blurb": "Arduino, Teensy, RP2040, ESP32, Daisy and USB-MIDI device stacks." },
+  { "id": "network", "title": "Network & Wireless", "short": "Network", "blurb": "RTP-MIDI (AppleMIDI), BLE-MIDI, and MIDI over IP." },
+  { "id": "daw", "title": "DAWs, Sequencers & Live Tools", "short": "DAW / Live", "blurb": "Sequencers, live-coding environments, plugin frameworks, and performance tools." },
+  { "id": "utilities", "title": "Utilities, Routing & Visualization", "short": "Utilities", "blurb": "Command-line tools, monitors, filters, routers, and visualizers." },
+  { "id": "notation", "title": "Notation & Music Theory", "short": "Notation", "blurb": "Engraving, score rendering, MusicXML/ABC, and music-theory toolkits." },
+  { "id": "ml", "title": "Machine Learning & Generative", "short": "ML", "blurb": "Symbolic-music models, tokenizers, datasets tooling, and transcription." },
+  { "id": "midi2", "title": "MIDI 2.0", "short": "MIDI 2.0", "blurb": "Universal MIDI Packet, MIDI-CI, and MIDI 2.0 platform support." }
+]

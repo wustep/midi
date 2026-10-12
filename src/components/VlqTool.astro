@@ -1,0 +1,122 @@
+---
+---
+
+<section class="widget vlq" data-vlq aria-labelledby="vlq-title">
+  <div class="widget-head">
+    <h3 class="widget-title" id="vlq-title">VLQ encoder / decoder</h3>
+    <span class="widget-tag">delta-times & lengths</span>
+  </div>
+  <div class="vlq-grid">
+    <div>
+      <label class="field-label" for="vlq-num">Value (decimal or 0x hex)</label>
+      <input id="vlq-num" class="vlq-num" type="text" value="480" spellcheck="false" autocomplete="off" />
+    </div>
+    <div>
+      <label class="field-label" for="vlq-bytes">VLQ bytes (hex)</label>
+      <input id="vlq-bytes" class="vlq-bytes" type="text" value="83 60" spellcheck="false" autocomplete="off" />
+    </div>
+  </div>
+  <div class="vlq-bits" aria-live="polite"></div>
+</section>
+
+<script>
+  import { vlqEncode, vlqDecode, parseHex, hex, hexBytes } from '../lib/midi';
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-vlq]')) {
+    const num = root.querySelector<HTMLInputElement>('.vlq-num')!;
+    const byt = root.querySelector<HTMLInputElement>('.vlq-bytes')!;
+    const out = root.querySelector<HTMLElement>('.vlq-bits')!;
+
+    const show = (bytes: number[], value: number) => {
+      out.innerHTML =
+        `<div class="row">${bytes
+          .map(
+            (b, i) =>
+              `<div class="byte"><span class="b ${i < bytes.length - 1 ? 'b-s' : 'b-d'}">${hex(b)}</span><code><b>${b >> 7}</b>${(b & 0x7f).toString(2).padStart(7, '0')}</code><small>${i < bytes.length - 1 ? 'more follows' : 'last byte'}</small></div>`,
+          )
+          .join('')}</div>` +
+        `<p>${bytes.length} byte${bytes.length > 1 ? 's' : ''} · value <strong>${value}</strong> (0x${hex(value, 1)}) · the high bit of each byte is a continuation flag; the low 7 bits are concatenated big-endian.</p>`;
+    };
+    const fail = (msg: string) => (out.innerHTML = `<p class="err">${msg}</p>`);
+
+    const fromNum = () => {
+      const raw = num.value.trim();
+      const v = /^0x/i.test(raw) ? parseInt(raw, 16) : Number(raw);
+      try {
+        const bytes = vlqEncode(v);
+        byt.value = hexBytes(bytes);
+        num.setAttribute('aria-invalid', 'false');
+        show(bytes, v);
+      } catch (e) {
+        num.setAttribute('aria-invalid', 'true');
+        fail((e as Error).message);
+      }
+    };
+    const fromBytes = () => {
+      const { bytes, error } = parseHex(byt.value);
+      if (error || !bytes.length) return fail(error ?? 'Enter some bytes');
+      const r = vlqDecode(bytes);
+      if (r.error) return fail(r.error);
+      num.value = String(r.value);
+      show(bytes.slice(0, r.length), r.value);
+    };
+    num.addEventListener('input', fromNum);
+    byt.addEventListener('input', fromBytes);
+    fromNum();
+  }
+</script>
+
+<style>
+  .vlq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .vlq-grid input {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+  }
+  .vlq-bits :global(.row) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 1rem 0 0.5rem;
+  }
+  .vlq-bits :global(.byte) {
+    display: grid;
+    gap: 0.2rem;
+    justify-items: start;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.7rem;
+    background: var(--bg);
+  }
+  .vlq-bits :global(.byte code) {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    background: none;
+    padding: 0;
+  }
+  .vlq-bits :global(.byte code b) {
+    color: var(--accent);
+  }
+  .vlq-bits :global(small) {
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+  .vlq-bits :global(p) {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    margin: 0.5rem 0 0;
+  }
+  .vlq-bits :global(.err) {
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: 0.75rem;
+  }
+  @media (max-width: 520px) {
+    .vlq-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

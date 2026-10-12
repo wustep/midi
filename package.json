@@ -1,0 +1,22 @@
+{
+  "name": "midi-community",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The field guide to MIDI: protocol docs, interactive tools, and a curated catalog of open-source MIDI libraries.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "node scripts/validate-data.mjs && node scripts/generate-readme.mjs && astro build",
+    "preview": "astro preview",
+    "verify": "node scripts/verify-links.mjs",
+    "readme": "node scripts/generate-readme.mjs",
+    "check:data": "node scripts/validate-data.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.3.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

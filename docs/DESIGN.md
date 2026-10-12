@@ -7,6 +7,8 @@ The MIDI Field Guide has one set of design tokens and a small library of CSS pri
 | [`src/styles/tokens.css`](../src/styles/tokens.css) | Every token: primitives, semantic colors (light and dark), type, space, radii, sizes, motion, focus, layers |
 | [`src/styles/global.css`](../src/styles/global.css) | Base element styles and the shared primitives (cards, panels, tables, badges, callouts, buttons, chips, segmented controls, fields, sub-navigation) |
 | [`src/layouts/Base.astro`](../src/layouts/Base.astro) | Header, footer, phone menu |
+| [`src/lib/icons.mjs`](../src/lib/icons.mjs) | The icon set and brand mark; `<Icon>` ([`src/components/Icon.astro`](../src/components/Icon.astro)) renders one |
+| [`scripts/make-icons.mjs`](../scripts/make-icons.mjs) | Generates the favicons, touch icon and manifest icons from the brand mark |
 | [`src/lib/copy.ts`](../src/lib/copy.ts) | The one copy-to-clipboard behavior |
 
 ## Principles
@@ -101,6 +103,21 @@ Rules:
 ### Focus
 
 One ring: `outline: var(--focus-width) solid var(--focus)` at `--focus-offset`, following the element's radius. Text fields swap their border to `--focus` and add a soft halo instead of an outline.
+
+## Icons
+
+One set, drawn for this site, in [`src/lib/icons.mjs`](../src/lib/icons.mjs). Use `<Icon name="search" size={20} />` in Astro markup and `iconSvg('search', { size: 20 })` in client scripts; both are decorative (`aria-hidden`) unless you pass `label`.
+
+- **Grid:** 24 × 24 with a 2px safe area. Nothing, including stroke, crosses into it (`tests/icons.test.ts` checks every icon).
+- **Stroke:** one 2px stroke, round caps, round joins. It scales with the icon (1.33px at 16px), so don't redraw at small sizes.
+- **Shapes:** rectangles take a 2px corner radius. Keylines are a circle of r 9, a 16px square and a 14 × 18 upright.
+- **Fills:** only the media glyphs (play, pause, stop) and the star are solid, drawn as the same outline filled so corners stay round.
+- **Optical alignment:** arrows and chevrons sit on the centre lines; play is nudged right.
+- **From CSS:** the chevrons used by fold groups, disclosures and selects are `--i-chevron-right`, `--i-chevron-down` and `--i-select` in `tokens.css`, the same paths as the set (a test keeps them equal). Paint them with `mask` and `background: currentColor`.
+- **Brand:** `din` is the DIN-5 MIDI socket: the ring, the key notch at the top and five pins on the lower half-circle, with pin 2 in `--pin` (the accent in the header). The favicons (SVG, ICO 16/32/48), Apple touch icon and manifest icons are generated from it by `node scripts/make-icons.mjs`. Small sizes use a heavier ring with the pins pulled inward so they stay legible.
+- **Text arrows** (→ in "All 17 chapters →") are typography, not icons, and stay as characters.
+
+To add an icon, draw it on the grid with the rules above, add it to `ICONS`, and check it at 16, 20 and 32px on [/design/#icons](https://midi.community/design/#icons).
 
 ## Primitives
 

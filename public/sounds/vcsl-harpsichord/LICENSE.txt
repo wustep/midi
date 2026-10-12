@@ -1,0 +1,27 @@
+Harpsichord (vcsl-harpsichord)
+==============================
+
+Attribution: Harpsichord from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0
+
+Source:   Versilian Community Sample Library (VCSL)
+          https://github.com/sgossner/VCSL
+Credit:   Versilian Studios (Flemish harpsichord, front manual)
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VCSL/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  42.mp3  <- HarpsiRH_High_Far_F#1_rr1.wav
+  49.mp3  <- HarpsiRH_High_Far_C#2_rr1.wav
+  56.mp3  <- HarpsiRH_High_Far_G#2_rr1.wav
+  64.mp3  <- HarpsiRH_High_Far_E3_rr1.wav
+  73.mp3  <- HarpsiRH_High_Far_C#4_rr1.wav
+  80.mp3  <- HarpsiRH_High_Far_G#4_rr1.wav
+  88.mp3  <- HarpsiRH_High_Far_E5_rr1.wav
+  96.mp3  <- HarpsiRH_High_Far_C6_rr1.wav
+Source folder: Chordophones/Zithers/Harpsichord, Flemish/Sustains/High/
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, shortened to at most 2.6 s with a fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

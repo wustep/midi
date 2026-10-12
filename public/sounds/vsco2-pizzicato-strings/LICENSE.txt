@@ -1,0 +1,25 @@
+Pizzicato Strings (vsco2-pizzicato-strings)
+===========================================
+
+Attribution: Pizzicato Strings from VS Chamber Orchestra: Community Edition (VSCO 2 CE) by Versilian Studios, CC0 1.0
+
+Source:   VS Chamber Orchestra: Community Edition (VSCO 2 CE)
+          https://github.com/sgossner/VSCO-2-CE
+Credit:   Versilian Studios (violin section, pizzicato)
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  55.mp3  <- VlnEns_Pizz_G2_v1_rr1.wav
+  62.mp3  <- VlnEns_Pizz_D3_v1_rr1.wav
+  69.mp3  <- VlnEns_Pizz_A3_v1_rr1.wav
+  76.mp3  <- VlnEns_Pizz_E4_v1_rr1.wav
+  83.mp3  <- VlnEns_Pizz_B4_v1_rr1.wav
+  86.mp3  <- VlnEns_Pizz_D5_v1_rr1.wav
+Source folder: Strings/Violin Section/Pizz/
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, shortened to at most 1.3 s with a fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

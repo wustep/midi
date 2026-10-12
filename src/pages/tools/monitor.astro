@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import Tool from '../../layouts/Tool.astro';
 import Callout from '../../components/Callout.astro';
 
@@ -21,7 +22,7 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
     <section class="connect" aria-labelledby="connect-title">
       <h2 id="connect-title" class="visually-hidden">Connection</h2>
       <div class="connect-row">
-        <button type="button" class="btn btn-primary" id="connect">Connect MIDI devices</button>
+        <button type="button" class="btn btn-primary" id="connect"><Icon name="plug" size={18} /><span data-label>Connect MIDI devices</span></button>
         <label class="check">
           <input type="checkbox" id="want-sysex" />
           Request SysEx access
@@ -119,13 +120,13 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
           <label class="field-label" for="out-select">Output</label>
           <select id="out-select" disabled><option>No outputs</option></select>
           <div class="send-row">
-            <button type="button" class="btn btn-sm" id="send-note" disabled>Play middle C</button>
+            <button type="button" class="btn btn-sm" id="send-note" disabled><Icon name="play" size={14} />Play middle C</button>
             <button type="button" class="btn btn-sm" id="send-panic" disabled title="CC 123 All Notes Off and CC 120 All Sound Off on all channels">Panic</button>
           </div>
           <label class="field-label" for="send-hex">Raw bytes (hex)</label>
           <div class="send-row">
             <input type="text" id="send-hex" value="B0 07 64" spellcheck="false" autocomplete="off" />
-            <button type="button" class="btn btn-sm" id="send-raw" disabled>Send</button>
+            <button type="button" class="btn btn-sm" id="send-raw" disabled><Icon name="send" size={16} />Send</button>
           </div>
           <p class="send-msg" id="send-msg" role="status"></p>
         </section>
@@ -190,7 +191,7 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
     try {
       access = await midiAccess(wantSysex.checked);
       statusEl.textContent = `Connected${access.sysexEnabled ? ' with SysEx' : ''}.`;
-      connectBtn.textContent = 'Reconnect';
+      connectBtn.querySelector('[data-label]')!.textContent = 'Reconnect';
       access.addEventListener('statechange', refreshPorts);
       refreshPorts();
     } catch (err) {

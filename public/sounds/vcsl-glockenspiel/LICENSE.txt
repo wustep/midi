@@ -1,0 +1,25 @@
+Glockenspiel (vcsl-glockenspiel)
+================================
+
+Attribution: Glockenspiel from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0
+
+Source:   Versilian Community Sample Library (VCSL)
+          https://github.com/sgossner/VCSL
+Credit:   Versilian Studios
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VCSL/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  79.mp3  <- glock_medium_G4_01.wav
+  84.mp3  <- glock_medium_C5_01.wav
+  91.mp3  <- glock_medium_G5_01.wav
+  96.mp3  <- glock_medium_C6_01.wav
+  103.mp3  <- glock_medium_G6_01.wav
+  108.mp3  <- glock_medium_C7_01.wav
+Source folder: Idiophones/Struck Idiophones/Glockenspiel/
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, shortened to at most 2.4 s with a fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

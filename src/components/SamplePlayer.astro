@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import instruments from '../../data/samples.json';
 
 const kb = (n: number) => `${Math.round(n / 1024)} KB`;
@@ -56,7 +57,7 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
       shift octaves, hold <kbd>Space</kbd> for sustain.
     </p>
     <div class="sp-midi">
-      <button type="button" class="btn" data-midi>Connect a MIDI keyboard</button>
+      <button type="button" class="btn" data-midi><Icon name="plug" size={18} /><span data-label>Connect a MIDI keyboard</span></button>
       <span class="sp-midi-status" data-midi-status role="status"></span>
     </div>
   </div>

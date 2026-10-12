@@ -229,6 +229,14 @@ const ORGAN = 'vsco2-organ';
 const HARP = 'vcsl-concert-harp';
 const VIBES = 'vcsl-vibraphone';
 const MARIMBA = 'vcsl-marimba';
+const EPIANO = 'vcsl-fm-piano';
+const HARPSICHORD = 'vcsl-harpsichord';
+const GLOCK = 'vcsl-glockenspiel';
+const XYLO = 'vcsl-xylophone';
+const BELLS = 'vcsl-tubular-bells';
+const KALIMBA = 'vcsl-kalimba';
+const PIZZ = 'vsco2-pizzicato-strings';
+const SAX = 'vcsl-tenor-sax';
 
 /**
  * Bundled instruments for a GM program, best first. A note goes to the first one whose range covers it,
@@ -236,9 +244,14 @@ const MARIMBA = 'vcsl-marimba';
  */
 export function candidatesForProgram(program: number): string[] {
   const exact: Record<number, string[]> = {
-    11: [VIBES], 12: [MARIMBA], 13: [MARIMBA], 42: [CELLO, VIOLIN], 43: [CELLO], 46: [HARP], 47: [CELLO, MARIMBA],
+    4: [EPIANO, PIANO], 5: [EPIANO, PIANO], 6: [HARPSICHORD, PIANO], 7: [HARPSICHORD, PIANO],
+    8: [GLOCK, VIBES], 9: [GLOCK, VIBES], 10: [GLOCK, VIBES], 11: [VIBES], 12: [MARIMBA], 13: [XYLO, MARIMBA],
+    14: [BELLS, GLOCK, VIBES], 15: [HARPSICHORD, HARP],
+    42: [CELLO, VIOLIN], 43: [CELLO], 45: [PIZZ, HARP], 46: [HARP], 47: [CELLO, MARIMBA],
     56: [TRUMPET, HORN], 57: [HORN, CELLO], 58: [HORN, CELLO], 59: [TRUMPET, HORN], 60: [HORN, TRUMPET],
+    64: [SAX, CLARINET], 65: [SAX, CLARINET], 66: [SAX, CLARINET], 67: [SAX, CLARINET],
     68: [CLARINET, FLUTE], 69: [CLARINET], 70: [CLARINET, CELLO], 71: [CLARINET, FLUTE],
+    108: [KALIMBA, MARIMBA], 112: [GLOCK, VIBES],
   };
   if (exact[program]) return exact[program];
   const families: string[][] = [

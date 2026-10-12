@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import { docsForCategory, toolsForCategory } from '../lib/related';
@@ -123,9 +124,7 @@ const context = Object.fromEntries(
                 <a href={repoUrl(l)}>{l.name}</a>
               </h2>
               <span class="stars" title={`${l.stars} stars`}>
-                <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
-                  <path fill="currentColor" d="M8 .8l2.2 4.6 5 .7-3.6 3.5.9 5L8 12.3l-4.5 2.3.9-5L.8 6.1l5-.7z" />
-                </svg>
+                <Icon name="star" size={13} />
                 <span class="visually-hidden">Stars: </span>
                 {fmtStars(l.stars ?? 0)}
               </span>

@@ -54,6 +54,15 @@ test('every GM program maps to a bundled instrument', () => {
   assert.equal(instrumentForProgram(0), 'salamander-grand-piano');
   assert.equal(instrumentForProgram(40), 'vsco2-violin-section');
   assert.equal(instrumentForProgram(60), 'vsco2-french-horn');
+  assert.equal(instrumentForProgram(6), 'vcsl-harpsichord');
+  assert.equal(instrumentForProgram(14), 'vcsl-tubular-bells');
+  assert.equal(instrumentForProgram(45), 'vsco2-pizzicato-strings');
+  assert.equal(instrumentForProgram(66), 'vcsl-tenor-sax');
+});
+
+test('a sax part below the tenor range falls through to the clarinet, then the piano', () => {
+  assert.deepEqual(routeNote(insts as never, 0, 66, 60), { id: 'vcsl-tenor-sax', note: 60 });
+  assert.equal(routeNote(insts as never, 0, 66, 30)?.id, 'salamander-grand-piano');
 });
 
 test('routing: drums use the kit with fallbacks, out-of-range notes fall back to piano', () => {

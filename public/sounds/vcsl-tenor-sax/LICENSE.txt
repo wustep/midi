@@ -1,0 +1,25 @@
+Tenor Saxophone (vcsl-tenor-sax)
+================================
+
+Attribution: Tenor Saxophone from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0
+
+Source:   Versilian Community Sample Library (VCSL)
+          https://github.com/sgossner/VCSL
+Credit:   Versilian Studios (tenor saxophone, non-vibrato (played by Brett))
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VCSL/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  44.mp3  <- BrettTenor_NV_Main_G#1_vl2_rr1.wav
+  50.mp3  <- BrettTenor_NV_Main_D2_vl2_rr1.wav
+  58.mp3  <- BrettTenor_NV_Main_A#2_vl2_rr1.wav
+  64.mp3  <- BrettTenor_NV_Main_E3_vl2_rr1.wav
+  70.mp3  <- BrettTenor_NV_Main_A#3_vl2_rr1.wav
+  76.mp3  <- BrettTenor_NV_Main_E4_vl2_rr1.wav
+Source folder: Aerophones/Reed Aerophones/Tenor Saxophone/Non-Vibrato/
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, a loop region chosen in the sustain with a crossfade baked in so it repeats seamlessly (loop points in data/samples.json), cut shortly after the loop end with a short fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

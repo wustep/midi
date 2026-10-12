@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 /**
  * MIDI Reader: drop a Standard MIDI File and get every part of it explained, a piano roll,
  * playback with the sampled instruments, and an annotated event list linked to a hex view.
@@ -14,7 +15,7 @@ const demos = [
   <section class="rd-load" aria-labelledby="rd-load-title">
     <h2 id="rd-load-title" class="visually-hidden">Open a file</h2>
     <div class="rd-drop" data-drop>
-      <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 15V4m0 0L8 8m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"></path></svg>
+      <Icon name="upload" size={28} />
       <p class="rd-drop-main"><strong>Drop a .mid file here</strong><span class="rd-replace"> to replace it</span></p>
       <label class="btn btn-primary rd-pick">
         Choose a file
@@ -43,17 +44,17 @@ const demos = [
 
   <div data-result hidden>
     <button type="button" class="rd-fab" data-fab aria-label="Play" hidden>
-      <svg class="i-play" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9.5-5.5z"></path></svg>
-      <svg class="i-pause" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zm6 0h3v11h-3z"></path></svg>
+      <Icon name="play" size={20} class="i-play" />
+      <Icon name="pause" size={20} class="i-pause" />
     </button>
     <div class="rd-transport" role="group" aria-label="Playback" data-transport>
       <button type="button" class="btn btn-primary rd-play" data-play>
-        <svg class="i-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9.5-5.5z"></path></svg>
-        <svg class="i-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zm6 0h3v11h-3z"></path></svg>
+        <Icon name="play" size={16} class="i-play" />
+        <Icon name="pause" size={16} class="i-pause" />
         <span data-play-label>Play</span>
       </button>
       <button type="button" class="btn rd-stop" data-stop aria-label="Stop and rewind">
-        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M3 3h10v10H3z"></path></svg>
+        <Icon name="stop" size={14} />
       </button>
       <div class="rd-seek">
         <input type="range" min="0" max="1000" step="1" value="0" data-seek aria-label="Position" />
@@ -223,6 +224,7 @@ const demos = [
 </div>
 
 <script>
+  import { iconSvg } from '../lib/icons.mjs';
   import { parseSmf, buildTempoMap, extractNotes, signatures, barBeat, describeEvent, decodeText, type SmfFile, type SmfEvent, type Note, type TempoMap } from '../lib/smf';
   import { trackStats, controllerUsage, sysexList, metaSummary, textEvents, byteRoles, eventAt, annotateEvent, annotateHeader, roleNames, Role, type Annotation } from '../lib/smf-analysis';
   import { GmSynth, Player, timeline, midiOutputSink, type Sink } from '../lib/synth';
@@ -524,7 +526,7 @@ const demos = [
       const all = [...w.map(esc), ...other];
       $('[data-warnings]').innerHTML = all.length
         ? `<div class="callout warn" role="note"><p class="callout-title">${plural(all.length, 'problem')} found</p><ul>${all.slice(0, 20).map((x) => `<li>${x}</li>`).join('')}${all.length > 20 ? `<li>…and ${all.length - 20} more</li>` : ''}</ul></div>`
-        : `<p class="rd-ok">✓ Well-formed: every chunk and event parsed cleanly.</p>`;
+        : `<p class="rd-ok">${iconSvg('check', { size: 16 })} Well-formed: every chunk and event parsed cleanly.</p>`;
       $('[data-header-anno]').innerHTML = annoRows(annotateHeader(s), true);
     }
 
@@ -1269,8 +1271,11 @@ const demos = [
     overflow-wrap: anywhere;
   }
   :global(.rd-ok) {
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
     color: var(--data);
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     font-size: var(--t-md);
   }
   .rd-sec :global(.callout ul) {
@@ -1389,16 +1394,16 @@ const demos = [
   }
   .rd-fold > summary::before {
     content: '';
-    width: 0.55rem;
-    height: 0.55rem;
-    border-right: 2px solid var(--ink-2);
-    border-bottom: 2px solid var(--ink-2);
-    transform: translateY(-1px) rotate(-45deg);
+    width: 1rem;
+    height: 1rem;
+    background: currentColor;
+    -webkit-mask: var(--i-chevron-right) center / contain no-repeat;
+    mask: var(--i-chevron-right) center / contain no-repeat;
     transition: transform var(--d-base) var(--ease-out);
     flex-shrink: 0;
   }
   .rd-fold[open] > summary::before {
-    transform: translateY(-3px) rotate(45deg);
+    transform: rotate(90deg);
   }
   .rd-fold > summary h2,
   .rd-fold > summary h3 {
@@ -1427,11 +1432,11 @@ const demos = [
     place-items: center;
     cursor: pointer;
   }
-  .rd-fab .i-pause,
-  .rd-fab:global(.is-playing) .i-play {
+  .rd-fab :global(.i-pause),
+  .rd-fab:global(.is-playing) :global(.i-play) {
     display: none;
   }
-  .rd-fab:global(.is-playing) .i-pause {
+  .rd-fab:global(.is-playing) :global(.i-pause) {
     display: block;
   }
   .rd-transport {
@@ -1455,11 +1460,11 @@ const demos = [
     min-width: 6.2rem;
     justify-content: center;
   }
-  .rd-play .i-pause,
-  .rd-play:global(.is-playing) .i-play {
+  .rd-play :global(.i-pause),
+  .rd-play:global(.is-playing) :global(.i-play) {
     display: none;
   }
-  .rd-play:global(.is-playing) .i-pause {
+  .rd-play:global(.is-playing) :global(.i-pause) {
     display: inline;
   }
   .rd-stop {
@@ -1796,7 +1801,7 @@ const demos = [
     .rd-drop.is-compact {
       padding: var(--s-3);
     }
-    .rd-drop.is-compact svg,
+    .rd-drop.is-compact :global(svg),
     .rd-drop.is-compact .rd-privacy {
       display: none;
     }

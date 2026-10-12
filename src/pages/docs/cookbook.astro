@@ -1,4 +1,5 @@
 ---
+import Icon from '../../components/Icon.astro';
 import Doc from '../../layouts/Doc.astro';
 import Callout from '../../components/Callout.astro';
 
@@ -841,7 +842,7 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
                 <span class="code-lang">
                   {LANG[s.lang]} · <a href={`/libraries/?q=${encodeURIComponent(s.libQuery)}`}>{s.lib}</a>
                 </span>
-                <button type="button" class="btn btn-sm" data-copy>Copy</button>
+                <button type="button" class="btn btn-sm" data-copy><Icon name="copy" size={16} /><span data-label>Copy</span></button>
               </div>
               <pre><code set:text={s.code} /></pre>
               {s.note && <p class="snippet-note">{s.note}</p>}

@@ -68,7 +68,7 @@ Run `npm run verify:resources` to check every URL and the shape of all three fil
 
 ## Samples
 
-[`data/sample-sources.json`](data/sample-sources.json) lists link-out sources for free instruments. Self-hosted, playable instruments live in [`data/samples.json`](data/samples.json) with audio in `public/sounds/<id>/<midi-note>.mp3` and a `LICENSE.txt` per instrument. Only self-host sounds whose license allows redistribution (CC0, CC BY, CC BY-SA, MIT), show the attribution, and keep each instrument small (a few repitched notes). `npm run verify:samples` checks the URLs, files, sizes and licenses.
+[`data/sample-sources.json`](data/sample-sources.json) lists link-out sources for free instruments. Self-hosted, playable instruments live in [`data/samples.json`](data/samples.json) with audio in `public/sounds/<id>/<midi-note>.mp3` and a `LICENSE.txt` per instrument. Only self-host sounds whose license allows redistribution (CC0, CC BY, CC BY-SA, MIT), show the attribution, and keep each instrument small (a few repitched notes, about 100–300 KB). All self-hosted audio together stays under 6 MB, and each instrument loads only when it's picked or a file needs it. `npm run verify:samples` checks the URLs, files, sizes and licenses.
 
 ## Site structure
 
@@ -88,6 +88,7 @@ The images in \`.github/readme/\` are screenshots of the live site (home, Reader
 ## Social images and fonts
 
 - **Social cards:** one 1200×630 PNG per section, `/og/<section>.png`, rendered at build time by [`src/pages/og/[section].png.ts`](src/pages/og/%5Bsection%5D.png.ts) with [satori](https://github.com/vercel/satori) and [resvg](https://github.com/thx/resvg-js). The layout and copy live in [`src/lib/og-card.ts`](src/lib/og-card.ts); every number on a card is counted from the data files and registries, so cards update themselves. Preview them in `dist/og/` after `npm run build`, or at `/og/home.png` under `npm run dev`.
+- **Favicons and app icons:** `public/favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icon-*.png` and `site.webmanifest` are generated from the brand mark in [`src/lib/icons.mjs`](src/lib/icons.mjs) by `node scripts/make-icons.mjs`. Don't edit them by hand.
 - **Card fonts:** satori needs static TTF/OTF, so [`src/og/fonts/`](src/og/fonts/) holds instances of the site fonts cut from the `@fontsource-variable` files with fontTools, subset to Latin plus typographic punctuation: Archivo at wdth 125/wght 900, wdth 120/wght 700 and wdth 100/wght 500; Atkinson Hyperlegible Next 400; Atkinson Hyperlegible Mono 400 and 700 (`fonttools varLib.instancer <file> wdth=125 wght=900`, then `pyftsubset`). OFL license texts sit next to them.
 - **Display font:** `public/fonts/archivo-display.woff2` is Archivo instanced to weights 400–900 and widths 100–125% and subset to Latin, punctuation, arrows and ♯♭ with fontTools (`fonttools varLib.instancer` then `pyftsubset … --flavor=woff2`). Use only those ranges in CSS. License: `public/fonts/Archivo-OFL.txt`.
 

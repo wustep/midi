@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 ---
 
 <div class="ct" data-ct>
@@ -8,7 +9,7 @@
       <span class="widget-tag">Web MIDI</span>
     </div>
     <div class="ct-row">
-      <button type="button" class="btn btn-primary" data-connect>Connect MIDI devices</button>
+      <button type="button" class="btn btn-primary" data-connect><Icon name="plug" size={18} /><span data-label>Connect MIDI devices</span></button>
       <label class="ct-check"><input type="checkbox" data-sysex /> Also request SysEx (for SysEx probes)</label>
       <span class="ct-status" data-status role="status">Not connected. You can still try the simulated clock below.</span>
     </div>
@@ -353,7 +354,7 @@
       const n = access.inputs.size;
       const m = access.outputs.size;
       status.textContent = `Connected: ${n} input${n === 1 ? '' : 's'}, ${m} output${m === 1 ? '' : 's'}${access.sysexEnabled ? ', SysEx allowed' : ''}.`;
-      btn.textContent = 'Reconnect';
+      btn.querySelector('[data-label]')!.textContent = 'Reconnect';
     });
 
     updateClock();

@@ -5,6 +5,8 @@
  */
 import Base from '../layouts/Base.astro';
 import Callout from '../components/Callout.astro';
+import Icon from '../components/Icon.astro';
+import { ICONS, iconSvg } from '../lib/icons.mjs';
 
 const surfaces = [
   ['--surface-sunken', 'Sunken', 'Inputs, code, readouts'],
@@ -91,7 +93,7 @@ const curvePath = (v: string) => {
     </header>
 
     <nav class="ds-toc" aria-label="On this page">
-      {['Principles', 'Color', 'Type', 'Space', 'Radii', 'Elevation', 'Motion', 'Focus', 'Components'].map((s) => <a href={`#${s.toLowerCase()}`}>{s}</a>)}
+      {['Principles', 'Color', 'Type', 'Space', 'Radii', 'Elevation', 'Motion', 'Focus', 'Icons', 'Components'].map((s) => <a href={`#${s.toLowerCase()}`}>{s}</a>)}
     </nav>
 
     <section aria-labelledby="principles">
@@ -285,6 +287,49 @@ const curvePath = (v: string) => {
       </p>
     </section>
 
+    <section aria-labelledby="icons">
+      <h2 id="icons">Icons</h2>
+      <p class="ds-note">
+        One set, drawn for this site in <code>src/lib/icons.mjs</code>: a 24px grid with a 2px safe area, one 2px
+        stroke with round caps and joins, 2px corner radii, and solid fills only for the media glyphs and the star.
+        Use <code>&lt;Icon name="…" /&gt;</code> in markup or <code>iconSvg()</code> in scripts; the favicons and
+        social cards are generated from the same brand mark.
+      </p>
+      <ul class="icon-grid">
+        {
+          Object.keys(ICONS).map((name) => (
+            <li>
+              <span class="icon-big" set:html={iconSvg(name, { size: 32 })} />
+              <span class="icon-small">
+                <Fragment set:html={iconSvg(name, { size: 20 })} />
+                <Fragment set:html={iconSvg(name, { size: 16 })} />
+              </span>
+              <code>{name}</code>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="icon-spec">
+        <svg viewBox="0 0 24 24" width="192" height="192" aria-hidden="true">
+          <defs>
+            <pattern id="grid1" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="var(--line)" stroke-width="0.04" /></pattern>
+          </defs>
+          <rect width="24" height="24" fill="url(#grid1)" />
+          <rect x="2" y="2" width="20" height="20" fill="none" stroke="var(--accent)" stroke-width="0.08" stroke-dasharray="0.4 0.3" />
+          <circle cx="12" cy="12" r="9" fill="none" stroke="var(--data)" stroke-width="0.08" />
+          <rect x="4" y="4" width="16" height="16" rx="2" fill="none" stroke="var(--data)" stroke-width="0.08" />
+          <rect x="5" y="3" width="14" height="18" rx="2" fill="none" stroke="var(--meta)" stroke-width="0.08" />
+          <g fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" set:html={ICONS.din.body.replace(/var\(--pin, currentColor\)/g, 'var(--accent)').replace(/currentColor/g, 'var(--ink)')} />
+        </svg>
+        <ul class="spec-list">
+          <li><span class="key k-safe"></span> 2px safe area: nothing crosses it</li>
+          <li><span class="key k-circle"></span> Keylines: circle r 9, square 16, upright 14 × 18</li>
+          <li><span class="key k-tall"></span> Tall shapes (file, pause) use the upright keyline</li>
+          <li>Stroke 2 at 24px; scaled with the icon, so it is 1.33px at 16px</li>
+        </ul>
+      </div>
+    </section>
+
     <section aria-labelledby="components">
       <h2 id="components">Components</h2>
 
@@ -302,7 +347,7 @@ const curvePath = (v: string) => {
           <button type="button" class="btn">Medium</button>
           <button type="button" class="btn btn-lg">Large</button>
           <button type="button" class="icon-btn" aria-label="Icon button">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+            <Icon name="search" size={20} />
           </button>
         </div>
       </div>
@@ -758,6 +803,76 @@ const curvePath = (v: string) => {
     left: calc(100% - 1.5rem + 3px);
   }
 
+  .icon-grid {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: var(--s-2);
+  }
+  .icon-grid li {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-2);
+    padding: var(--s-4) var(--s-2) var(--s-3);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .icon-grid :global(.icon-din) {
+    --pin: var(--accent);
+  }
+  .icon-small {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    color: var(--ink-2);
+  }
+  .icon-grid code {
+    white-space: nowrap;
+    font-size: var(--t-xs);
+    background: none;
+    box-shadow: none;
+    color: var(--muted);
+  }
+  .icon-spec {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-5);
+    margin-top: var(--s-5);
+  }
+  .icon-spec > svg {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+  }
+  .spec-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s-2);
+    font-size: var(--t-ui);
+    color: var(--ink-2);
+  }
+  .key {
+    display: inline-block;
+    width: 1.5rem;
+    height: 0;
+    margin-right: var(--s-2);
+    vertical-align: middle;
+    border-top: 2px solid;
+  }
+  .k-safe {
+    border-top: 2px dashed var(--accent);
+  }
+  .k-circle {
+    border-color: var(--data);
+  }
+  .k-tall {
+    border-color: var(--meta);
+  }
   .demo {
     margin-top: var(--s-6);
   }

@@ -1,0 +1,13 @@
+---
+/** One icon from the shared set (src/lib/icons.mjs). Decorative unless `label` is given. */
+import { iconSvg } from '../lib/icons.mjs';
+interface Props {
+  name: string;
+  size?: number;
+  label?: string;
+  class?: string;
+}
+const { name, size = 20, label, class: cls } = Astro.props;
+---
+
+<Fragment set:html={iconSvg(name, { size, label, class: cls })} />

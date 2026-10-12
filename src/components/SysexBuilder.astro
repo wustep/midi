@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import { MANUFACTURERS } from '../lib/sysex';
 import { hexBytes } from '../lib/midi';
 
@@ -82,12 +83,12 @@ const presets = [
     <ul class="sxb-legend" data-legend></ul>
     <div class="sxb-problems" data-problems></div>
     <div class="sxb-formats">
-      <div class="sxb-format"><span>Hex</span><code data-fmt="hex"></code><button type="button" class="btn btn-sm" data-copy="hex">Copy</button></div>
-      <div class="sxb-format"><span>Decimal</span><code data-fmt="dec"></code><button type="button" class="btn btn-sm" data-copy="dec">Copy</button></div>
-      <div class="sxb-format"><span>C / JS</span><code data-fmt="c"></code><button type="button" class="btn btn-sm" data-copy="c">Copy</button></div>
+      <div class="sxb-format"><span>Hex</span><code data-fmt="hex"></code><button type="button" class="btn btn-sm" data-copy="hex"><Icon name="copy" size={16} /><span data-label>Copy</span></button></div>
+      <div class="sxb-format"><span>Decimal</span><code data-fmt="dec"></code><button type="button" class="btn btn-sm" data-copy="dec"><Icon name="copy" size={16} /><span data-label>Copy</span></button></div>
+      <div class="sxb-format"><span>C / JS</span><code data-fmt="c"></code><button type="button" class="btn btn-sm" data-copy="c"><Icon name="copy" size={16} /><span data-label>Copy</span></button></div>
     </div>
     <div class="sxb-send">
-      <button type="button" class="btn" data-send>Send to a MIDI output…</button>
+      <button type="button" class="btn" data-send><Icon name="send" size={18} /><span data-label>Send to a MIDI output…</span></button>
       <select data-send-out hidden aria-label="MIDI output"></select>
       <span class="sxb-send-status" data-send-status role="status"></span>
     </div>
@@ -230,7 +231,7 @@ const presets = [
           const outs = [...access!.outputs.values()];
           outSel.innerHTML = outs.map((o) => `<option value="${esc(o.id)}">${esc(o.name ?? o.id)}</option>`).join('');
           outSel.hidden = !outs.length;
-          sendBtn.textContent = outs.length ? 'Send' : 'Send to a MIDI output…';
+          sendBtn.querySelector('[data-label]')!.textContent = outs.length ? 'Send' : 'Send to a MIDI output…';
           if (!outs.length) sendStatus.textContent = 'No MIDI outputs found.';
         };
         access.onstatechange = fill;

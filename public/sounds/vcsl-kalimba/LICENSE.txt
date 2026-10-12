@@ -1,0 +1,24 @@
+Kalimba (vcsl-kalimba)
+======================
+
+Attribution: Kalimba from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0
+
+Source:   Versilian Community Sample Library (VCSL)
+          https://github.com/sgossner/VCSL
+Credit:   Versilian Studios (Kenyan kalimba)
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VCSL/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  59.mp3  <- Mbira6_Normal_MainSpirit_B2_k8_vl3_rr2.wav
+  63.mp3  <- Mbira6_Normal_MainSpirit_D#3_k6_vl3_rr2.wav
+  68.mp3  <- Mbira6_Normal_MainSpirit_G#3_k4_vl3_rr2.wav
+  73.mp3  <- Mbira6_Normal_MainSpirit_C#4_k2_vl3_rr2.wav
+  78.mp3  <- Mbira6_Normal_MainSpirit_F#4_k14_vl3_rr2.wav
+Source folder: Idiophones/Plucked Idiophones/Kalimba, Kenya/
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, retuned to equal temperament (the instrument has a traditional tuning; shifts of 59: +9 cents, 63: -10 cents, 68: -44 cents, 73: -20 cents, 78: -36 cents), shortened to at most 2.2 s with a fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

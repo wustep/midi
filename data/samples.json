@@ -8,12 +8,83 @@
     "license": "CC-BY-3.0",
     "licenseUrl": "https://github.com/sfzinstruments/SalamanderGrandPiano/blob/master/LICENSE",
     "attribution": "Salamander Grand Piano by Alexander Holm, CC BY 3.0",
-    "notes": [21, 30, 39, 48, 57, 66, 75, 84, 93, 102],
-    "range": [21, 108],
+    "notes": [
+      21,
+      30,
+      39,
+      48,
+      57,
+      66,
+      75,
+      84,
+      93,
+      102
+    ],
+    "range": [
+      21,
+      108
+    ],
     "loop": false,
     "release": 0.3,
     "sustain": false,
     "bytes": 489010
+  },
+  {
+    "id": "vcsl-fm-piano",
+    "name": "FM Electric Piano",
+    "family": "Keys",
+    "source": "Versilian Community Sample Library (VCSL)",
+    "sourceUrl": "https://github.com/sgossner/VCSL",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "attribution": "FM Electric Piano from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
+    "notes": [
+      24,
+      36,
+      40,
+      48,
+      52,
+      60,
+      64,
+      72,
+      84
+    ],
+    "range": [
+      19,
+      89
+    ],
+    "loop": false,
+    "release": 0.3,
+    "sustain": false,
+    "bytes": 265194
+  },
+  {
+    "id": "vcsl-harpsichord",
+    "name": "Harpsichord",
+    "family": "Keys",
+    "source": "Versilian Community Sample Library (VCSL)",
+    "sourceUrl": "https://github.com/sgossner/VCSL",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "attribution": "Harpsichord from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
+    "notes": [
+      42,
+      49,
+      56,
+      64,
+      73,
+      80,
+      88,
+      96
+    ],
+    "range": [
+      37,
+      101
+    ],
+    "loop": false,
+    "release": 0.25,
+    "sustain": false,
+    "bytes": 255784
   },
   {
     "id": "vcsl-vibraphone",
@@ -24,8 +95,18 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
     "attribution": "Vibraphone from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
-    "notes": [53, 60, 67, 74, 81, 88],
-    "range": [48, 91],
+    "notes": [
+      53,
+      60,
+      67,
+      74,
+      81,
+      88
+    ],
+    "range": [
+      48,
+      91
+    ],
     "loop": false,
     "release": 0.4,
     "sustain": false,
@@ -40,12 +121,103 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
     "attribution": "Marimba from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
-    "notes": [41, 48, 55, 65, 72, 79, 89, 96],
-    "range": [36, 100],
+    "notes": [
+      41,
+      48,
+      55,
+      65,
+      72,
+      79,
+      89,
+      96
+    ],
+    "range": [
+      36,
+      100
+    ],
     "loop": false,
     "release": 0.25,
     "sustain": false,
     "bytes": 225692
+  },
+  {
+    "id": "vcsl-xylophone",
+    "name": "Xylophone",
+    "family": "Mallets",
+    "source": "Versilian Community Sample Library (VCSL)",
+    "sourceUrl": "https://github.com/sgossner/VCSL",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "attribution": "Xylophone from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
+    "notes": [
+      67,
+      72,
+      79,
+      84,
+      91,
+      96,
+      103,
+      108
+    ],
+    "range": [
+      62,
+      113
+    ],
+    "loop": false,
+    "release": 0.2,
+    "sustain": false,
+    "bytes": 137297
+  },
+  {
+    "id": "vcsl-glockenspiel",
+    "name": "Glockenspiel",
+    "family": "Mallets",
+    "source": "Versilian Community Sample Library (VCSL)",
+    "sourceUrl": "https://github.com/sgossner/VCSL",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "attribution": "Glockenspiel from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
+    "notes": [
+      79,
+      84,
+      91,
+      96,
+      103,
+      108
+    ],
+    "range": [
+      74,
+      113
+    ],
+    "loop": false,
+    "release": 0.6,
+    "sustain": false,
+    "bytes": 176796
+  },
+  {
+    "id": "vcsl-tubular-bells",
+    "name": "Tubular Bells",
+    "family": "Mallets",
+    "source": "Versilian Community Sample Library (VCSL)",
+    "sourceUrl": "https://github.com/sgossner/VCSL",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "attribution": "Tubular Bells from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
+    "notes": [
+      60,
+      64,
+      68,
+      72,
+      76
+    ],
+    "range": [
+      55,
+      81
+    ],
+    "loop": false,
+    "release": 1.2,
+    "sustain": false,
+    "bytes": 244505
   },
   {
     "id": "vcsl-concert-harp",
@@ -56,12 +228,50 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
     "attribution": "Concert Harp from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
-    "notes": [35, 41, 48, 55, 62, 69, 76, 83, 93],
-    "range": [28, 100],
+    "notes": [
+      35,
+      41,
+      48,
+      55,
+      62,
+      69,
+      76,
+      83,
+      93
+    ],
+    "range": [
+      28,
+      100
+    ],
     "loop": false,
     "release": 0.5,
     "sustain": false,
     "bytes": 330075
+  },
+  {
+    "id": "vcsl-kalimba",
+    "name": "Kalimba",
+    "family": "Plucked",
+    "source": "Versilian Community Sample Library (VCSL)",
+    "sourceUrl": "https://github.com/sgossner/VCSL",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "attribution": "Kalimba from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
+    "notes": [
+      59,
+      63,
+      68,
+      73,
+      78
+    ],
+    "range": [
+      54,
+      83
+    ],
+    "loop": false,
+    "release": 0.4,
+    "sustain": false,
+    "bytes": 136355
   },
   {
     "id": "vsco2-violin-section",
@@ -72,17 +282,41 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
     "attribution": "Violin Section from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
-    "notes": [55, 62, 69, 76, 83],
-    "range": [55, 90],
+    "notes": [
+      55,
+      62,
+      69,
+      76,
+      83
+    ],
+    "range": [
+      55,
+      90
+    ],
     "loop": true,
     "release": 0.2,
     "sustain": true,
     "loops": {
-      "55": { "start": 0.889093, "end": 2.320408 },
-      "62": { "start": 0.450454, "end": 1.662608 },
-      "69": { "start": 0.814535, "end": 2.290499 },
-      "76": { "start": 0.524649, "end": 2.195011 },
-      "83": { "start": 0.787347, "end": 2.390499 }
+      "55": {
+        "start": 0.889093,
+        "end": 2.320408
+      },
+      "62": {
+        "start": 0.450454,
+        "end": 1.662608
+      },
+      "69": {
+        "start": 0.814535,
+        "end": 2.290499
+      },
+      "76": {
+        "start": 0.524649,
+        "end": 2.195011
+      },
+      "83": {
+        "start": 0.787347,
+        "end": 2.390499
+      }
     },
     "pcmSamples": {
       "55": 115560,
@@ -103,18 +337,46 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
     "attribution": "Flute from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
-    "notes": [60, 69, 76, 84, 93, 96],
-    "range": [59, 98],
+    "notes": [
+      60,
+      69,
+      76,
+      84,
+      93,
+      96
+    ],
+    "range": [
+      59,
+      98
+    ],
     "loop": true,
     "release": 0.15,
     "sustain": true,
     "loops": {
-      "60": { "start": 0.788322, "end": 2.411814 },
-      "69": { "start": 0.786349, "end": 1.819206 },
-      "76": { "start": 0.602381, "end": 2.121156 },
-      "84": { "start": 0.771905, "end": 2.383787 },
-      "93": { "start": 0.788617, "end": 2.107211 },
-      "96": { "start": 0.7322, "end": 2.32 }
+      "60": {
+        "start": 0.788322,
+        "end": 2.411814
+      },
+      "69": {
+        "start": 0.786349,
+        "end": 1.819206
+      },
+      "76": {
+        "start": 0.602381,
+        "end": 2.121156
+      },
+      "84": {
+        "start": 0.771905,
+        "end": 2.383787
+      },
+      "93": {
+        "start": 0.788617,
+        "end": 2.107211
+      },
+      "96": {
+        "start": 0.7322,
+        "end": 2.32
+      }
     },
     "pcmSamples": {
       "60": 119591,
@@ -136,17 +398,41 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
     "attribution": "French Horn from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
-    "notes": [36, 43, 50, 57, 60],
-    "range": [34, 67],
+    "notes": [
+      36,
+      43,
+      50,
+      57,
+      60
+    ],
+    "range": [
+      34,
+      67
+    ],
     "loop": true,
     "release": 0.2,
     "sustain": true,
     "loops": {
-      "36": { "start": 0.580635, "end": 1.7122 },
-      "43": { "start": 0.834127, "end": 2.50839 },
-      "50": { "start": 0.826757, "end": 1.904512 },
-      "57": { "start": 0.477755, "end": 1.814014 },
-      "60": { "start": 0.518844, "end": 1.854263 }
+      "36": {
+        "start": 0.580635,
+        "end": 1.7122
+      },
+      "43": {
+        "start": 0.834127,
+        "end": 2.50839
+      },
+      "50": {
+        "start": 0.826757,
+        "end": 1.904512
+      },
+      "57": {
+        "start": 0.477755,
+        "end": 1.814014
+      },
+      "60": {
+        "start": 0.518844,
+        "end": 1.854263
+      }
     },
     "pcmSamples": {
       "36": 88770,
@@ -167,18 +453,46 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
     "attribution": "Cello Section from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
-    "notes": [36, 43, 50, 57, 64, 71],
-    "range": [36, 77],
+    "notes": [
+      36,
+      43,
+      50,
+      57,
+      64,
+      71
+    ],
+    "range": [
+      36,
+      77
+    ],
     "loop": true,
     "release": 0.25,
     "sustain": true,
     "loops": {
-      "36": { "start": 0.631383, "end": 1.641497 },
-      "43": { "start": 0.568367, "end": 1.640159 },
-      "50": { "start": 0.60288, "end": 1.919569 },
-      "57": { "start": 0.725215, "end": 2.386712 },
-      "64": { "start": 0.625125, "end": 2.039274 },
-      "71": { "start": 0.49458, "end": 1.732222 }
+      "36": {
+        "start": 0.631383,
+        "end": 1.641497
+      },
+      "43": {
+        "start": 0.568367,
+        "end": 1.640159
+      },
+      "50": {
+        "start": 0.60288,
+        "end": 1.919569
+      },
+      "57": {
+        "start": 0.725215,
+        "end": 2.386712
+      },
+      "64": {
+        "start": 0.625125,
+        "end": 2.039274
+      },
+      "71": {
+        "start": 0.49458,
+        "end": 1.732222
+      }
     },
     "pcmSamples": {
       "36": 85620,
@@ -192,6 +506,32 @@
     "bytes": 162375
   },
   {
+    "id": "vsco2-pizzicato-strings",
+    "name": "Pizzicato Strings",
+    "family": "Strings",
+    "source": "VS Chamber Orchestra: Community Edition (VSCO 2 CE)",
+    "sourceUrl": "https://github.com/sgossner/VSCO-2-CE",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
+    "attribution": "Pizzicato Strings from VS Chamber Orchestra: Community Edition (VSCO 2 CE) by Versilian Studios, CC0 1.0",
+    "notes": [
+      55,
+      62,
+      69,
+      76,
+      83,
+      86
+    ],
+    "range": [
+      50,
+      91
+    ],
+    "loop": false,
+    "release": 0.15,
+    "sustain": false,
+    "bytes": 68647
+  },
+  {
     "id": "vsco2-trumpet",
     "name": "Trumpet",
     "family": "Brass",
@@ -200,18 +540,46 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
     "attribution": "Trumpet from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
-    "notes": [53, 60, 67, 74, 81, 84],
-    "range": [52, 89],
+    "notes": [
+      53,
+      60,
+      67,
+      74,
+      81,
+      84
+    ],
+    "range": [
+      52,
+      89
+    ],
     "loop": true,
     "release": 0.15,
     "sustain": true,
     "loops": {
-      "53": { "start": 0.463696, "end": 1.548118 },
-      "60": { "start": 0.78415, "end": 1.943832 },
-      "67": { "start": 0.717642, "end": 2.326327 },
-      "74": { "start": 0.707846, "end": 1.709002 },
-      "81": { "start": 0.815964, "end": 2.473084 },
-      "84": { "start": 0.458526, "end": 1.513492 }
+      "53": {
+        "start": 0.463696,
+        "end": 1.548118
+      },
+      "60": {
+        "start": 0.78415,
+        "end": 1.943832
+      },
+      "67": {
+        "start": 0.717642,
+        "end": 2.326327
+      },
+      "74": {
+        "start": 0.707846,
+        "end": 1.709002
+      },
+      "81": {
+        "start": 0.815964,
+        "end": 2.473084
+      },
+      "84": {
+        "start": 0.458526,
+        "end": 1.513492
+      }
     },
     "pcmSamples": {
       "53": 81502,
@@ -233,18 +601,46 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
     "attribution": "Clarinet from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
-    "notes": [50, 58, 65, 74, 82, 89],
-    "range": [50, 94],
+    "notes": [
+      50,
+      58,
+      65,
+      74,
+      82,
+      89
+    ],
+    "range": [
+      50,
+      94
+    ],
     "loop": true,
     "release": 0.15,
     "sustain": true,
     "loops": {
-      "50": { "start": 1.06941, "end": 2.124422 },
-      "58": { "start": 0.456599, "end": 1.485896 },
-      "65": { "start": 0.707982, "end": 1.953447 },
-      "74": { "start": 0.452971, "end": 1.466304 },
-      "82": { "start": 0.726667, "end": 2.308685 },
-      "89": { "start": 0.660726, "end": 1.860363 }
+      "50": {
+        "start": 1.06941,
+        "end": 2.124422
+      },
+      "58": {
+        "start": 0.456599,
+        "end": 1.485896
+      },
+      "65": {
+        "start": 0.707982,
+        "end": 1.953447
+      },
+      "74": {
+        "start": 0.452971,
+        "end": 1.466304
+      },
+      "82": {
+        "start": 0.726667,
+        "end": 2.308685
+      },
+      "89": {
+        "start": 0.660726,
+        "end": 1.860363
+      }
     },
     "pcmSamples": {
       "50": 106917,
@@ -258,6 +654,67 @@
     "bytes": 160492
   },
   {
+    "id": "vcsl-tenor-sax",
+    "name": "Tenor Saxophone",
+    "family": "Winds",
+    "source": "Versilian Community Sample Library (VCSL)",
+    "sourceUrl": "https://github.com/sgossner/VCSL",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "attribution": "Tenor Saxophone from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0",
+    "notes": [
+      44,
+      50,
+      58,
+      64,
+      70,
+      76
+    ],
+    "range": [
+      40,
+      80
+    ],
+    "loop": true,
+    "release": 0.12,
+    "sustain": true,
+    "loops": {
+      "44": {
+        "start": 0.450771,
+        "end": 1.163424
+      },
+      "50": {
+        "start": 0.451723,
+        "end": 1.616372
+      },
+      "58": {
+        "start": 0.450159,
+        "end": 1.67288
+      },
+      "64": {
+        "start": 0.450385,
+        "end": 1.151179
+      },
+      "70": {
+        "start": 0.450612,
+        "end": 1.152063
+      },
+      "76": {
+        "start": 0.451315,
+        "end": 1.223333
+      }
+    },
+    "pcmSamples": {
+      "44": 62332,
+      "50": 82307,
+      "58": 84799,
+      "64": 61792,
+      "70": 61831,
+      "76": 64974
+    },
+    "encoderDelay": 1105,
+    "bytes": 118488
+  },
+  {
     "id": "vsco2-organ",
     "name": "Pipe Organ",
     "family": "Organ",
@@ -266,19 +723,51 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
     "attribution": "Pipe Organ from VS Chamber Orchestra: Community Edition by Versilian Studios (sampled by Simon Dalzell of Ivy Audio), CC0 1.0",
-    "notes": [36, 45, 54, 63, 72, 81, 90],
-    "range": [31, 96],
+    "notes": [
+      36,
+      45,
+      54,
+      63,
+      72,
+      81,
+      90
+    ],
+    "range": [
+      31,
+      96
+    ],
     "loop": true,
     "release": 0.3,
     "sustain": true,
     "loops": {
-      "36": { "start": 0.968776, "end": 2.02356 },
-      "45": { "start": 0.470113, "end": 2.124467 },
-      "54": { "start": 0.618277, "end": 1.987234 },
-      "63": { "start": 0.67263, "end": 1.942063 },
-      "72": { "start": 0.476803, "end": 1.809751 },
-      "81": { "start": 0.457868, "end": 1.496531 },
-      "90": { "start": 0.645465, "end": 2.011361 }
+      "36": {
+        "start": 0.968776,
+        "end": 2.02356
+      },
+      "45": {
+        "start": 0.470113,
+        "end": 2.124467
+      },
+      "54": {
+        "start": 0.618277,
+        "end": 1.987234
+      },
+      "63": {
+        "start": 0.67263,
+        "end": 1.942063
+      },
+      "72": {
+        "start": 0.476803,
+        "end": 1.809751
+      },
+      "81": {
+        "start": 0.457868,
+        "end": 1.496531
+      },
+      "90": {
+        "start": 0.645465,
+        "end": 2.011361
+      }
     },
     "pcmSamples": {
       "36": 102469,
@@ -301,8 +790,24 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://github.com/sfzinstruments/karoryfer.big-rusty-drums/blob/main/LICENSE",
     "attribution": "Big Rusty Drums by Karoryfer Samples, CC0 1.0",
-    "notes": [36, 37, 38, 41, 42, 43, 44, 45, 46, 47, 49, 51],
-    "range": [36, 51],
+    "notes": [
+      36,
+      37,
+      38,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      49,
+      51
+    ],
+    "range": [
+      36,
+      51
+    ],
     "loop": false,
     "release": 0.8,
     "sustain": false,

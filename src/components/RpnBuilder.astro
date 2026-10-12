@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import { RPNS } from '../lib/rpn';
 
 const groups = [...new Set(RPNS.map((r) => r.source))];
@@ -43,11 +44,11 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
   <div class="rpn-out" aria-live="polite">
     <ol class="rpn-msgs" data-msgs></ol>
     <div class="rpn-formats">
-      <div><span>Hex</span><code data-fmt="hex"></code><button type="button" class="btn btn-sm" data-copy="hex">Copy</button></div>
-      <div><span>C / JS</span><code data-fmt="c"></code><button type="button" class="btn btn-sm" data-copy="c">Copy</button></div>
+      <div><span>Hex</span><code data-fmt="hex"></code><button type="button" class="btn btn-sm" data-copy="hex"><Icon name="copy" size={16} /><span data-label>Copy</span></button></div>
+      <div><span>C / JS</span><code data-fmt="c"></code><button type="button" class="btn btn-sm" data-copy="c"><Icon name="copy" size={16} /><span data-label>Copy</span></button></div>
     </div>
     <div class="rpn-send">
-      <button type="button" class="btn" data-send>Send to a MIDI output…</button>
+      <button type="button" class="btn" data-send><Icon name="send" size={18} /><span data-label>Send to a MIDI output…</span></button>
       <label class="rpn-inline" data-out-wrap hidden><span>Output</span><select data-out></select></label>
       <span class="rpn-status" data-send-status role="status"></span>
     </div>
@@ -173,7 +174,7 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
           const access = await midiAccess();
           getOut = bindPortSelect<MIDIOutput>(access, $<HTMLSelectElement>('[data-out]'), 'outputs');
           $('[data-out-wrap]').hidden = false;
-          btn.textContent = 'Send';
+          btn.querySelector('[data-label]')!.textContent = 'Send';
         } catch (err) {
           sendStatus.textContent = (err as Error).message;
         }

@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import { CCS, KIND_LABELS } from '../lib/cc';
 
 const filters = [
@@ -30,7 +31,7 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     </div>
     <div class="ccm-learn">
       <span class="field-label" id="ccm-learn-label">Move a knob to find its CC, or send one</span>
-      <button type="button" class="btn" data-listen aria-describedby="ccm-learn-label">Connect MIDI devices</button>
+      <button type="button" class="btn" data-listen aria-describedby="ccm-learn-label"><Icon name="plug" size={18} /><span data-label>Connect MIDI devices</span></button>
       <label class="ccm-out" data-out-wrap hidden>Send to <select data-out></select></label>
       <span class="ccm-learn-status" data-listen-status role="status"></span>
     </div>
@@ -65,6 +66,7 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
   import { CCS, KIND_LABELS, ccBytes, cc14Bytes, rpnBytes, filterCcs } from '../lib/cc';
   import { hexBytes, hex } from '../lib/midi';
   import { midiAccess, bindPortSelect } from '../lib/webmidi';
+  import { iconSvg } from '../lib/icons.mjs';
 
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -126,7 +128,7 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
           ${is14 ? `<p class="d-14">14-bit with CC ${selected + 32}: <input type="number" min="0" max="16383" value="${wide}" data-wide aria-label="14-bit value" /> → <code>${hexBytes(cc14Bytes(channel, selected, wide))}</code></p>` : ''}
           ${isRpn ? `<p class="d-14">Pitch bend range <input type="number" min="0" max="24" value="12" data-pbr aria-label="Pitch bend range in semitones" /> semitones (RPN 0/0) → <code data-rpn>${hexBytes(rpnBytes(channel, 0, 0, 12 << 7))}</code></p>` : ''}
           <div class="d-send">
-            <button type="button" class="btn" data-send>${access ? 'Send' : 'Send to a MIDI output…'}</button>
+            <button type="button" class="btn" data-send>${iconSvg('send', { size: 18 })}<span data-label>${access ? 'Send' : 'Send to a MIDI output…'}</span></button>
             <span class="muted" data-send-status role="status"></span>
           </div>
         </div>

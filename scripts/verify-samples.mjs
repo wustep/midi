@@ -140,7 +140,7 @@ for (const e of samples) {
   console.log(`  ✓ ${e.id}: ${e.notes?.length} files, ${(bytes / 1024).toFixed(0)} KB, ${e.license}`);
 }
 console.log(`  total self-hosted audio: ${(totalBytes / 1024).toFixed(0)} KB`);
-if (totalBytes > 3.5 * 1024 * 1024) warn('self-hosted audio exceeds the 3.5 MB budget');
+if (totalBytes > 6 * 1024 * 1024) warn('self-hosted audio exceeds the 6 MB budget');
 
 /* ---------- 3. URLs ---------- */
 async function check(url) {

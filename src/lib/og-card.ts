@@ -10,6 +10,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
+import { iconDocument } from './icons.mjs';
 
 export const SECTIONS = ['home', 'docs', 'tools', 'reader', 'libraries', 'samples', 'community'] as const;
 export type Section = (typeof SECTIONS)[number];
@@ -114,8 +115,8 @@ const BYTE: Record<ByteKind, { bg: string; fg: string }> = {
   meta: { bg: '#e6ddf6', fg: '#6b4bb0' },
 };
 
-// The DIN-5 socket mark from the site header; pin 2 (bottom) in the accent color.
-const DIN = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14.5" fill="none" stroke="${INK}" stroke-width="2"/><rect x="13.5" y="1" width="5" height="4" rx="1" fill="${INK}"/><circle cx="7.5" cy="15" r="2" fill="${INK}"/><circle cx="24.5" cy="15" r="2" fill="${INK}"/><circle cx="10" cy="21.5" r="2" fill="${INK}"/><circle cx="22" cy="21.5" r="2" fill="${INK}"/><circle cx="16" cy="24" r="2" fill="#a83508"/></svg>`;
+// The DIN-5 socket mark from the icon set, with pin 2 in the accent color as in the site header.
+const DIN = iconDocument('din', INK).replace(/(<circle class="pin2"[^>]*fill=")[^"]*/, '$1#a83508');
 
 /** Minimal element factory in the shape satori expects (no JSX in .ts files). */
 type Node = { type: string; props: Record<string, unknown> };

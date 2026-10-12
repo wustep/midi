@@ -143,6 +143,10 @@
   --d-exit: 120ms; /* exits are faster than entrances */
   --press-scale: 0.97;
 
+  /* ── Icons used from CSS: the same paths as src/lib/icons.mjs (tests/icons.test.ts keeps them equal) ── */
+  --i-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  --i-chevron-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E");
+
   /* ── Focus ───────────────────────────────────────────────────────────────── */
   --focus-width: 2px;
   --focus-offset: 2px;
@@ -184,6 +188,7 @@
   --olive: var(--olive-600);
   --scrim: rgb(26 25 21 / 0.36);
   --link-line: color-mix(in srgb, var(--accent) 40%, transparent);
+  --i-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23857c69' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
   /* Piano keys: real ivory and ebony in light mode, toned down in dark mode to avoid glare. */
   --key-w: #fbfaf6;
@@ -228,6 +233,7 @@
     --sky: var(--sky-300);
     --olive: var(--olive-300);
     --scrim: rgb(0 0 0 / 0.55);
+    --i-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a29b8b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     --key-w: #c9c3b4;
     --key-w-hover: #bdb6a6;
     --key-b: #0b0b0a;
@@ -265,6 +271,7 @@
   --sky: var(--sky-300);
   --olive: var(--olive-300);
   --scrim: rgb(0 0 0 / 0.55);
+  --i-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a29b8b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   --key-w: #c9c3b4;
   --key-w-hover: #bdb6a6;
   --key-b: #0b0b0a;

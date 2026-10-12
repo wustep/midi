@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Schema and duplicate checks for data/libraries.json. Runs as part of `npm run build`. */
 import { readFile } from 'node:fs/promises';
-import { REPO_HOSTS } from '../src/lib/repo.ts';
+import { REPO_HOSTS } from '../src/lib/repo.mjs';
 
 const root = new URL('../', import.meta.url);
 const libs = JSON.parse(await readFile(new URL('data/libraries.json', root), 'utf8'));

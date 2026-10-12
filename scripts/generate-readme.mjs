@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Generates README.md from data/libraries.json + data/categories.json. */
 import { readFile, writeFile } from 'node:fs/promises';
-import { repoUrl } from '../src/lib/repo.ts';
+import { repoUrl } from '../src/lib/repo.mjs';
 
 const root = new URL('../', import.meta.url);
 const libs = JSON.parse(await readFile(new URL('data/libraries.json', root), 'utf8'));

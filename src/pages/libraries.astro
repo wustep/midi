@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import { docsForCategory, toolsForCategory } from '../lib/related';
-import { repoUrl, repoLabel } from '../lib/repo';
+import { repoUrl, repoLabel } from '../lib/repo.mjs';
 import picks from '../../data/picks.json';
 
 type Lib = (typeof libraries)[number];

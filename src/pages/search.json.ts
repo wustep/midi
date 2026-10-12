@@ -8,7 +8,7 @@ import { tools } from '../lib/tools';
 import { terms, termSlug } from '../lib/glossary';
 import { CCS } from '../lib/cc';
 import type { Entry } from '../lib/search';
-import { repoUrl, repoLabel } from '../lib/repo';
+import { repoUrl, repoLabel } from '../lib/repo.mjs';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import community from '../../data/community.json';

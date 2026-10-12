@@ -31,7 +31,7 @@ Edit `data/libraries.json` and add an object to the array:
 ```
 
 - `repo` is the GitHub `owner/name`. **Never invent or guess a repo.** Copy it from the project page.
-- `host` is only for projects that left GitHub: set `"host": "codeberg"` and `repo` to the Codeberg `owner/name`. The verifier reads Codeberg's API for stars and last push, and keeps the curated `license` (Codeberg doesn't report an SPDX id). Add other forges to [`src/lib/repo.ts`](src/lib/repo.ts) and `scripts/verify-links.mjs` together.
+- `host` is only for projects that left GitHub: set `"host": "codeberg"` and `repo` to the Codeberg `owner/name`. The verifier reads Codeberg's API for stars and last push, and keeps the curated `license` (Codeberg doesn't report an SPDX id). Add other forges to [`src/lib/repo.mjs`](src/lib/repo.mjs) and `scripts/verify-links.mjs` together.
 - `category` must be one of the ids in [`data/categories.json`](data/categories.json).
 - `language` is the primary language or ecosystem a user would consume it from (e.g. `C++ / Python` for bindings-first projects).
 - `description` is one sentence, neutral in tone, no marketing superlatives, ending with a period. Say what it does for MIDI specifically.

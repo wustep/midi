@@ -25,7 +25,7 @@ const related = relatedForDoc(slug);
 <Base title={title} description={description ?? docsFlat[i]?.summary} section="/docs">
   <div class="doc-shell">
     <aside class="doc-sidebar" aria-label="Documentation">
-      <details class="doc-nav-mobile">
+      <details class="doc-nav-mobile disclosure">
         <summary>Docs menu <span aria-hidden="true">· {title}</span></summary>
         <nav aria-label="Documentation pages (mobile)">
           <a href="/docs/" class="nav-index">Overview</a>
@@ -74,15 +74,12 @@ const related = relatedForDoc(slug);
         <h1>{title}</h1>
         {
           specs.length > 0 && (
-            <p class="doc-specs">
-              <span>Spec:</span>
-              {specs.map((s, k) => (
-                <>
-                  {k > 0 && <span aria-hidden="true"> · </span>}
-                  <a href={s.href}>{s.label}</a>
-                </>
-              ))}
-            </p>
+            <div class="related doc-specs">
+              <div>
+                <strong>Spec</strong>
+                {specs.map((s) => <a href={s.href}>{s.label}</a>)}
+              </div>
+            </div>
           )
         }
         {
@@ -110,7 +107,7 @@ const related = relatedForDoc(slug);
       <nav class="pager" aria-label="Previous and next">
         {
           prev ? (
-            <a class="pager-link prev" href={`/docs/${prev.slug}/`}>
+            <a class="card pager-link prev" href={`/docs/${prev.slug}/`}>
               <span>Previous</span>
               {prev.title}
             </a>
@@ -120,7 +117,7 @@ const related = relatedForDoc(slug);
         }
         {
           next && (
-            <a class="pager-link next" href={`/docs/${next.slug}/`}>
+            <a class="card pager-link next" href={`/docs/${next.slug}/`}>
               <span>Next</span>
               {next.title}
             </a>
@@ -219,12 +216,11 @@ const related = relatedForDoc(slug);
     min-width: 0;
     max-width: 860px;
   }
-  .doc-specs {
-    color: var(--muted);
-    font-size: var(--t-md);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-1);
+  .doc-header .doc-specs:has(+ .related) {
+    margin-bottom: 0;
+  }
+  .doc-header .doc-specs + .related {
+    margin-top: var(--s-2);
   }
   .prose {
     max-width: 100%;
@@ -235,13 +231,14 @@ const related = relatedForDoc(slug);
     max-width: var(--measure);
   }
   /* Vertical rhythm on the spacing scale: big breaks before sections, tight heading-to-text gaps. */
-  .prose :global(h2) {
+  /* Section headings only; titles inside embedded tool panels keep the panel's own style. */
+  .prose :global(h2:not(.widget-title)) {
     margin: var(--s-7) 0 var(--s-3);
     padding-top: var(--s-5);
     border-top: 1px solid var(--line);
     scroll-margin-top: var(--s-8);
   }
-  .prose :global(h3) {
+  .prose :global(h3:not(.widget-title)) {
     margin: var(--s-6) 0 var(--s-2);
     scroll-margin-top: var(--s-8);
   }
@@ -286,19 +283,12 @@ const related = relatedForDoc(slug);
     gap: var(--s-4);
     margin-top: var(--s-8);
   }
+  /* Prev/next use the shared a.card surface, lift and press. */
   .pager-link {
     display: block;
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    padding: var(--s-4) var(--s-4);
-    text-decoration: none;
-    color: var(--ink);
-    font-weight: 700;
+    font-weight: var(--w-bold);
     font-family: var(--font-display);
     font-stretch: 110%;
-  }
-  .pager-link:hover {
-    border-color: var(--accent);
   }
   .pager-link span {
     display: block;
@@ -333,8 +323,7 @@ const related = relatedForDoc(slug);
       padding: var(--s-2) var(--s-4);
     }
     .doc-nav-mobile summary {
-      cursor: pointer;
-      font-weight: 700;
+      font-weight: var(--w-bold);
     }
     .doc-nav-mobile summary span {
       color: var(--muted);

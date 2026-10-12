@@ -28,11 +28,11 @@ const gid = (t: string) => `g-${t.replace(/\W+/g, '-').toLowerCase()}`;
         {
           path.map((d, i) => (
             <li>
-              <a href={`/docs/${d.slug}/`}>
-                <span class="n">{i + 1}</span>
-                <span>
-                  <strong>{d.title}</strong>
-                  <small>{d.summary}</small>
+              <a class="card" href={`/docs/${d.slug}/`}>
+                <span class="n" aria-hidden="true">{i + 1}</span>
+                <span class="path-body">
+                  <span class="card-title">{d.title}</span>
+                  <span class="card-text">{d.summary}</span>
                 </span>
               </a>
             </li>
@@ -42,7 +42,7 @@ const gid = (t: string) => `g-${t.replace(/\W+/g, '-').toLowerCase()}`;
     </section>
 
     {
-      docGroups.map((g) => (
+      docGroups.filter((g) => !g.items.every((d) => path.includes(d))).map((g) => (
         <section class="group" aria-labelledby={gid(g.title)}>
           <h2 id={gid(g.title)} class="group-title">{g.title}</h2>
           <ul class="card-grid">
@@ -82,19 +82,11 @@ const gid = (t: string) => `g-${t.replace(/\W+/g, '-').toLowerCase()}`;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--s-3);
   }
-  .path a {
+  /* Reading path: shared cards with a step number. */
+  .path a.card {
     display: flex;
+    align-items: flex-start;
     gap: var(--s-3);
-    height: 100%;
-    padding: var(--s-3) var(--s-4);
-    border: 1px solid var(--line);
-    border-radius: var(--r-md);
-    background: var(--surface);
-    color: var(--ink);
-    text-decoration: none;
-  }
-  .path a:hover {
-    border-color: var(--accent);
   }
   .path .n {
     flex: 0 0 auto;
@@ -103,22 +95,19 @@ const gid = (t: string) => `g-${t.replace(/\W+/g, '-').toLowerCase()}`;
     width: 1.75rem;
     height: 1.75rem;
     border-radius: 50%;
-    background: var(--accent);
-    color: var(--on-accent);
-    font-weight: 700;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-weight: var(--w-bold);
     font-size: var(--t-md);
   }
-  .path span:last-child {
+  .path-body {
     display: grid;
-    gap: var(--s-0);
-  }
-  .path small {
-    font-size: var(--t-xs);
-    color: var(--ink-2);
-    line-height: 1.4;
+    align-content: start;
+    gap: var(--s-1);
   }
   .group {
-    padding: var(--s-5) 0 var(--s-2);
+    padding: var(--s-5) 0;
     border-top: 1px solid var(--line);
   }
   .group-title {

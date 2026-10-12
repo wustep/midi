@@ -93,9 +93,13 @@ const Heading = `h${level}`;
     font-family: var(--font-mono);
     font-weight: 700;
   }
+  /* Phones: tempo and division side by side, ticks full width below, rather than one field left alone. */
   @media (max-width: 560px) {
     .tempo-grid {
       grid-template-columns: 1fr 1fr;
+    }
+    .tempo-grid > :nth-child(3) {
+      grid-column: 1 / -1;
     }
   }
 </style>

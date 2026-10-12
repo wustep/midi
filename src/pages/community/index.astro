@@ -1,4 +1,5 @@
 ---
+import CommunityNav from '../../components/CommunityNav.astro';
 import Community from '../../layouts/Community.astro';
 import Callout from '../../components/Callout.astro';
 import community from '../../../data/community.json';
@@ -39,6 +40,7 @@ const host = (url: string) => {
       plugins and live rigs. Every link is checked automatically.
     </p>
   </header>
+  <CommunityNav page="community" />
 
   <Callout title="Getting good answers">
     <p>

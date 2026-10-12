@@ -24,8 +24,8 @@ const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
     <div>
       <label class="field-label" for="n-oct">Middle C (note 60) is called</label>
       <select id="n-oct" class="n-oct">
-        <option value="4">C4 (scientific, Roland, most DAWs)</option>
-        <option value="3">C3 (Yamaha, Ableton, Logic Pro)</option>
+        <option value="4">C4 (scientific, Roland)</option>
+        <option value="3">C3 (Yamaha, Ableton, Logic)</option>
       </select>
     </div>
     <div>
@@ -35,7 +35,7 @@ const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
   </div>
   <p class="n-result" aria-live="polite"></p>
   <div class="table-wrap notes-scroll" tabindex="0" role="region" aria-label="All 128 MIDI notes">
-    <table>
+    <table class="phone-fit">
       <thead>
         <tr>
           <th scope="col" class="num">Note</th>
@@ -137,14 +137,25 @@ const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
     gap: var(--s-4);
   }
   .n-result {
-    min-height: 1.6em;
-    font-weight: 600;
+    font-weight: var(--w-semibold);
     margin: var(--s-3) 0 0;
+  }
+  .n-result:empty {
+    margin: 0;
   }
   .notes-scroll {
     max-height: 26rem;
     overflow: auto;
-    margin-bottom: 0;
+    margin: var(--s-4) 0 0;
+  }
+  /* Phones: drop the hex and drum columns so the play buttons stay on screen without sideways scrolling. */
+  @media (max-width: 600px) {
+    .notes-scroll :is(th, td):is(:nth-child(2), :nth-child(5)) {
+      display: none;
+    }
+    .notes-scroll thead th {
+      white-space: normal;
+    }
   }
   .notes-scroll thead th {
     position: sticky;

@@ -5,7 +5,13 @@ import SamplesNav from '../../components/SamplesNav.astro';
 import instruments from '../../../data/samples.json';
 import sources from '../../../data/sample-sources.json';
 
-const totalKb = Math.round(instruments.reduce((n, i) => n + i.bytes, 0) / 1024);
+const totalBytes = instruments.reduce((n, i) => n + i.bytes, 0);
+const totalSize = totalBytes >= 1024 * 1024 ? `${(totalBytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(totalBytes / 1024)} KB`;
+/** The credit part of an attribution ("by Versilian Studios"), without repeating the source name or license. */
+const credit = (i: { attribution: string; source: string }) => {
+  const rest = i.attribution.split(i.source)[1];
+  return rest ? rest.replace(/,\s*[^,]*$/, '').trim() : i.attribution;
+};
 ---
 
 <Base
@@ -29,7 +35,7 @@ const totalKb = Math.round(instruments.reduce((n, i) => n + i.bytes, 0) / 1024);
     </div>
 
     <p class="note">
-      Each instrument is a handful of recorded notes, repitched to fill its range ({totalKb} KB for all {instruments.length}).
+      Each instrument is a handful of recorded notes, repitched to fill its range ({totalSize} for all {instruments.length}).
       Sustained instruments loop, so held notes keep sounding. The <a href="/reader/">MIDI Reader</a> plays files with
       the same sounds. For complete libraries, browse the <a href="/samples/sources/">{sources.length} sound libraries</a>.
     </p>
@@ -40,7 +46,7 @@ const totalKb = Math.round(instruments.reduce((n, i) => n + i.bytes, 0) / 1024);
       where the instrument sustains, and MP3-encoded; each folder has a <code>LICENSE.txt</code> listing the original files.
     </p>
     <div class="table-wrap">
-      <table>
+      <table class="sounds phone-fit">
         <caption class="visually-hidden">Bundled instruments and their licenses</caption>
         <thead><tr><th>Instrument</th><th>Source</th><th>License</th><th class="num">Size</th></tr></thead>
         <tbody>
@@ -48,9 +54,9 @@ const totalKb = Math.round(instruments.reduce((n, i) => n + i.bytes, 0) / 1024);
             instruments.map((i) => (
               <tr>
                 <td><strong>{i.name}</strong><br /><small class="muted">{i.family} · {i.notes.length} samples{i.loop ? ' · looped' : ''}</small></td>
-                <td><a href={i.sourceUrl}>{i.source}</a><br /><small class="muted">{i.attribution}</small></td>
+                <td><a href={i.sourceUrl}>{i.source}</a> <small class="muted">{credit(i)}</small></td>
                 <td><a href={i.licenseUrl}>{i.license}</a> · <a href={`/sounds/${i.id}/LICENSE.txt`}>details</a></td>
-                <td class="num">{Math.round(i.bytes / 1024)} KB</td>
+                <td class="num size">{Math.round(i.bytes / 1024)} KB</td>
               </tr>
             ))
           }
@@ -61,6 +67,47 @@ const totalKb = Math.round(instruments.reduce((n, i) => n + i.bytes, 0) / 1024);
 </Base>
 
 <style>
+  .sounds td.size {
+    white-space: nowrap;
+  }
+  /* Phones: each instrument becomes a short stacked block instead of four crushed columns. */
+  @media (max-width: 600px) {
+    .sounds thead {
+      display: none;
+    }
+    .sounds,
+    .sounds tbody,
+    .sounds tr,
+    .sounds td {
+      display: block;
+      min-width: 0;
+    }
+    .sounds tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--s-1) var(--s-3);
+      padding: var(--s-3);
+      border-bottom: 1px solid var(--line);
+    }
+    .sounds tr:last-child {
+      border-bottom: 0;
+    }
+    .sounds td {
+      padding: 0;
+      border: 0;
+    }
+    .sounds td:nth-child(2),
+    .sounds td:nth-child(3) {
+      grid-column: 1 / -1;
+      font-size: var(--t-md);
+    }
+    .sounds td.size {
+      grid-row: 1;
+      grid-column: 2;
+      color: var(--muted);
+      font-size: var(--t-md);
+    }
+  }
   .player {
     max-width: var(--w-tool);
   }

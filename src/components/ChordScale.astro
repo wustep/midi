@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 import { SCALES, CHORDS } from '../lib/theory';
 import instruments from '../../data/samples.json';
 
@@ -43,7 +44,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
   </div>
 
   <div class="cs-play">
-    <button type="button" class="btn btn-primary" data-play="block">Play together</button>
+    <button type="button" class="btn btn-primary" data-play="block"><Icon name="play" size={16} />Play together</button>
     <button type="button" class="btn" data-play="arp">Play one by one</button>
     <label class="cs-inline"><span>Sound</span>
       <select data-sound>
@@ -68,7 +69,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
   <div class="cs-detect">
     <h3 class="cs-h">What am I playing?</h3>
     <p class="cs-hint">Play notes on a MIDI keyboard and the chord is named live. Hold the notes; release to clear.</p>
-    <button type="button" class="btn" data-listen>Listen to a MIDI keyboard</button>
+    <button type="button" class="btn" data-listen><Icon name="plug" size={18} />Listen to a MIDI keyboard</button>
     <p class="cs-detected" data-detected aria-live="polite"></p>
   </div>
 </section>
@@ -480,7 +481,9 @@ const pitched = instruments.filter((i) => !i.drumMap);
   }
   .cs-detected {
     margin-top: var(--s-2);
-    min-height: 1.5em;
+  }
+  .cs-detected:empty {
+    margin: 0;
   }
   .cs-detected :global(strong) {
     font-family: var(--font-display);

@@ -1,0 +1,25 @@
+---
+/** Pages within the Community section; same .subnav as Samples, placed under the page head. */
+interface Props {
+  page: 'community' | 'midi-files';
+}
+const { page } = Astro.props;
+const tabs = [
+  { key: 'community', href: '/community/', label: 'Forums & chat' },
+  { key: 'midi-files', href: '/community/midi-files/', label: 'Getting MIDI files' },
+];
+---
+
+<nav class="subnav" aria-label="Community & resources">
+  <ul>
+    {
+      tabs.map((t) => (
+        <li>
+          <a href={t.href} aria-current={t.key === page ? 'page' : undefined}>
+            {t.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

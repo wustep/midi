@@ -36,7 +36,7 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
       <span class="ccm-learn-status" data-listen-status role="status"></span>
     </div>
   </div>
-  <div class="ccm-filters" role="group" aria-label="Show">
+  <div class="ccm-filters swipe-row" role="group" aria-label="Show">
     {filters.map((f, i) => <button type="button" class="chip" data-kind={f.id} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>)}
   </div>
 
@@ -261,9 +261,6 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     color: var(--ink-2);
   }
   .ccm-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-1);
     margin: var(--s-4) 0;
   }
   .ccm-body {

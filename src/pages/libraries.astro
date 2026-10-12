@@ -30,19 +30,19 @@ const context = Object.fromEntries(
 );
 ---
 
-<Base title="Libraries" section="/libraries" description={`${libraries.length} open-source MIDI libraries and tools, verified against GitHub: parsing, realtime I/O, Web MIDI, synthesis, firmware, DAWs, notation, ML and MIDI 2.0.`}>
+<Base title="Libraries" section="/libraries" description={`${libraries.length} open-source MIDI libraries and tools, verified against their repositories: parsing, realtime I/O, Web MIDI, synthesis, firmware, DAWs, notation, ML and MIDI 2.0.`}>
   <div class="page lib-page">
     <header class="page-head lib-header">
       <p class="eyebrow">Libraries</p>
       <h1>Open-source MIDI libraries</h1>
       <p class="lede">
-        {libraries.length} projects across {categories.length} categories. Every entry is checked against the GitHub API
+        {libraries.length} projects across {categories.length} categories. Every entry is checked against its repository (GitHub or Codeberg)
         for existence, stars, license, and activity{verifiedAt && <> (last checked <time datetime={verifiedAt}>{verifiedAt}</time>)</>}.
         Also available as a plain <a href="https://github.com/wustep/midi#readme">awesome list on GitHub</a>.
       </p>
     </header>
 
-    <details class="starters" open data-fold-phone>
+    <details class="starters disclosure" open data-fold-phone>
       <summary><h2>Where to start</h2><span>Dependable first choices by language. Everything else is below.</span></summary>
       <div class="starter-grid">
         {
@@ -92,12 +92,12 @@ const context = Object.fromEntries(
       </label>
     </form>
 
-    <div class="cats" role="group" aria-label="Category">
-      <button type="button" class="cat" data-cat="" aria-pressed="true">All <span>{libraries.length}</span></button>
+    <div class="cats swipe-row" role="group" aria-label="Category">
+      <button type="button" class="chip cat" data-cat="" aria-pressed="true">All <span class="n">{libraries.length}</span></button>
       {
         categories.map((c) => (
-          <button type="button" class="cat" data-cat={c.id} aria-pressed="false" title={c.blurb}>
-            {c.short} <span>{libraries.filter((l) => l.category === c.id).length}</span>
+          <button type="button" class="chip cat" data-cat={c.id} aria-pressed="false" title={c.blurb}>
+            {c.short} <span class="n">{libraries.filter((l) => l.category === c.id).length}</span>
           </button>
         ))
       }
@@ -280,16 +280,8 @@ const context = Object.fromEntries(
     background: var(--surface);
   }
   .starters > summary {
-    display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--s-1) var(--s-4);
-    cursor: pointer;
-    list-style: none;
-    min-height: 2.5rem;
-  }
-  .starters > summary::-webkit-details-marker {
-    display: none;
+    gap: var(--s-1) var(--s-3);
   }
   .starters > summary h2 {
     font-size: var(--t-lg);
@@ -323,6 +315,7 @@ const context = Object.fromEntries(
     font-weight: 700;
   }
   .starter-grid .task {
+    display: inline-block;
     font-size: var(--t-xs);
     color: var(--muted);
   }
@@ -362,42 +355,7 @@ const context = Object.fromEntries(
     accent-color: var(--accent);
   }
   .cats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
     margin-bottom: var(--s-4);
-  }
-  .cat {
-    border: 1px solid var(--control);
-    background: var(--surface);
-    border-radius: var(--r-pill);
-    padding: var(--s-1) var(--s-3);
-    font-size: var(--t-md);
-    font-weight: 600;
-    cursor: pointer;
-    min-height: 2.25rem;
-  }
-  @media (pointer: coarse) {
-    .cat {
-      min-height: 2.75rem;
-    }
-  }
-  .cat span {
-    color: var(--muted);
-    font-weight: 400;
-    margin-left: var(--s-0);
-  }
-  .cat:hover {
-    border-color: var(--ink-2);
-  }
-  .cat[aria-pressed='true'] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--bg);
-  }
-  .cat[aria-pressed='true'] span {
-    color: inherit;
-    opacity: 0.7;
   }
   .count {
     color: var(--muted);

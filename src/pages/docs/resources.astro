@@ -37,7 +37,7 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
     </p>
   </Callout>
 
-  <nav class="res-toc" aria-label="Resource groups">
+  <nav class="res-toc jump-nav" aria-label="Resource groups">
     {groups.map((g) => <a href={`#${g.id}`}>{g.title}</a>)}
   </nav>
 
@@ -76,22 +76,4 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
 </Doc>
 
 <style>
-  .res-toc {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
-    margin: var(--s-5) 0 var(--s-2);
-  }
-  .res-toc a {
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-pill);
-    padding: var(--s-1) var(--s-3);
-    font-size: var(--t-md);
-    color: var(--ink-2);
-    text-decoration: none;
-  }
-  .res-toc a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
 </style>

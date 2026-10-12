@@ -28,7 +28,7 @@ const presets = [
     <span class="widget-tag">F0 … F7</span>
   </div>
 
-  <div class="presets" role="group" aria-label="Presets">
+  <div class="presets swipe-row" role="group" aria-label="Presets">
     {presets.map((p) => <button type="button" class="chip" data-preset={JSON.stringify(p)}>{p.label}</button>)}
   </div>
   <p class="sxb-note" data-note aria-live="polite"></p>
@@ -120,7 +120,7 @@ const presets = [
   </div>
   <div class="sxb-enc-out">
     <code data-enc-out></code>
-    <button type="button" class="chip" data-insert>Append to data</button>
+    <button type="button" class="btn btn-sm" data-insert>Append to data</button>
   </div>
 </section>
 
@@ -301,9 +301,6 @@ const presets = [
 
 <style>
   .presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
     margin-bottom: var(--s-2);
   }
   .sxb-note {
@@ -396,9 +393,17 @@ const presets = [
     font-weight: 600;
     color: var(--muted);
   }
+  /* Already inside the readout well: plain text on hairline rows, not a well inside a well. */
+  .sxb-format {
+    padding-top: var(--s-2);
+    border-top: 1px solid var(--line);
+  }
   .sxb-format code {
     overflow-wrap: anywhere;
     font-size: var(--t-md);
+    background: none;
+    box-shadow: none;
+    padding: 0;
   }
   .sxb-send {
     display: flex;

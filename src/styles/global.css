@@ -41,6 +41,10 @@ body {
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* The footer sits at the bottom even on short pages. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
   /* Ease theme changes instead of flashing (avoid abrupt brightness jumps). */
   transition: background-color var(--d-slow) var(--ease-out), color var(--d-slow) var(--ease-out);
 }
@@ -144,7 +148,7 @@ pre {
   box-shadow: inset 0 0 0 1px var(--line);
   padding: 0.08em 0.36em;
   border-radius: var(--r-xs);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 pre {
   background: var(--surface-sunken);
@@ -183,6 +187,9 @@ hr {
   border: 0;
 }
 
+main {
+  flex: 1 0 auto;
+}
 .skip-link {
   position: absolute;
   left: var(--s-4);
@@ -350,9 +357,10 @@ a.card .card-title {
 }
 .widget-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--s-4);
+  gap: var(--s-1) var(--s-4);
   margin-bottom: var(--s-4);
 }
 .widget-title {
@@ -423,6 +431,12 @@ a.card .card-title {
 .show-all {
   margin-top: var(--s-3);
 }
+@media (max-width: 600px) {
+  .lr-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
 
 /* ---------- Fold groups: long grouped lists that collapse on phones ---------- */
 details.fold-group {
@@ -456,6 +470,7 @@ details.fold-group[open] > summary::before {
   transform: rotate(90deg);
 }
 details.fold-group > summary > :is(h2, h3) {
+  flex: 0 1 auto;
   margin: var(--s-2) 0;
 }
 details.fold-group .fold-count {
@@ -534,8 +549,21 @@ td.num,
 th.num {
   text-align: right;
 }
-td code {
+td code,
+td:has(> .b) {
   white-space: nowrap;
+}
+/* Phones: a table with four or more columns keeps readable column widths and scrolls sideways (the
+   wrapper is focusable and fades its far edge while there's more), instead of crushing every column.
+   Tables that lay themselves out for phones (stacked rows, hidden columns) opt out with .phone-fit. */
+@media (max-width: 600px) {
+  .table-wrap > table:not(.phone-fit):has(tr > :nth-child(4)) {
+    min-width: 36rem;
+  }
+}
+:is(.table-wrap, pre)[data-auto-focusable]:not([data-scroll-end]) {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - var(--s-6)), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - var(--s-6)), transparent);
 }
 
 /* ═════════════════════════════ Content marks ═════════════════════════════ */
@@ -792,7 +820,10 @@ input[type='file']::file-selector-button {
 }
 .btn:disabled,
 .btn[aria-disabled='true'] {
-  opacity: 0.5;
+  background: var(--surface);
+  border-color: var(--line);
+  color: var(--muted);
+  opacity: 0.7;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -898,7 +929,10 @@ input[type='file']::file-selector-button {
 .chip .n {
   font-family: var(--font-mono);
   font-size: var(--t-xs);
-  opacity: 0.7;
+  color: var(--muted);
+}
+.chip[aria-pressed='true'] .n {
+  color: color-mix(in srgb, var(--bg) 78%, var(--ink));
 }
 
 /* ---------- Segmented control: one choice of a few (role="group" of aria-pressed buttons) ---------- */
@@ -1075,6 +1109,9 @@ input[type='file']::file-selector-button {
   font-size: var(--t-md);
   color: var(--muted);
 }
+.filter-status:empty {
+  display: none;
+}
 .filter-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1086,10 +1123,18 @@ input[type='file']::file-selector-button {
   color: var(--ink-2);
 }
 
+/* A row of chips or links that wraps on wide screens and becomes one swipeable line on phones. */
+.swipe-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
 /* ---------- Swipe rows: on phones a wrapping row becomes one swipeable line that runs to the screen
  * edge, with the far edge faded so it's clear there is more. ---------- */
 @media (max-width: 600px) {
-  .filter-tags {
+  .filter-tags,
+  .swipe-row {
     flex-wrap: nowrap;
     overflow-x: auto;
     margin-inline: calc(-1 * var(--gutter));
@@ -1097,15 +1142,107 @@ input[type='file']::file-selector-button {
     scrollbar-width: none;
     mask-image: linear-gradient(to right, #000 calc(100% - var(--gutter) - var(--s-3)), transparent);
   }
-  .filter-tags::-webkit-scrollbar {
+  .filter-tags::-webkit-scrollbar,
+  .swipe-row::-webkit-scrollbar {
     display: none;
   }
-  .filter-tags > * {
+  :is(.filter-tags, .swipe-row) > * {
     flex: 0 0 auto;
   }
 }
 @media (max-width: 600px) {
   details.fold-group > summary > :is(h2, h3) {
     font-size: var(--t-xl);
+  }
+}
+
+/* ---------- Disclosure: a <details class="disclosure"> with the icon-set chevron ---------- */
+.disclosure > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--h-md);
+  list-style: none;
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.disclosure > summary::before {
+  content: '';
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask: var(--i-chevron-right) center / contain no-repeat;
+  mask: var(--i-chevron-right) center / contain no-repeat;
+  transition: transform var(--d-base) var(--ease-out);
+}
+.disclosure[open] > summary::before {
+  transform: rotate(90deg);
+}
+@media (pointer: coarse) {
+  .disclosure > summary {
+    min-height: var(--h-touch);
+  }
+}
+
+/* ---------- Jump nav: in-page section links (glossary letters, history decades, resource groups) ---------- */
+.jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  padding: 0;
+  margin: var(--s-4) 0 var(--s-5);
+  list-style: none;
+}
+.jump-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--h-sm);
+  min-height: var(--h-sm);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-2);
+  font-size: var(--t-md);
+  font-weight: var(--w-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--d-fast) ease, border-color var(--d-fast) ease, color var(--d-fast) ease, transform var(--d-press) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .jump-nav a:hover {
+    background: var(--surface-2);
+    border-color: var(--control);
+    color: var(--ink);
+  }
+}
+.jump-nav a:active {
+  transform: scale(var(--press-scale));
+}
+@media (pointer: coarse) {
+  .jump-nav a {
+    min-width: var(--h-touch);
+    min-height: var(--h-touch);
+  }
+}
+@media (max-width: 600px) {
+  .jump-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: var(--s-0) var(--gutter) var(--s-1);
+    scrollbar-width: none;
+    mask-image: linear-gradient(to right, #000 calc(100% - var(--gutter) - var(--s-3)), transparent);
+  }
+  .jump-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .jump-nav > * {
+    flex: 0 0 auto;
   }
 }

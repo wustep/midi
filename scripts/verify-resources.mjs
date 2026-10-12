@@ -8,7 +8,8 @@
  *   (a login wall), is a warning.
  * - A bot-challenge page (Debian's "I Challenge Thee", Cloudflare, Anubis; see lib/http.mjs) is
  *   reported as unverified, never as a pass, even when it answers 200. So is 403/418/429/503 from a
- *   host in BOT_BLOCKING_HOSTS: those hosts serve the page fine in a browser but refuse scripts.
+ *   host in BOT_BLOCKING_HOSTS: those hosts serve the page fine in a browser but refuse scripts. A 502/503/504
+ *   gateway timeout from a host in SLOW_HOSTS after every retry is unverified too.
  * - Discord invites are checked through Discord's public invite API rather than the HTML page.
  * - Anything else fails (exit 1), as does any shape error.
  *
@@ -189,9 +190,13 @@ for (const file of Object.keys(data)) {
     const label = j.field === 'url' ? '' : ` [${j.field}]`;
     const moved =
       j.finalUrl && j.finalUrl.replace(/\/$/, '') !== j.url.replace(/\/$/, '') ? ` (redirects to ${j.finalUrl})` : '';
-    if (j.challenge || ([403, 418, 429, 503].includes(j.status) && BOT_BLOCKING_HOSTS.includes(host))) {
+    const blocked = [403, 418, 429, 503].includes(j.status) && BOT_BLOCKING_HOSTS.includes(host);
+    // Slow hosts (Zenodo) sometimes answer with their own gateway timeout after every retry: not proof the page is gone.
+    const timedOut = [502, 503, 504].includes(j.status) && SLOW_HOSTS.includes(host);
+    if (j.challenge || blocked || timedOut) {
       s.unverified++;
-      console.warn(`  ? ${j.status} ${j.url}${label} (unverified: ${j.challenge ?? 'host blocks automated requests'}; check in a browser)`);
+      const why = j.challenge ?? (timedOut ? 'host timed out' : 'host blocks automated requests');
+      console.warn(`  ? ${j.status} ${j.url}${label} (unverified: ${why}; check in a browser)`);
     } else if (j.status === 200) {
       s.ok++;
       console.log(`  ✓ 200 ${j.url}${label}${j.guild ? ` (Discord: ${j.guild})` : moved}`);

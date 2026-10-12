@@ -16,7 +16,7 @@
 
 </div>
 
-Every project below is checked against the GitHub API: it must exist and be public, and its stars, license, last push and archived status are refreshed automatically. Projects are sorted by stars within each section, with archived ones (🗄️) last.
+Every project below is checked against its repository's API (GitHub, or Codeberg for projects that moved there): it must exist and be public, and its stars, license, last push and archived status are refreshed automatically. Projects are sorted by stars within each section, with archived ones (🗄️) last.
 
 ## Contents
 
@@ -58,6 +58,7 @@ The catalog is one part of **[midi.community](https://midi.community)**, an open
 - 🎹 **[Samples](https://midi.community/samples/)**: play 20 openly licensed instruments with a mouse, touch screen, computer keyboard or MIDI controller, plus 36 SoundFont, SFZ and multisample libraries with license notes
 - 💬 **[Community](https://midi.community/community/)**: 98 forums, subreddits, Discord servers and mailing lists, and [41 sources of MIDI files](https://midi.community/community/midi-files/) with license and copyright notes
 - 📜 **[Glossary](https://midi.community/docs/glossary/)**, **[History of MIDI](https://midi.community/docs/history/)**, **[65 specs & references](https://midi.community/docs/resources/)**, and site-wide search (press <kbd>⌘K</kbd> or <kbd>/</kbd>)
+- 🎨 **[Design system](https://midi.community/design/)**: the site's tokens, components and icon set, rendered live and written up in [docs/DESIGN.md](docs/DESIGN.md)
 
 [↑ back to contents](#contents)
 
@@ -87,7 +88,7 @@ Dependable first choices by language. Everything else is in the full list below.
 
 ## Libraries and tools
 
-**477 projects** in 13 categories (16 archived), last verified 2026-10-12.
+**477 projects** in 13 categories (14 archived), last verified 2026-10-12.
 
 ### Parsing & Standard MIDI Files
 
@@ -338,12 +339,12 @@ Arduino, Teensy, RP2040, ESP32, Daisy and USB-MIDI device stacks.
 | [MCL](https://github.com/jmamma/MCL) | C++ | MIDI sequencer and performance firmware for the MegaCommand controller, built around the Elektron Machinedrum. | 93 | Other |
 | [midi-grid](https://github.com/zukaitis/midi-grid) | C++ | Open hardware and STM32 firmware for a DIY RGB grid USB MIDI controller. | 92 | Other |
 | [NuEVI](https://github.com/berglundinst/NuEVI) | C++ | Teensy firmware for the NuEVI and NuRAD electronic wind instruments, sending breath and key data as MIDI. | 76 | GPL-3.0 |
-| [pico-usb-midi-processor](https://github.com/rppicomidi/pico-usb-midi-processor) | C | Raspberry Pi Pico USB-MIDI pass-through processor with configurable transforms. | 70 | MIT |
+| [pico-usb-midi-processor](https://github.com/rppicomidi/pico-usb-midi-processor) | C | Raspberry Pi Pico USB-MIDI pass-through processor with configurable transforms. | 71 | MIT |
 | [Organelle OS](https://github.com/critterandguitari/Organelle_OS) | C | Operating system for the Organelle Pd-based instrument. | 66 | Other |
 | [usbd-midi](https://github.com/rust-embedded-community/usbd-midi) | Rust | USB-MIDI device class for embedded Rust (usb-device). | 63 | MIT |
 | [CircuitPython MIDI](https://github.com/adafruit/Adafruit_CircuitPython_MIDI) | Python | MIDI over USB and serial for CircuitPython boards. | 57 | MIT |
-| [MicroDexed](https://github.com/dcoredump/MicroDexed) | C++ | Dexed (DX7) FM synth engine running on a Teensy. Development continues on Codeberg. | 57 | n/a |
 | [pico-usb-midi-filter](https://github.com/rppicomidi/pico-usb-midi-filter) | C | Raspberry Pi Pico that sits between a USB-MIDI device and host and filters messages. | 42 | MIT |
+| [MicroDexed](https://codeberg.org/dcoredump/MicroDexed) | C++ | Dexed (DX7) FM synth engine running on a Teensy. | 21 | n/a |
 | [Adafruit CircuitPython USB Host MIDI](https://github.com/adafruit/Adafruit_CircuitPython_USB_Host_MIDI) | Python | USB host MIDI for CircuitPython boards. | 9 | MIT |
 | [midi2usbdev](https://github.com/rppicomidi/midi2usbdev) | C | Raspberry Pi Pico as a USB-MIDI device bridging serial MIDI ports. | 5 | MIT |
 | [MIDIpal](https://github.com/pichenettes/midipal) 🗄️ | C++ | Firmware for the Mutable Instruments MIDIpal, a MIDI processor with arpeggiator, monitor, splitter, and clock tools. | 306 | n/a |
@@ -407,6 +408,7 @@ Sequencers, live-coding environments, plugin frameworks, and performance tools.
 | [Tracktion Engine](https://github.com/Tracktion/tracktion_engine) | C++ | High-level JUCE module for building sequencer and DAW apps. | 1.5k | Other |
 | [Hydrogen](https://github.com/hydrogen-music/hydrogen) | C++ | Advanced drum machine with MIDI in/out. | 1.3k | GPL-2.0 |
 | [DawDreamer](https://github.com/DBraun/DawDreamer) | Python | Python-scriptable audio engine that renders MIDI notes and files through VST instruments, Faust, and effect graphs. | 1.3k | GPL-3.0 |
+| [Strudel](https://codeberg.org/uzu/strudel) | JavaScript | Tidal patterns in the browser, with Web MIDI output. | 1.3k | AGPL-3.0 |
 | [FoxDot](https://github.com/Qirky/FoxDot) | Python | Live-coding environment in Python for SuperCollider and MIDI. Its author is no longer actively developing it. | 1.2k | Other |
 | [Radium](https://github.com/kmatheussen/radium) | C++ | Music editor with a tracker interface and MIDI support. | 1.1k | GPL-2.0 |
 | [Stargate](https://github.com/stargatedaw/stargate) | C | All-in-one DAW and plugin suite. | 880 | GPL-3.0 |
@@ -427,6 +429,7 @@ Sequencers, live-coding environments, plugin frameworks, and performance tools.
 | [polyrhythmix](https://github.com/dredozubov/polyrhythmix) | Rust | Command-line polyrhythmic MIDI drum generator. | 309 | Unlicense |
 | [Luppp](https://github.com/openAVproductions/openAV-Luppp) | C++ | Live-performance looping tool with MIDI controller support. | 288 | GPL-3.0 |
 | [Bitwig extensions](https://github.com/bitwig/bitwig-extensions) | Java | Source of Bitwig Studio's official controller extensions. | 282 | MIT |
+| [Tidal](https://codeberg.org/uzu/tidal) | Haskell | Live-coding pattern language that can drive MIDI devices. | 281 | GPL-3.0 |
 | [ReaLearn / Helgobox](https://github.com/helgoboss/helgobox) | Rust | MIDI/OSC controller mapping for REAPER (ReaLearn). | 278 | GPL-3.0 |
 | [signls](https://github.com/emprcl/signls) | Go | Non-linear, generative MIDI sequencer in the terminal. | 265 | MIT |
 | [miditui](https://github.com/minimaxir/miditui) | Rust | Interactive terminal UI for MIDI composing, mixing, and playback. | 253 | MIT |
@@ -454,8 +457,6 @@ Sequencers, live-coding environments, plugin frameworks, and performance tools.
 | [Seq](https://github.com/eclab/seq) | Java | Modular, hierarchical MIDI sequencer from the author of Edisyn. | 71 | Apache-2.0 |
 | [Renoise tools](https://github.com/renoise/xrnx) | Lua | Official Renoise Lua tools and API docs, including MIDI utilities. | 63 | MIT |
 | [Pagan](https://codeberg.org/quintinfsmith/pagan) | Kotlin | Android music sequencer that imports and exports MIDI files, plays SoundFonts, and drives external MIDI devices. | 4 | GPL-3.0 |
-| [Strudel](https://github.com/tidalcycles/strudel) 🗄️ | JavaScript | Tidal patterns in the browser, with Web MIDI output. Development continues on Codeberg. | 3.0k | AGPL-3.0 |
-| [Tidal](https://github.com/tidalcycles/Tidal) 🗄️ | Haskell | Live-coding pattern language that can drive MIDI devices. Development continues on Codeberg. | 2.8k | GPL-3.0 |
 | [Open Stage Control](https://github.com/jean-emmanuel/open-stage-control) 🗄️ | JavaScript | Customizable control surfaces for MIDI and OSC, in the browser. The GitHub repo is now only a pointer; development continues on Framagit. | 7 | n/a |
 
 [↑ back to contents](#contents)
@@ -606,7 +607,7 @@ Symbolic-music models, tokenizers, datasets tooling, and transcription.
 | [MusicAutobot](https://github.com/bearpelican/musicautobot) | Python | Transformer-based music generation and harmonization on MIDI. | 551 | MIT |
 | [MusPy](https://github.com/salu133445/muspy) | Python | Toolkit for symbolic music generation: datasets, representations, and metrics. | 525 | MIT |
 | [Pop2Piano](https://github.com/sweetcocoa/pop2piano) | Python | Model that generates piano-cover MIDI directly from pop song audio. | 497 | n/a |
-| [Transkun](https://github.com/Yujia-Yan/Transkun) | Python | Piano transcription with pedal and velocity, audio to MIDI. | 459 | MIT |
+| [Transkun](https://github.com/Yujia-Yan/Transkun) | Python | Piano transcription with pedal and velocity, audio to MIDI. | 460 | MIT |
 | [midi-model](https://github.com/SkyTNT/midi-model) | Python | Transformer for MIDI event generation with a tokenizer and web UI. | 378 | Apache-2.0 |
 | [LakhNES](https://github.com/chrisdonahue/LakhNES) | Python | Multi-instrument music generation pre-trained on Lakh MIDI. | 357 | n/a |
 | [GAME](https://github.com/openvpi/GAME) | Python | Singing-voice-to-MIDI transcription model, successor to SOME, with adjustable note boundaries. | 286 | MIT |
@@ -638,7 +639,7 @@ MIDI and symbolic-music datasets (and their tooling) for research and machine le
 | Project | Language | Description | ⭐ | License |
 |---|---|---|--:|---|
 | [NES Music Database](https://github.com/chrisdonahue/nesmdb) | Python | Dataset of NES game music with MIDI and score formats plus conversion tooling. | 505 | MIT |
-| [POP909](https://github.com/music-x-lab/POP909-Dataset) | Python | 909 pop songs as piano arrangements with melody, chords, and beats. | 411 | MIT |
+| [POP909](https://github.com/music-x-lab/POP909-Dataset) | Python | 909 pop songs as piano arrangements with melody, chords, and beats. | 412 | MIT |
 | [Tegridy MIDI Dataset](https://github.com/asigalov61/Tegridy-MIDI-Dataset) | Python | Curated MIDI datasets for symbolic music AI. | 297 | Apache-2.0 |
 | [ASAP dataset](https://github.com/fosfrancesco/asap-dataset) | Python | Aligned scores and performances of classical piano music (MIDI and MusicXML). | 281 | Other |
 | [Lakh MIDI tools](https://github.com/craffel/midi-dataset) | Python | Code behind the Lakh MIDI Dataset: matching and aligning MIDI to audio. | 177 | n/a |

@@ -3,14 +3,18 @@ import Base from '../../layouts/Base.astro';
 ---
 
 <Base title="Search" description="Search the MIDI Field Guide: docs, tools, glossary, Control Change numbers, libraries, communities, MIDI files and sounds.">
-  <div class="search-page">
-    <h1>Search</h1>
+  <div class="page search-page">
+    <header class="page-head">
+      <p class="eyebrow">Search</p>
+      <h1>Search the field guide</h1>
+      <p class="lede">Docs, tools, glossary terms, Control Change numbers, libraries, communities, MIDI files and sounds.</p>
+    </header>
     <form action="/search/" method="get" role="search" class="sp-form">
       <label class="visually-hidden" for="site-q">Search the site</label>
       <input id="site-q" name="q" type="search" placeholder="sustain, CC 74, running status, rust…" autocomplete="off" />
       <button class="btn btn-primary" type="submit">Search</button>
     </form>
-    <p class="sp-status" role="status" aria-live="polite" data-status>Tip: press <kbd>⌘K</kbd> or <kbd>/</kbd> on any page.</p>
+    <p class="sp-status" role="status" aria-live="polite" data-status><span class="kbd-tip">Tip: press <kbd data-mod>⌘K</kbd> or <kbd>/</kbd> on any page.</span></p>
     <div data-results></div>
     <noscript>
       <p>Search needs JavaScript. Browse the <a href="/docs/">docs</a>, <a href="/tools/">tools</a>, <a href="/libraries/">libraries</a> or the <a href="/docs/glossary/">glossary</a> instead.</p>
@@ -50,10 +54,13 @@ import Base from '../../layouts/Base.astro';
 </script>
 
 <style>
-  .search-page {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: var(--s-7) var(--gutter) 0;
+  .search-page > :not(.page-head) {
+    max-width: 48rem;
+  }
+  @media (pointer: coarse) {
+    .kbd-tip {
+      display: none;
+    }
   }
   .sp-form {
     display: flex;

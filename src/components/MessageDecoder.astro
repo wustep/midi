@@ -35,7 +35,7 @@ const presets = [
     aria-describedby="decoder-hint"
   />
   <p class="hint" id="decoder-hint">Paste or type bytes, e.g. <code>B0 07 64</code> or <code>0x90,0x3C,0x64</code>. Running status and interleaved real-time bytes are handled like a real receiver.</p>
-  <div class="presets" role="group" aria-label="Examples">
+  <div class="presets swipe-row" role="group" aria-label="Examples">
     {presets.map((p) => <button type="button" class="chip" data-bytes={p.bytes}>{p.label}</button>)}
   </div>
   <div class="decoder-out" aria-live="polite"></div>
@@ -117,9 +117,6 @@ const presets = [
     margin: var(--s-2) 0 var(--s-3);
   }
   .presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
     margin-bottom: var(--s-4);
   }
   /* Decoded messages: a ruled readout inside the panel, not boxes inside a box. A short bar in the

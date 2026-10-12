@@ -17,7 +17,7 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
     <div class="hs-byte status" data-b="0">
       <span class="hexv">90</span>
       <span class="bin"><b>1001</b><i>0000</i></span>
-      <span class="lbl" data-l="0">Status<br /><small>Note On · channel 1</small></span>
+      <span class="lbl" data-l="0">Status<br /><small>Note On · <span class="nw">channel 1</span></small></span>
     </div>
     <div class="hs-byte data" data-b="1">
       <span class="hexv">3C</span>
@@ -120,7 +120,7 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
       const type = s & 0xf0;
       const ch = (s & 0x0f) + 1;
       const l = [
-        `Status<br><small>${d.name} · channel ${ch}</small>`,
+        `Status<br><small>${d.name} · <span class="nw">channel ${ch}</span></small>`,
         type === 0xe0 ? `Data 1<br><small>bend LSB ${bytes[1]}</small>` : type === 0xb0 ? `Data 1<br><small>CC ${bytes[1]}</small>` : `Data 1<br><small>note ${bytes[1]} · ${noteName(bytes[1])}</small>`,
         bytes[2] === undefined ? 'Data 2<br><small>none</small>' : type === 0xe0 ? `Data 2<br><small>bend MSB ${bytes[2]}</small>` : type === 0xb0 ? `Data 2<br><small>value ${bytes[2]}</small>` : `Data 2<br><small>velocity ${bytes[2]}</small>`,
       ];
@@ -287,6 +287,9 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
 </script>
 
 <style>
+  .lbl :global(.nw) {
+    white-space: nowrap;
+  }
   .hs {
     margin: 0;
     border: 1px solid var(--line);

@@ -56,7 +56,7 @@ Commit `data/libraries.json` **and** the regenerated `README.md`. Never edit `RE
 
 ### Starter picks
 
-[`data/picks.json`](data/picks.json) lists a few dependable first choices per language, shown at the top of the catalog and in the README. Every pick must be a non-archived entry in \`libraries.json\` with a one-sentence reason (\`npm run check:data\` enforces this). Keep it short: a pick should be the library most people in that language would recommend first.
+[`data/picks.json`](data/picks.json) lists a few dependable first choices per language, shown at the top of the catalog and in the README. Every pick must be a non-archived entry in `libraries.json` with a one-sentence reason (`npm run check:data` enforces this). Keep it short: a pick should be the library most people in that language would recommend first.
 
 ## Specs, community and MIDI-file links
 
@@ -64,7 +64,7 @@ Commit `data/libraries.json` **and** the regenerated `README.md`. Never edit `RE
 - [`data/community.json`](data/community.json): forums, subreddits, Discord servers and mailing lists. Discord entries **must** include a `source`: the official project page where the invite is published.
 - [`data/midi-files.json`](data/midi-files.json): MIDI archives and datasets. Every entry needs a `license`, a `licenseNote` taken from the source itself, and `commercialUse` (`yes`, `no`, `varies` or `unclear`). Don't guess; use `unclear`. If a site blocks scripted checks and you can't confirm its terms from the source, set `license` to `Not verified`, say so in `licenseNote`, and tell readers where to check. Sources left out on purpose are named with the reason under the list on [`/community/midi-files/`](src/pages/community/midi-files.astro).
 
-Run `npm run verify:resources` to check every URL and the shape of all three files. **Never invent a URL.** Redirects are followed, and anything that can't be confirmed is reported as **unverified** rather than passing: bot-challenge pages (Debian's "I Challenge Thee", Cloudflare, Anubis), even when they answer 200, and refusals from hosts in `BOT_BLOCKING_HOSTS`. Check those in a browser. Detection lives in [`scripts/lib/http.mjs`](scripts/lib/http.mjs), shared with `verify:samples`.
+Run `npm run verify:resources` to check every URL and the shape of all three files. **Never invent a URL.** Redirects are followed, and anything that can't be confirmed is reported as **unverified** rather than passing: bot-challenge pages (Debian's "I Challenge Thee", Cloudflare, Anubis), even when they answer 200, refusals from hosts in `BOT_BLOCKING_HOSTS`, and gateway timeouts from known-slow hosts (`SLOW_HOSTS`, e.g. Zenodo) after every retry. Check those in a browser. Detection lives in [`scripts/lib/http.mjs`](scripts/lib/http.mjs), shared with `verify:samples`.
 
 ## Samples
 
@@ -79,11 +79,11 @@ Run `npm run verify:resources` to check every URL and the shape of all three fil
 
 ## Automation
 
-A weekly GitHub Action ([\`.github/workflows/verify.yml\`](.github/workflows/verify.yml)) re-verifies every library, regenerates the README, runs the tests and the external-link checks, and opens a pull request with any metadata changes. Review removals and renames before merging; a bot challenge or a 403 from a site that blocks bots is reported as unverified, not as a failure or a pass.
+A weekly GitHub Action ([`.github/workflows/verify.yml`](.github/workflows/verify.yml)) re-verifies every library, regenerates the README, runs the tests and the external-link checks, and opens a pull request with any metadata changes. Review removals and renames before merging; a bot challenge or a 403 from a site that blocks bots is reported as unverified, not as a failure or a pass.
 
 ## README screenshots
 
-The images in \`.github/readme/\` are screenshots of the live site (home, Reader, a docs page with a diagram, tools hub) at 1440 px, resized to 1200 px wide JPEGs (about 100–200 KB each). Retake them when the pages change noticeably.
+The images in `.github/readme/` are screenshots of the site (home, the Reader with the Bach demo open at its piano roll, the Standard MIDI Files diagram, and the tools hub) in a 1440 × 900 light-mode viewport, resized to 1200 × 750 JPEGs (about 80–100 KB each). Retake them when the pages change noticeably.
 
 ## Social images and fonts
 

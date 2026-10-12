@@ -221,12 +221,17 @@ const nav = [
           el.removeAttribute('aria-label');
         }
       };
-      const observer = new ResizeObserver((entries) => entries.forEach((e) => update(e.target as HTMLElement)));
+      // The far-edge fade on a scrolling box goes away once it's scrolled to the end.
+      const atEnd = (el: HTMLElement) => el.toggleAttribute('data-scroll-end', el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+      const observer = new ResizeObserver((entries) => entries.forEach((e) => (update(e.target as HTMLElement), atEnd(e.target as HTMLElement))));
       const boxes = [...document.querySelectorAll<HTMLElement>('.table-wrap, pre')].filter(
         // Leave boxes that already manage their own focus (e.g. the note table widget).
         (el) => !el.hasAttribute('tabindex') || 'autoFocusable' in el.dataset,
       );
-      for (const el of boxes) observer.observe(el);
+      for (const el of boxes) {
+        observer.observe(el);
+        el.addEventListener('scroll', () => atEnd(el), { passive: true });
+      }
       // Web fonts change content width without resizing the box, so check again once they load.
       document.fonts?.ready.then(() => boxes.forEach(update));
     </script>
@@ -240,9 +245,10 @@ const nav = [
     position: sticky;
     top: 0;
     z-index: var(--z-header);
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    backdrop-filter: saturate(1.6) blur(14px);
-    -webkit-backdrop-filter: saturate(1.6) blur(14px);
+    /* Opaque enough that text scrolling underneath never competes with the nav labels. */
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: saturate(1.6) blur(20px);
+    -webkit-backdrop-filter: saturate(1.6) blur(20px);
     box-shadow: 0 1px 0 transparent;
     transition: box-shadow var(--d-base) ease, background-color var(--d-base) ease;
   }

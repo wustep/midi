@@ -141,7 +141,7 @@ const decades = [...new Set(events.map((e) => decadeOf(e.date)))];
     browser, and MIDI 2.0.
   </p>
 
-  <nav class="decades" aria-label="Jump to decade">
+  <nav class="decades jump-nav" aria-label="Jump to decade">
     {decades.map((d) => <a href={`#d-${d}`}>{d}</a>)}
   </nav>
 
@@ -177,27 +177,6 @@ const decades = [...new Set(events.map((e) => decadeOf(e.date)))];
 </Doc>
 
 <style>
-  .decades {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
-    margin: var(--s-5) 0 var(--s-2);
-  }
-  .decades a {
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-pill);
-    padding: var(--s-1) var(--s-3);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--t-md);
-    text-decoration: none;
-    color: var(--ink);
-    background: var(--surface);
-  }
-  .decades a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
   .timeline {
     list-style: none;
     margin: var(--s-4) 0 0;
@@ -232,8 +211,8 @@ const decades = [...new Set(events.map((e) => decadeOf(e.date)))];
     border: 2px solid var(--line-strong);
   }
   .ev.milestone::before {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--ink);
+    border-color: var(--ink);
   }
   .ev time {
     font-family: var(--font-mono);
@@ -244,7 +223,7 @@ const decades = [...new Set(events.map((e) => decadeOf(e.date)))];
     padding-top: var(--s-0);
   }
   .ev.milestone time {
-    color: var(--accent);
+    color: var(--ink);
   }
   .ev-body {
     padding-left: var(--s-3);

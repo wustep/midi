@@ -128,16 +128,20 @@ To add an icon, draw it on the grid with the rules above, add it to `ICONS`, and
 | `.widget` (`.widget-head`, `.widget-title`, `.widget-tag`) | The panel every tool sits on |
 | `.link-rows` (`.lr-*`) | Ruled directory lists |
 | `details.fold-group` | Grouped lists that fold on phones |
-| `.table-wrap` + `table` | Tables, which scroll sideways on small screens |
+| `details.disclosure` | Any other show/hide (docs menu, message logs, "Where to start"), with the icon-set chevron |
+| `.table-wrap` + `table` | Tables. On phones a table with 4+ columns keeps readable widths and scrolls sideways, with the far edge faded until you reach it; a table that lays itself out for phones (stacked rows, hidden columns) adds `.phone-fit` |
 | `.b .b-s / .b-d / .b-m` | Byte chips: status, data, meta |
 | `.badge` (`.good`, `.bad`, `.warn`, `.meta`) | Short status labels |
 | `kbd` | Keys |
 | `.callout` (`.warn`, `.note`), via `<Callout>` | Asides |
-| `.btn` (`.btn-primary`, `.btn-ghost`, `.btn-sm`, `.btn-lg`) | Actions. One primary per view. Copy buttons use `.btn.btn-sm` with `bindCopy()` |
+| `.btn` (`.btn-primary`, `.btn-ghost`, `.btn-sm`, `.btn-lg`) | Actions. One primary per view; every disabled button looks the same (flat, muted). Icon + label buttons wrap the text in `<span data-label>` so scripts change only the label. Copy buttons use `.btn.btn-sm` with `bindCopy()` |
 | `.icon-btn` | Square icon-only actions; always give them an `aria-label` |
 | `.chip` | Filter toggles (`aria-pressed`) and example presets. Not for one-shot actions |
 | `.seg` | Segmented control: one choice of a few, as `aria-pressed` buttons or `role="tab"` |
-| `.subnav` | Pages within a section, with the same accent bar as the header |
+| `.subnav` | Pages within a section, under the page head, with the same accent bar as the header |
+| `.filter-bar`, `.filter-tags` | Search + live count + chip row over a list (`src/lib/list-filter.ts`) |
+| `.swipe-row` | A row of chips that wraps on wide screens and becomes one swipeable line on phones, faded at the far edge (presets, categories; `.filter-tags` behaves the same) |
+| `.jump-nav` | In-page section links (glossary letters, history decades, resource groups); a swipe row on phones |
 | Fields | `input`, `select`, `textarea` are sunken wells; `.field-label` above them; checkboxes, radios and ranges use the accent color |
 
 When you need something new, first check whether it's a variant of one of these. If it isn't, add it to `global.css` and to `/design/`, not to a single page.

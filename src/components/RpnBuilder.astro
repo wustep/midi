@@ -278,8 +278,16 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
     font-weight: 600;
     color: var(--muted);
   }
+  .rpn-formats div {
+    padding-top: var(--s-2);
+    border-top: 1px solid var(--line);
+  }
+  /* Already inside the readout well: plain text on hairline rows, not a well inside a well. */
   .rpn-formats code {
     overflow-wrap: anywhere;
+    background: none;
+    box-shadow: none;
+    padding: 0;
   }
   .rpn-send {
     display: flex;

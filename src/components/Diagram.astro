@@ -148,8 +148,9 @@ const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props
   .diagram :global(svg .c-m) {
     fill: var(--meta);
   }
+  /* Time (delta-times): a fourth category, drawn in the chart hue rather than the warning amber. */
   .diagram :global(svg .c-w) {
-    fill: var(--warn);
+    fill: var(--sky);
   }
   .diagram :global(svg .on-solid) {
     fill: var(--surface);
@@ -172,8 +173,8 @@ const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props
     stroke: var(--meta);
   }
   .diagram :global(svg .box-w) {
-    fill: var(--warn-soft);
-    stroke: var(--warn);
+    fill: color-mix(in srgb, var(--sky) 14%, var(--surface));
+    stroke: var(--sky);
   }
   .diagram :global(svg .box-n) {
     fill: var(--surface-2);

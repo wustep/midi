@@ -14,7 +14,7 @@ const letterId = (l: string) => (l === '#' ? 'letter-0-9' : `letter-${l.toLowerC
     links to the page that covers it in depth.
   </p>
 
-  <nav class="az" aria-label="Jump to letter">
+  <nav class="az jump-nav" aria-label="Jump to letter">
     {letters.map((l) => <a href={`#${letterId(l)}`}>{l === '#' ? '0–9' : l}</a>)}
   </nav>
 
@@ -68,30 +68,6 @@ const letterId = (l: string) => (l === '#' ? 'letter-0-9' : `letter-${l.toLowerC
 </script>
 
 <style>
-  .az {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-1);
-    margin: var(--s-5) 0;
-  }
-  .az a {
-    display: inline-grid;
-    place-items: center;
-    min-width: 2.2rem;
-    height: 2.2rem;
-    padding: 0 var(--s-2);
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-sm);
-    font-family: var(--font-display);
-    font-weight: 700;
-    text-decoration: none;
-    color: var(--ink);
-    background: var(--surface);
-  }
-  .az a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
   .gl-filter {
     max-width: 28rem;
     margin-bottom: var(--s-4);

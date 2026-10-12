@@ -8,35 +8,15 @@ interface Props {
   page: 'community' | 'midi-files';
 }
 const { title, description, page } = Astro.props;
-const tabs = [
-  { key: 'community', href: '/community/', label: 'Forums & chat' },
-  { key: 'midi-files', href: '/community/midi-files/', label: 'Getting MIDI files' },
-];
 ---
 
 <Base title={title} section="/community" description={description}>
   <div class="page community-page">
-    <nav class="subnav" aria-label="Community & resources">
-      <ul>
-        {
-          tabs.map((t) => (
-            <li>
-              <a href={t.href} aria-current={t.key === page ? 'page' : undefined}>
-                {t.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
     <slot />
   </div>
 </Base>
 
 <style>
-  .community-page {
-    --page-top: var(--s-5);
-  }
   .community-page :global(.toc) {
     display: flex;
     flex-wrap: wrap;

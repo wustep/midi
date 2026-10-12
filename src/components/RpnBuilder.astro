@@ -1,0 +1,357 @@
+---
+import { RPNS } from '../lib/rpn';
+
+const groups = [...new Set(RPNS.map((r) => r.source))];
+---
+
+<section class="widget rpn" data-rpn aria-labelledby="rpn-title">
+  <div class="widget-head">
+    <h2 class="widget-title" id="rpn-title">RPN / NRPN builder</h2>
+    <span class="widget-tag">CC 101 · 100 · 6 · 38</span>
+  </div>
+
+  <div class="seg" role="group" aria-label="Parameter type">
+    <button type="button" class="chip" data-type="rpn" aria-pressed="true">RPN (registered)</button>
+    <button type="button" class="chip" data-type="nrpn" aria-pressed="false">NRPN (device-specific)</button>
+  </div>
+
+  <div class="rpn-grid">
+    <label class="span2" data-preset-wrap><span class="field-label">Parameter</span>
+      <select data-preset>
+        {groups.map((g) => (
+          <optgroup label={g}>
+            {RPNS.filter((r) => r.source === g).map((r) => <option value={`${r.msb}:${r.lsb}`}>{r.msb.toString(16).toUpperCase().padStart(2, '0')} {r.lsb.toString(16).toUpperCase().padStart(2, '0')} · {r.name}</option>)}
+          </optgroup>
+        ))}
+        <option value="custom">Other (enter numbers)…</option>
+      </select>
+    </label>
+    <label data-custom><span class="field-label">Parameter MSB</span><input type="number" min="0" max="127" value="0" data-pmsb /></label>
+    <label data-custom><span class="field-label">Parameter LSB</span><input type="number" min="0" max="127" value="0" data-plsb /></label>
+    <label><span class="field-label">Channel</span><select data-ch>{Array.from({ length: 16 }, (_, i) => <option>{i + 1}</option>)}</select></label>
+  </div>
+  <p class="rpn-detail" data-detail></p>
+
+  <div class="rpn-grid" data-value-ui></div>
+
+  <div class="rpn-opts">
+    <label class="rpn-check"><input type="checkbox" checked data-lsb /> Send data LSB (CC 38)</label>
+    <label class="rpn-check"><input type="checkbox" checked data-null /> End with the null RPN</label>
+    <label class="rpn-check"><input type="checkbox" data-rs /> Use running status</label>
+  </div>
+
+  <div class="rpn-out" aria-live="polite">
+    <ol class="rpn-msgs" data-msgs></ol>
+    <div class="rpn-formats">
+      <div><span>Hex</span><code data-fmt="hex"></code><button type="button" class="chip" data-copy="hex">Copy</button></div>
+      <div><span>C / JS</span><code data-fmt="c"></code><button type="button" class="chip" data-copy="c">Copy</button></div>
+    </div>
+    <div class="rpn-send">
+      <button type="button" class="btn" data-send>Send to a MIDI output…</button>
+      <label class="rpn-inline" data-out-wrap hidden><span>Output</span><select data-out></select></label>
+      <span class="rpn-status" data-send-status role="status"></span>
+    </div>
+  </div>
+
+  <h3 class="rpn-h">Decode a parameter stream</h3>
+  <p class="rpn-hint">Paste Control Change bytes (running status is fine) to see which parameters they set, the way a receiver tracks them.</p>
+  <label class="visually-hidden" for="rpn-paste">Bytes to decode</label>
+  <textarea id="rpn-paste" rows="2" data-paste spellcheck="false">B0 65 00 64 00 06 0C 26 00 65 7F 64 7F</textarea>
+  <div data-decoded aria-live="polite"></div>
+</section>
+
+<script>
+  import { RPNS, findRpn, buildParam, flatten, encodeValue, describeValue, decodeParams, splitMessages, type RpnDef } from '../lib/rpn';
+  import { parseHex, hexBytes, hex } from '../lib/midi';
+  import { midiAccess, bindPortSelect } from '../lib/webmidi';
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const CC_LABEL: Record<number, string> = { 101: 'RPN MSB', 100: 'RPN LSB', 99: 'NRPN MSB', 98: 'NRPN LSB', 6: 'Data Entry MSB', 38: 'Data Entry LSB', 96: 'Data Increment', 97: 'Data Decrement' };
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-rpn]')) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const preset = $<HTMLSelectElement>('[data-preset]');
+    const valueUi = $('[data-value-ui]');
+    let nrpn = false;
+    let bytes: number[] = [];
+    let getOut: (() => MIDIOutput | undefined) | undefined;
+
+    const def = (): RpnDef | undefined => (nrpn || preset.value === 'custom' ? undefined : findRpn(...(preset.value.split(':').map(Number) as [number, number])));
+    const paramNums = (): [number, number] => {
+      const d = def();
+      if (d) return [d.msb, d.lsb];
+      const clamp = (el: HTMLInputElement) => Math.max(0, Math.min(127, Math.round(Number(el.value) || 0)));
+      return [clamp($('[data-pmsb]')), clamp($('[data-plsb]'))];
+    };
+
+    function renderValueUi() {
+      const d = def();
+      const isNull = d && d.msb === 127 && d.lsb === 127;
+      const field = (label: string, attrs: string) => `<label><span class="field-label">${label}</span><input type="number" ${attrs} /></label>`;
+      let html = '';
+      switch (d?.unit) {
+        case 'semitones+cents': html = field('Semitones', `min="0" max="127" value="${d.lsb === 0 ? 2 : 0}" data-a`) + field('Cents', 'min="0" max="127" value="0" data-b'); break;
+        case 'cents14': html = field('Cents (−100 to +99.99)', 'min="-100" max="99.99" step="0.01" value="0" data-a'); break;
+        case 'semitones-centered': html = field('Semitones (−64 to +63)', 'min="-64" max="63" value="0" data-a'); break;
+        case 'program': html = field('Number (0–127)', 'min="0" max="127" value="0" data-a'); break;
+        case 'members': html = field('Member channels (0–15)', 'min="0" max="15" value="15" data-a'); break;
+        default: html = isNull ? '<p class="rpn-hint">The null RPN has no value; it only deselects.</p>' : field('Value (0–16383)', 'min="0" max="16383" value="8192" data-a') + field('or Data Increment/Decrement steps', 'min="-16" max="16" value="0" data-steps');
+      }
+      valueUi.innerHTML = html;
+      $<HTMLInputElement>('[data-lsb]').checked = !(d?.unit === 'semitones-centered' || d?.unit === 'program' || d?.unit === 'members');
+      root.querySelectorAll<HTMLElement>('[data-custom]').forEach((el) => (el.hidden = !nrpn && preset.value !== 'custom'));
+      $('[data-preset-wrap]').hidden = nrpn;
+      $('[data-detail]').innerHTML = d ? `<strong>${esc(d.name)}</strong> <span class="muted">(${esc(d.source)})</span>: ${esc(d.detail)}` : nrpn ? 'NRPN numbers and meanings are defined by each manufacturer: check the device’s MIDI implementation chart.' : 'Enter the parameter number from a specification or the device’s documentation.';
+      render();
+    }
+
+    function render() {
+      const d = def();
+      const [msb, lsb] = paramNums();
+      const ch = Number($<HTMLSelectElement>('[data-ch]').value);
+      const isNull = !nrpn && msb === 127 && lsb === 127;
+      const a = Number(valueUi.querySelector<HTMLInputElement>('[data-a]')?.value ?? 0);
+      const b = Number(valueUi.querySelector<HTMLInputElement>('[data-b]')?.value ?? 0);
+      const steps = Math.round(Number(valueUi.querySelector<HTMLInputElement>('[data-steps]')?.value ?? 0));
+      const sendLsb = $<HTMLInputElement>('[data-lsb]').checked;
+      let msgs: number[][];
+      try {
+        const value = d ? encodeValue(d, a, b) : Math.max(0, Math.min(16383, Math.round(a)));
+        if (isNull) msgs = [[0xb0 | (ch - 1), 101, 127], [0xb0 | (ch - 1), 100, 127]];
+        else msgs = buildParam({ channel: ch, nrpn, msb, lsb, value: sendLsb ? value : value >> 7, msbOnly: !sendLsb, nullAfter: $<HTMLInputElement>('[data-null]').checked, steps: steps || undefined });
+      } catch (e) {
+        $('[data-msgs]').innerHTML = `<li class="err">${esc((e as Error).message)}</li>`;
+        return;
+      }
+      bytes = flatten(msgs, $<HTMLInputElement>('[data-rs]').checked);
+      const dec = decodeParams(msgs);
+      const last = dec.writes.at(-1);
+      $('[data-msgs]').innerHTML = msgs
+        .map((m) => `<li><span class="b b-s">${hex(m[0])}</span> <span class="b b-d">${hex(m[1])}</span> <span class="b b-d">${hex(m[2])}</span> <span>CC ${m[1]} ${CC_LABEL[m[1]] ?? ''} = ${m[2]}</span></li>`)
+        .join('') + (last ? `<li class="rpn-result">→ ${esc(nrpn ? `NRPN ${msb}/${lsb}` : d?.name ?? `RPN ${msb}/${lsb}`)} = ${esc(describeValue(nrpn ? undefined : d, last.value))}</li>` : '');
+      $('[data-fmt="hex"]').textContent = hexBytes(bytes);
+      $('[data-fmt="c"]').textContent = `{ ${bytes.map((x) => `0x${hex(x)}`).join(', ')} }`;
+    }
+
+    function decodePaste() {
+      const { bytes: raw, error } = parseHex($<HTMLTextAreaElement>('[data-paste]').value);
+      const out = $('[data-decoded]');
+      if (error) return void (out.innerHTML = `<p class="err">${esc(error)}</p>`);
+      const msgs = splitMessages(raw);
+      const r = decodeParams(msgs);
+      out.innerHTML = r.writes.length || r.ignored.length
+        ? `<ul class="rpn-writes">${r.writes.map((w) => `<li>Channel ${w.channel}: <strong>${esc(w.nrpn ? `NRPN ${w.msb}/${w.lsb}` : w.name ?? `RPN ${w.msb}/${w.lsb}`)}</strong> = ${esc(describeValue(w.nrpn ? undefined : findRpn(w.msb, w.lsb), w.value))} <span class="muted">(after ${w.via === 'msb' ? 'Data Entry MSB' : w.via === 'lsb' ? 'Data Entry LSB' : w.via === 'inc' ? 'an increment' : 'a decrement'})</span></li>`).join('')}${r.ignored.map((i) => `<li class="warn">Message ${i + 1} (${hexBytes(msgs[i])}) is ignored: no parameter selected, or the null RPN is selected.</li>`).join('')}</ul>`
+        : `<p class="muted">No parameter messages found in ${msgs.length} message${msgs.length === 1 ? '' : 's'}.</p>`;
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-type]').forEach((b) =>
+      b.addEventListener('click', () => {
+        nrpn = b.dataset.type === 'nrpn';
+        root.querySelectorAll('[data-type]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        renderValueUi();
+      }),
+    );
+    preset.addEventListener('change', renderValueUi);
+    root.addEventListener('input', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.matches('[data-paste]')) decodePaste();
+      else if (t.closest('.rpn-grid, .rpn-opts')) render();
+    });
+    root.addEventListener('change', (e) => {
+      if ((e.target as HTMLElement).closest('.rpn-opts, [data-ch]')) render();
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+      b.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText($(`[data-fmt="${b.dataset.copy}"]`).textContent ?? '');
+          b.textContent = 'Copied';
+        } catch {
+          b.textContent = 'Copy failed';
+        }
+        setTimeout(() => (b.textContent = 'Copy'), 1500);
+      }),
+    );
+
+    const sendStatus = $('[data-send-status]');
+    $('[data-send]').addEventListener('click', async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      if (!getOut) {
+        try {
+          const access = await midiAccess();
+          getOut = bindPortSelect<MIDIOutput>(access, $<HTMLSelectElement>('[data-out]'), 'outputs');
+          $('[data-out-wrap]').hidden = false;
+          btn.textContent = 'Send';
+        } catch (err) {
+          sendStatus.textContent = (err as Error).message;
+        }
+        return;
+      }
+      const out = getOut();
+      if (!out) return void (sendStatus.textContent = 'No MIDI output selected.');
+      out.send(bytes);
+      sendStatus.textContent = `Sent ${bytes.length} bytes to ${out.name}.`;
+    });
+
+    renderValueUi();
+    decodePaste();
+  }
+</script>
+
+<style>
+  .seg {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.9rem;
+  }
+  .rpn-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+  }
+  .rpn-grid :global(.span2),
+  .span2 {
+    grid-column: span 2;
+  }
+  .rpn-grid label[hidden] {
+    display: none;
+  }
+  .rpn-grid :global(input) {
+    font-family: var(--font-mono);
+  }
+  .rpn-detail {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    margin: 0.75rem 0;
+  }
+  .rpn-detail :global(.muted) {
+    color: var(--muted);
+  }
+  [data-value-ui] :global(.rpn-hint) {
+    grid-column: 1 / -1;
+  }
+  .rpn-opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.25rem;
+    margin: 0.75rem 0;
+  }
+  .rpn-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    min-height: 2.5rem;
+  }
+  .rpn-check input {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+  }
+  .rpn-out {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+  }
+  .rpn-msgs {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.75rem;
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+  }
+  .rpn-msgs :global(li span:last-child) {
+    color: var(--ink-2);
+    margin-left: 0.4rem;
+  }
+  .rpn-msgs :global(.rpn-result) {
+    font-weight: 700;
+    color: var(--data);
+    margin-top: 0.25rem;
+  }
+  .rpn-formats {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .rpn-formats div {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .rpn-formats span {
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .rpn-formats code {
+    overflow-wrap: anywhere;
+  }
+  .rpn-send {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-top: 0.9rem;
+  }
+  .rpn-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .rpn-inline select {
+    width: auto;
+    max-width: 14rem;
+  }
+  .rpn-inline[hidden] {
+    display: none;
+  }
+  .rpn-status {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+  }
+  .rpn-h {
+    font-size: 1rem;
+    margin: 1.6rem 0 0.3rem;
+  }
+  .rpn-hint {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+  }
+  textarea {
+    font-family: var(--font-mono);
+  }
+  [data-decoded] :global(ul) {
+    padding-left: 1.1rem;
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+  }
+  [data-decoded] :global(.warn) {
+    color: var(--warn);
+  }
+  [data-decoded] :global(.muted) {
+    color: var(--muted);
+  }
+  :global(.err) {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  @media (max-width: 640px) {
+    .rpn-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .rpn-formats div {
+      grid-template-columns: 1fr auto;
+    }
+    .rpn-formats code {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+</style>

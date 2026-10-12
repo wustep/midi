@@ -31,6 +31,8 @@ const BOT_BLOCKING_HOSTS = [
   'music.stackexchange.com', // Cloudflare challenge
   'www.reddit.com', // "Prove your humanity" / 403 for non-browser clients
   'mixxx.discourse.group', // "Checking your browser" challenge for scripted requests
+  'musescore.org', // Cloudflare challenge
+  'www.cpdl.org', // Cloudflare challenge
 ];
 
 /** Hosts that are reachable but routinely take longer than the default timeout to respond. */

@@ -38,6 +38,46 @@
     "size": "206 MB (SF2), 38 MB (SF3)"
   },
   {
+    "group": "SoundFonts (SF2/SF3)",
+    "title": "TimGM6mb",
+    "url": "https://packages.debian.org/sid/timgm6mb-soundfont",
+    "description": "Tim Brechbill's small General MIDI SoundFont, taken from MuseScore's old repository and packaged by Debian.",
+    "formats": [
+      "sf2"
+    ],
+    "license": "GPL-2.0",
+    "licenseUrl": "https://salsa.debian.org/multimedia-team/timgm6mb-soundfont/-/raw/master/debian/copyright",
+    "licenseNote": "Debian's copyright file lists the SoundFont under the GNU GPL version 2 and quotes the author: he made some samples himself and the rest are public domain or GPL. The GPL has no explicit exception for music rendered with the sounds."
+  },
+  {
+    "group": "SoundFonts (SF2/SF3)",
+    "title": "FreePats General MIDI set",
+    "url": "https://freepats.zenvoid.org/SoundSets/general-midi.html",
+    "description": "FreePats' General MIDI bank built from instruments with strictly checked origins; still incomplete at 45 melodic and 43 percussion entries.",
+    "formats": [
+      "sf2",
+      "sfz",
+      "flac",
+      "wav"
+    ],
+    "license": "GPL-3.0-or-later with exception",
+    "licenseUrl": "https://freepats.zenvoid.org/licenses.html",
+    "licenseNote": "GNU GPL version 3 or later with a special exception: using or mixing the sounds in a composition does not by itself put the composition under the GPL. Some individual samples carry other GPL-compatible licenses.",
+    "size": "227 MB (SF2), 127 MB (SFZ + FLAC)"
+  },
+  {
+    "group": "SoundFonts (SF2/SF3)",
+    "title": "Arachno SoundFont",
+    "url": "https://www.arachnosoft.com/main/soundfont.php",
+    "description": "Maxime Abbey's custom General MIDI bank assembled from many sources, widely used for playing MIDI files and old game music.",
+    "formats": [
+      "sf2"
+    ],
+    "license": "Freeware (non-commercial)",
+    "licenseUrl": "https://www.arachnosoft.com/main/soundfont.php?documentation",
+    "licenseNote": "Released as freeware, but the documentation says it is distributed mainly for private, non-commercial use because it contains sounds from other authors; commercial users must get written consent from the credited authors. The author also says he could not trace the origin of a few samples."
+  },
+  {
     "group": "SFZ libraries",
     "title": "Salamander Grand Piano",
     "url": "https://github.com/sfzinstruments/SalamanderGrandPiano",
@@ -89,6 +129,100 @@
     "license": "CC0-1.0",
     "licenseUrl": "https://shop.karoryfer.com/pages/free-samples",
     "licenseNote": "Karoryfer states all its free libraries are now CC0 (older downloads may carry a less permissive license, and the Marie Ork voice bank is the exception), so they can be used and redistributed without restriction."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "FreePats Upright Piano KW",
+    "url": "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
+    "description": "A Kawai upright piano recorded for FreePats with 2 velocity layers, in full-size and small builds.",
+    "formats": [
+      "sfz",
+      "sf2",
+      "flac",
+      "wav"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "licenseNote": "Published under the CC0 1.0 public domain dedication, so it can be used, modified and redistributed for any purpose without credit. Other pianos on the same page have different licenses.",
+    "size": "32 MB (SFZ + FLAC)"
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "Headroom Piano",
+    "url": "https://github.com/sfzinstruments/BengtNilsson.HeadroomPiano",
+    "description": "Bengt Nilsson's Yamaha C3 grand with close and Decca tree mics and 5 velocity layers, mapped for SFZ with ARIA extensions (best in sforzando).",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://github.com/sfzinstruments/BengtNilsson.HeadroomPiano/blob/master/LICENSE",
+    "licenseNote": "Creative Commons Attribution 4.0: use, modification, redistribution and commercial use are allowed with credit. The SFZ port was made with the author's permission on the condition that the original instrument name is kept.",
+    "size": "156 MB"
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "Osiris Piano",
+    "url": "https://github.com/sfzinstruments/Osiris_Piano",
+    "description": "A piano library from Versilian Studios and Karoryfer Samples with SFZ programs and a manual.",
+    "formats": [
+      "sfz"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sfzinstruments/Osiris_Piano/blob/main/LICENSE",
+    "licenseNote": "The repository's LICENSE is the CC0 1.0 Universal public domain dedication, so it can be used and redistributed for any purpose without credit."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "MTG Solo Saxophones",
+    "url": "https://github.com/sfzinstruments/MTG.SoloSax",
+    "description": "Soprano, alto, tenor and baritone saxophones built from the MTG sample packs on Freesound, looped and mapped for SFZ with vibrato and legato controls.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://github.com/sfzinstruments/MTG.SoloSax/blob/master/LICENSE",
+    "licenseNote": "Creative Commons Attribution 4.0: use, modification, redistribution and commercial use are allowed with credit."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "D. Smolken double bass",
+    "url": "https://github.com/sfzinstruments/dsmolken.double-bass",
+    "description": "A 1958 Otto Rubner double bass, arco and pizzicato with noises, plus a keyswitched SFZ combining both.",
+    "formats": [
+      "sfz",
+      "wav"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sfzinstruments/dsmolken.double-bass/blob/master/LICENSE",
+    "licenseNote": "The repository's LICENSE is CC0 1.0, and the readme describes the samples as royalty-free for all commercial and non-commercial use."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "Greg Sullivan's E-Pianos",
+    "url": "https://github.com/sfzinstruments/GregSullivan.E-Pianos",
+    "description": "SFZ ports of Greg Sullivan's Yamaha CP80, Hohner Pianet T and Wurlitzer EP200 electric pianos.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC-BY-3.0",
+    "licenseUrl": "https://github.com/sfzinstruments/GregSullivan.E-Pianos/blob/master/LICENSE",
+    "licenseNote": "Creative Commons Attribution 3.0 Unported, released with the author's permission and his request for attribution; commercial use and redistribution are allowed with credit."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "jRhodes3c",
+    "url": "https://github.com/sfzinstruments/jlearman.jRhodes3c",
+    "description": "A 1977 Rhodes Mark I Stage 73 with up to 5 velocity layers and short looped samples, in mono and stereo SFZ versions.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "Custom free license",
+    "licenseUrl": "https://github.com/sfzinstruments/jlearman.jRhodes3c/blob/master/LICENSE",
+    "licenseNote": "Free to use as an instrument in any of your works. Redistributing the samples themselves (in an app or sample set) is restricted to a non-commercial Creative Commons license; the LICENSE names CC BY-NC-SA 4.0 but links to CC BY-NC 4.0."
   },
   {
     "group": "Multisampled instruments",
@@ -232,6 +366,36 @@
     ],
     "license": "Varies by kit",
     "licenseNote": "Each kit declares its own license in its metadata: many are GPL or CC BY / BY-SA, some state none, and a few forbid redistributing the samples. Check the individual kit before reusing it."
+  },
+  {
+    "group": "Drum kits",
+    "title": "Sam's Sonor",
+    "url": "https://github.com/sfzinstruments/SamsSonor",
+    "description": "Sam Greene's Sonor Force 3001 kit with at least 4 velocity layers, left and right snare hands and a snares-off snare, mapped for SFZ.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC-BY-SA-4.0",
+    "licenseUrl": "https://github.com/sfzinstruments/SamsSonor/blob/master/LICENSE",
+    "licenseNote": "Creative Commons Attribution-ShareAlike 4.0: commercial use is allowed with credit, and modified versions of the samples must be shared under the same license."
+  },
+  {
+    "group": "Drum kits",
+    "title": "FreePats MuldjordKit",
+    "url": "https://freepats.zenvoid.org/Percussion/acoustic-drum-kit.html",
+    "description": "A stereo version of Lars Muldjord's DrumGizmo kit with velocity layers and randomized hits, assembled by FreePats in common sampler formats.",
+    "formats": [
+      "sfz",
+      "sf2",
+      "h2drumkit",
+      "flac",
+      "wav"
+    ],
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "licenseNote": "Creative Commons Attribution 4.0: use, modification, redistribution and commercial use are allowed with credit.",
+    "size": "157 MB (SFZ + FLAC), 53 MB (SF2)"
   },
   {
     "group": "Collections & directories",

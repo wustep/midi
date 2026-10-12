@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import MidiReader from '../../components/MidiReader.astro';
+import Shortcuts from '../../components/Shortcuts.astro';
 ---
 
 <Base
@@ -19,6 +20,9 @@ import MidiReader from '../../components/MidiReader.astro';
       </p>
     </header>
     <MidiReader />
+    <div class="reader-keys">
+      <Shortcuts items={[['Space', 'Play or pause'], ['← / →', 'Back or forward 5 seconds'], ['Home', 'Back to the start'], ['Click a byte', 'Find its event']]} />
+    </div>
     <aside class="reader-foot" aria-label="Related">
       <p>
         New to the format? Read <a href="/docs/smf/">Standard MIDI Files</a> and
@@ -42,6 +46,9 @@ import MidiReader from '../../components/MidiReader.astro';
   .reader-header h1 {
     font-size: clamp(2rem, 4.5vw, 3.1rem);
     margin-bottom: 0.6rem;
+  }
+  .reader-keys {
+    margin-top: 2.5rem;
   }
   .reader-foot {
     margin-top: 3rem;

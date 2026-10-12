@@ -1,14 +1,17 @@
 ---
 import Base from './Base.astro';
 import { tools, toolBySlug } from '../lib/tools';
+import Shortcuts from '../components/Shortcuts.astro';
 
 interface Props {
   slug: string;
   description?: string;
   /** Wider layout for tools with big tables (the file inspector). */
   wide?: boolean;
+  /** Keyboard shortcuts shown under the tool. */
+  shortcuts?: [string, string][];
 }
-const { slug, description, wide = false } = Astro.props;
+const { slug, description, wide = false, shortcuts = [] } = Astro.props;
 const tool = toolBySlug(slug);
 const others = tools.filter((t) => t.slug !== slug);
 ---
@@ -26,6 +29,7 @@ const others = tools.filter((t) => t.slug !== slug);
       <p class="lede"><slot name="lede">{tool.blurb}</slot></p>
     </header>
     <slot />
+    {shortcuts.length > 0 && <Shortcuts items={shortcuts} />}
     {
       tool.docs.length > 0 && (
         <p class="more">

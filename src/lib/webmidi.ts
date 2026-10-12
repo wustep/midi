@@ -13,7 +13,8 @@ export function midiAccess(sysex = false): Promise<MIDIAccess> {
   if (!p) {
     p = navigator.requestMIDIAccess({ sysex }).catch((e: Error) => {
       cache.delete(sysex);
-      throw new Error(e?.name === 'SecurityError' || e?.name === 'NotAllowedError' ? 'MIDI access was blocked. Allow it in the site settings and try again.' : e?.message || 'MIDI access failed.');
+      const blocked = e?.name === 'SecurityError' || e?.name === 'NotAllowedError';
+      throw new Error(blocked ? `MIDI${sysex ? ' (with SysEx)' : ''} access was blocked. Allow it in the site settings and try again.` : e?.message || 'MIDI access failed.');
     });
     cache.set(sysex, p);
   }

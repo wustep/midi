@@ -126,6 +126,7 @@ const presets = [
 <script>
   import { buildSysex, parseBytes, to7bit, toNibbles, pack8to7, type ChecksumKind } from '../lib/sysex';
   import { hex, hexBytes } from '../lib/midi';
+  import { midiAccess } from '../lib/webmidi';
 
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -229,14 +230,10 @@ const presets = [
     let access: MIDIAccess | undefined;
     sendBtn.addEventListener('click', async () => {
       if (!access) {
-        if (!navigator.requestMIDIAccess) {
-          sendStatus.textContent = "This browser doesn't support Web MIDI.";
-          return;
-        }
         try {
-          access = await navigator.requestMIDIAccess({ sysex: true });
-        } catch {
-          sendStatus.textContent = 'SysEx access was blocked. Allow MIDI device control in the site settings.';
+          access = await midiAccess(true);
+        } catch (err) {
+          sendStatus.textContent = (err as Error).message;
           return;
         }
         const fill = () => {

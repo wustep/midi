@@ -1,0 +1,93 @@
+---
+/** A consistent "Keyboard shortcuts" disclosure for tool pages. Keys use "+" for chords, "/" for alternatives. */
+interface Props {
+  items: [keys: string, action: string][];
+}
+const { items } = Astro.props;
+const render = (keys: string) => keys.split(' / ').map((alt) => alt.split('+').map((k) => k.trim()));
+---
+
+<details class="shortcuts">
+  <summary>Keyboard shortcuts</summary>
+  <dl>
+    {
+      items.map(([keys, action]) => (
+        <div>
+          <dt>
+            {render(keys).map((alt, i) => (
+              <>
+                {i > 0 && <span class="or">or</span>}
+                {alt.map((k, j) => (
+                  <>
+                    {j > 0 && '+'}
+                    <kbd>{k}</kbd>
+                  </>
+                ))}
+              </>
+            ))}
+          </dt>
+          <dd>{action}</dd>
+        </div>
+      ))
+    }
+  </dl>
+</details>
+
+<style>
+  .shortcuts {
+    margin: -1rem 0 1.5rem;
+    font-size: 0.88rem;
+  }
+  summary {
+    cursor: pointer;
+    color: var(--ink-2);
+    font-weight: 600;
+    min-height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.4rem 1.5rem;
+    margin: 0.25rem 0 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  dl div {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+  dt {
+    flex: 0 0 auto;
+    min-width: 6.5rem;
+    white-space: nowrap;
+  }
+  dd {
+    margin: 0;
+    color: var(--ink-2);
+  }
+  .or {
+    margin: 0 0.3rem;
+    color: var(--muted);
+    font-size: 0.8em;
+  }
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0.05em 0.4em;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  @media (pointer: coarse) {
+    .shortcuts {
+      display: none;
+    }
+  }
+</style>

@@ -1,5 +1,5 @@
 ---
-import Base from '../layouts/Base.astro';
+import Tool from '../layouts/Tool.astro';
 import Callout from '../components/Callout.astro';
 
 // 4 octaves + 1 of keyboard visualization: C2 (36) to C7 (96).
@@ -11,16 +11,12 @@ const whiteIndex = (n: number) => keys.filter((k) => k < n && !isBlack(k)).lengt
 const whiteCount = keys.filter((k) => !isBlack(k)).length;
 ---
 
-<Base title="Try Web MIDI" section="/tools" description="Plug in a MIDI controller and watch messages arrive live in your browser via the Web MIDI API. Nothing is uploaded.">
+<Tool slug="monitor" wide description="Plug in a MIDI controller and watch messages arrive live in your browser via the Web MIDI API. Nothing is uploaded.">
+  <Fragment slot="lede">
+    Connect a keyboard, controller, or virtual port and see every message decoded byte by byte. Everything runs
+    locally in your browser; nothing is sent anywhere.
+  </Fragment>
   <div class="try-page">
-    <header class="try-header">
-      <p class="eyebrow">Live monitor</p>
-      <h1>Try it: Web MIDI</h1>
-      <p class="lede">
-        Connect a keyboard, controller, or virtual port and see every message decoded byte-by-byte. Everything runs
-        locally in your browser; nothing is sent anywhere.
-      </p>
-    </header>
 
     <section class="connect" aria-labelledby="connect-title">
       <h2 id="connect-title" class="visually-hidden">Connection</h2>
@@ -147,10 +143,11 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
       <p>Want to understand what you're seeing? Start with <a href="/docs/messages/">Messages</a> or paste bytes into the <a href="/tools/decoder/">decoder</a>.</p>
     </section>
   </div>
-</Base>
+</Tool>
 
 <script>
   import { decodeMessage, parseHex, hexBytes, hex, ccName } from '../lib/midi';
+  import { midiAccess } from '../lib/webmidi';
 
   const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
   const connectBtn = $<HTMLButtonElement>('#connect');
@@ -191,13 +188,13 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
   connectBtn.addEventListener('click', async () => {
     statusEl.textContent = 'Requesting access…';
     try {
-      access = await navigator.requestMIDIAccess({ sysex: wantSysex.checked });
+      access = await midiAccess(wantSysex.checked);
       statusEl.textContent = `Connected${access.sysexEnabled ? ' with SysEx' : ''}.`;
       connectBtn.textContent = 'Reconnect';
       access.addEventListener('statechange', refreshPorts);
       refreshPorts();
     } catch (err) {
-      statusEl.textContent = `Access denied or unavailable: ${(err as Error).message || err}`;
+      statusEl.textContent = (err as Error).message;
     }
   });
 
@@ -359,9 +356,7 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
 
 <style>
   .try-page {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 3rem var(--gutter) 0;
+    margin-top: 0.5rem;
   }
   .connect {
     margin: 1.5rem 0 1.5rem;

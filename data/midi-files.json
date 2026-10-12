@@ -37,6 +37,25 @@
     "commercialUse": "yes"
   },
   {
+    "group": "Public-domain & free archives",
+    "title": "Choral Public Domain Library (CPDL)",
+    "url": "https://www.cpdl.org/wiki/index.php/Main_Page",
+    "description": "A volunteer library of free choral and vocal scores; contributors are asked to upload MIDI and MusicXML alongside the required PDF, so many editions include a MIDI file.",
+    "license": "CPDL License / CC",
+    "licenseNote": "Scores on the CPDL server fall under the CPDL License, a GPL-style license that allows copying, distributing, performing and recording (even for a fee) as long as modified versions keep the same license. CPDL also accepts Creative Commons licenses that allow cost-free use, and some listed editions link to third-party sites with their own terms, so check each edition.",
+    "commercialUse": "varies",
+    "size": "56,000+ works"
+  },
+  {
+    "group": "Public-domain & free archives",
+    "title": "Wikimedia Commons: MIDI files",
+    "url": "https://commons.wikimedia.org/wiki/Category:MIDI_files",
+    "description": "The Wikimedia Commons category for MIDI files, with subcategories such as MIDI files about music, files created with LilyPond and karaoke (.kar) files.",
+    "license": "Free licenses (per file)",
+    "licenseNote": "Commons only accepts media that is explicitly freely licensed or in the public domain in the US and the source country, and rejects non-commercial-only licenses. Each file page names its license, which may require attribution or share-alike.",
+    "commercialUse": "yes"
+  },
+  {
     "group": "Datasets",
     "title": "The Lakh MIDI Dataset",
     "url": "https://colinraffel.com/projects/lmd/",
@@ -272,6 +291,56 @@
     "commercialUse": "varies",
     "size": "330 recordings",
     "paper": "https://arxiv.org/abs/1611.09827"
+  },
+  {
+    "group": "Datasets",
+    "title": "Weimar Jazz Database (WJazzD)",
+    "url": "https://jazzomat.hfm-weimar.de/download/download.html",
+    "description": "Jazz solo transcriptions from the Jazzomat Research Project, released as a SQLite database plus a ZIP of unquantized MIDI files of all solos.",
+    "license": "ODbL",
+    "licenseNote": "The download page says the database is released under the Open Data Commons Open Database License (ODbL), which allows reuse with attribution and share-alike for the database. The solos are transcriptions of recorded improvisations, and the license does not address rights in the underlying recordings or tunes.",
+    "commercialUse": "unclear",
+    "size": "456 solos"
+  },
+  {
+    "group": "Datasets",
+    "title": "Vienna 4x22 Piano Corpus",
+    "url": "https://github.com/CPJKU/vienna4x22",
+    "description": "22 professional pianists each playing the same 4 classical excerpts, as performance MIDI with aligned scores in MIDI, MusicXML and PDF.",
+    "license": "CC BY 4.0",
+    "licenseNote": "The repository is based on Werner Goebl's official Vienna 4x22 dataset, used under CC BY 4.0, and its updates are also CC BY 4.0, so commercial use is allowed with attribution.",
+    "commercialUse": "yes",
+    "size": "88 performances"
+  },
+  {
+    "group": "Datasets",
+    "title": "Batik-plays-Mozart",
+    "url": "https://github.com/huispaty/batik_plays_mozart",
+    "description": "12 complete Mozart piano sonatas played by Roland Batik on a computer-monitored Bösendorfer, as MIDI note-aligned to scores and annotations.",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseNote": "The repository's LICENSE is CC BY-NC-SA 4.0, so the data may not be used commercially and derivatives must be shared alike. The matching audio is sold commercially and not included.",
+    "commercialUse": "no",
+    "size": "36 movements",
+    "paper": "https://arxiv.org/abs/2309.02399"
+  },
+  {
+    "group": "Datasets",
+    "title": "PiJAMA",
+    "url": "https://github.com/almostimplemented/PiJAMA",
+    "description": "Over 200 hours of solo jazz piano MIDI, automatically transcribed from thousands of recordings.",
+    "license": "CC BY-NC 3.0 (repository)",
+    "licenseNote": "The GitHub repository, which holds the metadata and download script, carries a CC BY-NC 3.0 license. The MIDI itself is downloaded from a Zenodo record, so check that record's terms; the files are machine transcriptions of commercial recordings.",
+    "commercialUse": "no"
+  },
+  {
+    "group": "Datasets",
+    "title": "XMIDI",
+    "url": "https://github.com/xmusic-project/XMIDI_Dataset",
+    "description": "108,023 MIDI files labelled with emotion and genre, about 5,278 hours in total, downloaded as one ZIP from Google Drive.",
+    "license": "Not stated",
+    "licenseNote": "The repository has no license file and its README states no terms beyond asking researchers to cite the paper, and it does not say where the MIDI files came from. Treat it as research-only until the authors clarify.",
+    "commercialUse": "unclear",
+    "size": "108,023 files"
   },
   {
     "group": "Other sources",

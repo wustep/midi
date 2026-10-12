@@ -581,23 +581,33 @@ export const tempoMeta = (bpm: number) => {
 /** Write a Standard MIDI File. An End of Track event is appended to any track that lacks one. */
 export function writeSmf(opts: { format?: 0 | 1 | 2; ppq?: number; tracks: WriteEvent[][]; runningStatus?: boolean }): Uint8Array {
   const { format = 1, ppq = 480, tracks, runningStatus = false } = opts;
-  const out: number[] = [0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, format, (tracks.length >> 8) & 0xff, tracks.length & 0xff, (ppq >> 8) & 0x7f, ppq & 0xff];
+  const head = [0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, format, (tracks.length >> 8) & 0xff, tracks.length & 0xff, (ppq >> 8) & 0x7f, ppq & 0xff];
+  const bodies: number[][] = [];
   for (const events of tracks) {
     const body: number[] = [];
     let last: number | undefined;
     for (const e of events) {
-      body.push(...vlq(e.delta));
+      for (const b of vlq(e.delta)) body.push(b);
       const s = e.bytes[0];
-      if (runningStatus && s >= 0x80 && s < 0xf0 && s === last) body.push(...e.bytes.slice(1));
-      else body.push(...e.bytes);
+      const from = runningStatus && s >= 0x80 && s < 0xf0 && s === last ? 1 : 0;
+      for (let i = from; i < e.bytes.length; i++) body.push(e.bytes[i]);
       last = s < 0xf0 ? s : undefined;
     }
     const lastEv = events[events.length - 1];
     if (!lastEv || lastEv.bytes[0] !== 0xff || lastEv.bytes[1] !== 0x2f) body.push(0, 0xff, 0x2f, 0);
-    const n = body.length;
-    out.push(0x4d, 0x54, 0x72, 0x6b, (n >>> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff, ...body);
+    bodies.push(body);
   }
-  return Uint8Array.from(out);
+  // Assemble into one buffer without spreading large arrays (which overflows the call stack).
+  const out = new Uint8Array(head.length + bodies.reduce((n, b) => n + 8 + b.length, 0));
+  out.set(head, 0);
+  let at = head.length;
+  for (const body of bodies) {
+    const n = body.length;
+    out.set([0x4d, 0x54, 0x72, 0x6b, (n >>> 24) & 0xff, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff], at);
+    out.set(body, at + 8);
+    at += 8 + n;
+  }
+  return out;
 }
 
 /** Convert absolute-tick events to delta-time events, sorted stably by tick. */

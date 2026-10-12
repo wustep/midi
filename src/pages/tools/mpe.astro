@@ -1,0 +1,20 @@
+---
+import Tool from '../../layouts/Tool.astro';
+import MpePlayground from '../../components/MpePlayground.astro';
+import Callout from '../../components/Callout.astro';
+---
+
+<Tool slug="mpe" wide description="MPE playground: visualize per-note pitch bend, pressure and timbre (CC 74) from an MPE controller in your browser, with zones, a note table, a message log and a simulated mode.">
+  <Fragment slot="lede">
+    MPE gives every note its own MIDI channel, so each one can bend, swell and change tone independently. Connect
+    an MPE controller to see each note's pitch, pressure and timbre move, or watch a simulated performance.
+  </Fragment>
+  <MpePlayground />
+  <Callout slot="after" title="What you're seeing">
+    <p>
+      Each circle is one note on its own member channel. Its horizontal position is the note plus that channel's pitch
+      bend (±48 semitones by default in MPE) plus the zone's manager-channel bend. Height is CC 74 (timbre) and size is
+      channel pressure. The tick at the bottom marks the key that was struck.
+    </p>
+  </Callout>
+</Tool>

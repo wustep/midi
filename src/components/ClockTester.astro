@@ -160,6 +160,16 @@
       g.fillText(`−${range}`, 2, h - 3);
     }
 
+    function emptyCanvas(c: HTMLCanvasElement, text: string) {
+      const { g, w, h, cs } = sizeCanvas(c);
+      g.fillStyle = cs.getPropertyValue('--muted');
+      g.font = `13px ${cs.getPropertyValue('--font-text')}`;
+      // On narrow screens keep just the part before the colon.
+      if (g.measureText(text).width > w - 16) text = text.split(':')[0] + '.';
+      const tw = g.measureText(text).width;
+      g.fillText(text, Math.max(8, (w - tw) / 2), h / 2 + 4);
+    }
+
     const dl = (rows: [string, string][]) => rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
 
     /* ---------- Incoming clock ---------- */
@@ -170,6 +180,8 @@
       const stats = $('[data-clock-stats]');
       if (!a) {
         stats.innerHTML = dl([['Tempo', '–'], ['Clocks', String(clockTimes.length)]]);
+        emptyCanvas($<HTMLCanvasElement>('[data-trace]'), clockTimes.length ? 'Waiting for more clocks…' : 'No clock yet: send MIDI clock to the selected input, or simulate one.');
+        emptyCanvas($<HTMLCanvasElement>('[data-hist]'), 'Jitter appears here');
         return;
       }
       const absJ = summarize(a.jitter.count ? intervals(clockTimes).map((d) => Math.abs(d - a.intervals.mean)) : []);
@@ -345,6 +357,7 @@
     });
 
     updateClock();
+    emptyCanvas($<HTMLCanvasElement>('[data-loop-hist]'), 'Run a test to see round-trip times');
     new ResizeObserver(() => updateClock()).observe(root);
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && simTimer) $<HTMLButtonElement>('[data-sim]').click();

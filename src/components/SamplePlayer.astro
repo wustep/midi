@@ -44,6 +44,7 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     </div>
   </div>
 
+  <p class="sp-rotate">Turn your phone sideways for more keys.</p>
   <div class="sp-stage" data-stage>
     <div class="sp-keys" data-keys role="group" aria-label="Piano keyboard"></div>
     <div class="sp-pads" data-pads role="group" aria-label="Drum pads" hidden></div>
@@ -65,6 +66,7 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
 <script>
   import { Sampler, KEYMAP, playable, type Instrument } from '../lib/sampler';
   import { noteName } from '../lib/midi';
+  import { midiAccess } from '../lib/webmidi';
   import data from '../../data/samples.json';
 
   const insts = data as Instrument[];
@@ -293,15 +295,11 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     const midiBtn = $<HTMLButtonElement>('[data-midi]');
     const midiStatus = $('[data-midi-status]');
     midiBtn.addEventListener('click', async () => {
-      if (!navigator.requestMIDIAccess) {
-        midiStatus.textContent = "This browser doesn't support Web MIDI (try Chrome, Edge, Firefox or Opera).";
-        return;
-      }
       let access: MIDIAccess;
       try {
-        access = await navigator.requestMIDIAccess();
-      } catch {
-        midiStatus.textContent = 'MIDI access was blocked. Allow it in the site settings.';
+        access = await midiAccess();
+      } catch (err) {
+        midiStatus.textContent = (err as Error).message;
         return;
       }
       const onMessage = (ev: MIDIMessageEvent) => {
@@ -339,6 +337,8 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     border: 0;
     padding: 0;
     margin: 0 0 1rem;
+    /* Fieldsets default to min-width: min-content, which would let the instrument strip widen the page. */
+    min-width: 0;
   }
   .sp-inst-grid {
     display: grid;
@@ -543,7 +543,28 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     font-size: 0.82rem;
     color: var(--muted);
   }
+  .sp-rotate {
+    display: none;
+  }
   @media (max-width: 520px) {
+    /* One swipeable row of instruments so the keyboard stays near the top. */
+    .sp-inst-grid {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x proximity;
+      gap: 0.4rem;
+      padding-bottom: 0.4rem;
+      margin: 0 calc(-1 * 1.2rem);
+      padding-inline: 1.2rem;
+      scrollbar-width: thin;
+    }
+    .sp-inst {
+      flex: 0 0 8.5rem;
+      scroll-snap-align: start;
+    }
+    .sp-keys {
+      height: 200px;
+    }
     .sp-inst-body {
       padding: 0.4rem 0.55rem;
     }
@@ -558,6 +579,14 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     }
     .sp-vel input {
       width: 5.5rem;
+    }
+  }
+  @media (max-width: 520px) and (orientation: portrait) and (pointer: coarse) {
+    .sp-rotate {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin: 0 0 0.4rem;
     }
   }
   @media (pointer: coarse) {

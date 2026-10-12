@@ -122,6 +122,35 @@ const demos = [
     </section>
 
     <details class="rd-sec rd-fold" data-fold open>
+      <summary><h2 id="rd-export">Export &amp; convert</h2><span class="rd-count">.mid · CSV · JSON</span></summary>
+      <p class="rd-explain">Save a new file with only the tracks you want, transposed or at another tempo, or convert the file to text. The original is never changed.</p>
+      <div class="rd-export">
+        <fieldset class="rd-ex-tracks">
+          <legend class="field-label">Tracks</legend>
+          <div data-ex-tracks></div>
+        </fieldset>
+        <div class="rd-ex-opts">
+          <label><span class="field-label">Transpose (semitones)</span><input type="number" min="-48" max="48" step="1" value="0" data-ex-transpose /></label>
+          <label><span class="field-label">Tempo (%)</span><input type="number" min="10" max="1000" step="1" value="100" data-ex-tempo /></label>
+          <label><span class="field-label">Velocity (%)</span><input type="number" min="10" max="400" step="1" value="100" data-ex-vel /></label>
+          <label><span class="field-label">Format</span>
+            <select data-ex-format><option value="1">1 · separate tracks</option><option value="0">0 · single track</option></select>
+          </label>
+          <label class="rd-check"><input type="checkbox" checked data-ex-drums /> Don’t transpose drums (channel 10)</label>
+          <label class="rd-check"><input type="checkbox" data-ex-sysex /> Remove SysEx</label>
+        </div>
+      </div>
+      <div class="rd-ex-actions">
+        <button type="button" class="btn btn-primary" data-ex="mid">Download .mid</button>
+        <button type="button" class="btn" data-ex="open">Open the result here</button>
+        <button type="button" class="btn" data-ex="csv">Download CSV</button>
+        <button type="button" class="btn" data-ex="json">Download JSON</button>
+        <span class="rd-ex-status" data-ex-status role="status"></span>
+      </div>
+      <p class="rd-explain small">CSV uses the record format of John Walker’s <code>midicsv</code>, so <code>csvmidi</code> can turn it back into a file. JSON lists each track’s events with ticks, seconds and decoded fields.</p>
+    </details>
+
+    <details class="rd-sec rd-fold" data-fold open>
       <summary><h2 id="rd-tempo">Tempo, meter &amp; key</h2><span class="rd-count" data-count="tempo"></span></summary>
       <p class="rd-explain" data-tempo-explain></p>
       <div class="table-wrap"><table data-tempo></table></div>
@@ -197,6 +226,8 @@ const demos = [
   import { trackStats, controllerUsage, sysexList, metaSummary, textEvents, byteRoles, eventAt, annotateEvent, annotateHeader, roleNames, Role, type Annotation } from '../lib/smf-analysis';
   import { GmSynth, Player, timeline, midiOutputSink, type Sink } from '../lib/synth';
   import { SampledSink, type Instrument } from '../lib/sampler';
+  import { exportSmf, toCsv, toJson } from '../lib/smf-edit';
+  import { midiAccess as getMidiAccess } from '../lib/webmidi';
   import { hexBytes, noteName, hex } from '../lib/midi';
   import instruments from '../../data/samples.json';
 
@@ -385,6 +416,7 @@ const demos = [
       $('[data-lanes-label]').textContent = byChannel ? 'Per channel' : 'Per track';
       renderOverview(name, sig);
       renderTracks();
+      renderExport(name);
       renderTempo(sig);
       renderMeta();
       renderControllers();
@@ -546,6 +578,77 @@ const demos = [
       invalidate();
       drawRoll();
     });
+
+    /* ---------- Export ---------- */
+
+    let fileName = 'file.mid';
+    const exStatus = $('[data-ex-status]');
+    function renderExport(name: string) {
+      fileName = name.replace(/\s*\(.*\)$/, '').replace(/\.(midi?|rmi|kar|smf)$/i, '') || 'file';
+      $('[data-ex-tracks]').innerHTML = smf!.tracks
+        .map((t) => `<label class="rd-check"><input type="checkbox" checked value="${t.index}" /> <span class="swatch" style="background:${color(t.index)}"></span>${t.index + 1}${t.name ? ` · ${esc(t.name)}` : ''} <small class="muted">${t.events.length} events</small></label>`)
+        .join('');
+      $<HTMLSelectElement>('[data-ex-format]').value = smf!.header.format === 0 ? '0' : '1';
+      $<HTMLInputElement>('[data-ex-tempo]').disabled = Boolean(smf!.header.smpte);
+      exStatus.textContent = '';
+    }
+    const download = (data: BlobPart, type: string, name: string) => {
+      const url = URL.createObjectURL(new Blob([data], { type }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-ex]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (!smf) return;
+        const kind = b.dataset.ex!;
+        if (kind === 'csv') {
+          download(toCsv(smf), 'text/csv', `${fileName}.csv`);
+          exStatus.textContent = `Saved ${fileName}.csv (${smf.tracks.reduce((n, t) => n + t.events.length, 0).toLocaleString()} records).`;
+          return;
+        }
+        if (kind === 'json') {
+          download(JSON.stringify(toJson(smf, tempo), null, 1), 'application/json', `${fileName}.json`);
+          exStatus.textContent = `Saved ${fileName}.json.`;
+          return;
+        }
+        const tracks = [...root.querySelectorAll<HTMLInputElement>('[data-ex-tracks] input:checked')].map((i) => Number(i.value));
+        const num = (sel: string, lo: number, hi: number, dflt: number) => {
+          const v = Number($<HTMLInputElement>(sel).value);
+          return Number.isFinite(v) ? Math.max(lo, Math.min(hi, v)) : dflt;
+        };
+        try {
+          const transpose = Math.round(num('[data-ex-transpose]', -48, 48, 0));
+          const tempoPct = num('[data-ex-tempo]', 10, 1000, 100);
+          const r = exportSmf(smf, {
+            tracks,
+            transpose,
+            skipDrums: $<HTMLInputElement>('[data-ex-drums]').checked,
+            tempoScale: smf.header.smpte ? 1 : tempoPct / 100,
+            velocityScale: num('[data-ex-vel]', 10, 400, 100) / 100,
+            format: $<HTMLSelectElement>('[data-ex-format]').value === '0' ? 0 : 1,
+            stripSysex: $<HTMLInputElement>('[data-ex-sysex]').checked,
+          });
+          const suffix = [tracks.length < smf.tracks.length ? `tracks-${tracks.map((t) => t + 1).join('-')}` : '', transpose ? `${transpose > 0 ? '+' : ''}${transpose}st` : '', tempoPct !== 100 ? `${tempoPct}pct` : ''].filter(Boolean).join('_');
+          const outName = `${fileName}${suffix ? `_${suffix}` : ''}.mid`;
+          const note = r.droppedNotes ? ` ${plural(r.droppedNotes, 'note')} went outside 0–127 and ${r.droppedNotes === 1 ? 'was' : 'were'} dropped.` : '';
+          if (kind === 'open') {
+            load(r.bytes, outName);
+            status.textContent = `Opened ${outName} (edited in your browser).${note}`;
+            $('#rd-overview').scrollIntoView({ behavior: 'smooth' });
+          } else {
+            download(r.bytes, 'audio/midi', outName);
+            exStatus.textContent = `Saved ${outName}: format ${r.format}, ${plural(r.tracks, 'track')}, ${fmtBytes(r.bytes.length)}.${note}`;
+          }
+        } catch (e) {
+          exStatus.innerHTML = `<span class="err">${esc((e as Error).message)}</span>`;
+        }
+      }),
+    );
 
     /* ---------- Tempo, meta, controllers, SysEx ---------- */
 
@@ -952,15 +1055,10 @@ const demos = [
       const p = audio();
       const v = outSel.value;
       if (v === 'connect') {
-        if (!navigator.requestMIDIAccess) {
-          status.innerHTML = `<span class="err">This browser doesn't support Web MIDI. Try Chrome, Edge, Firefox or Opera on desktop.</span>`;
-          outSel.value = 'samples';
-          return;
-        }
         try {
-          midiAccess = await navigator.requestMIDIAccess({ sysex: false });
-        } catch {
-          status.innerHTML = `<span class="err">MIDI access was blocked. Allow it in the site settings to play to a device.</span>`;
+          midiAccess = await getMidiAccess();
+        } catch (err) {
+          status.innerHTML = `<span class="err">${esc((err as Error).message)}</span>`;
           outSel.value = 'samples';
           return;
         }
@@ -988,6 +1086,23 @@ const demos = [
         p.play();
       }
       syncPlay();
+    });
+
+    // Keyboard shortcuts, ignored while typing or when a control has focus.
+    document.addEventListener('keydown', (e) => {
+      if (!smf || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement;
+      if (t.closest('input, select, textarea, button, a, summary, [contenteditable]')) return;
+      if (e.key === ' ') {
+        e.preventDefault();
+        playBtn.click();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        seekTo((player?.position ?? 0) + (e.key === 'ArrowRight' ? 5 : -5));
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        seekTo(0);
+      }
     });
 
     document.addEventListener('visibilitychange', () => {
@@ -1188,6 +1303,70 @@ const demos = [
   }
   .rd-anno :global(span) {
     color: var(--ink-2);
+  }
+  .rd-export {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 1rem 1.5rem;
+    align-items: start;
+  }
+  .rd-ex-tracks {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.8rem;
+    margin: 0;
+    max-height: 16rem;
+    overflow: auto;
+  }
+  .rd-ex-tracks :global(label) {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 2.25rem;
+    font-size: 0.9rem;
+  }
+  .rd-ex-opts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem 1rem;
+    align-items: end;
+  }
+  :global(.rd-check) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    min-height: 2.5rem;
+    cursor: pointer;
+  }
+  :global(.rd-check input) {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+  }
+  .rd-ex-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-top: 1rem;
+  }
+  .rd-ex-status {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+  }
+  .rd-ex-status :global(.err) {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .rd-explain.small {
+    font-size: 0.82rem;
+    margin-top: 0.75rem;
+  }
+  @media (max-width: 720px) {
+    .rd-export {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
   .rd-fold > summary {
     display: flex;

@@ -38,6 +38,18 @@ export const tools: Tool[] = [
     docs: [{ label: 'Timing & Sync', href: '/docs/timing/' }, { label: 'Transports', href: '/docs/transports/' }],
   },
   {
+    slug: 'mpe', href: '/tools/mpe/', title: 'MPE playground', group: 'Files & devices',
+    blurb: 'See per-note pitch bend, pressure and timbre from an MPE controller, or watch a simulated performance. Shows zones and every message.',
+    demo: ['ch 2–16', 'C4 +1.25 st · pressure 96'],
+    docs: [{ label: 'MPE', href: '/docs/mpe/' }],
+  },
+  {
+    slug: 'rpn', href: '/tools/rpn/', title: 'RPN / NRPN builder', group: 'Theory & reference',
+    blurb: 'Build the Control Change sequence that sets a registered or non-registered parameter, with friendly units, and decode pasted parameter streams.',
+    demo: ['Bend range ±12', 'B0 65 00 64 00 06 0C …'],
+    docs: [{ label: 'RPN & NRPN', href: '/docs/rpn-nrpn/' }, { label: 'Control Change', href: '/docs/control-change/' }],
+  },
+  {
     slug: 'cc', href: '/tools/cc/', title: 'CC map', group: 'Theory & reference',
     blurb: 'All 128 Control Change numbers: what the spec, GM and GM2 say, how synths use them, and the bytes to send. Move a knob to find its number.',
     demo: ['CC 74', 'Brightness · B0 4A 40'],

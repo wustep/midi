@@ -1,0 +1,13 @@
+---
+import Tool from '../../layouts/Tool.astro';
+import RpnBuilder from '../../components/RpnBuilder.astro';
+---
+
+<Tool slug="rpn" description="Build RPN and NRPN messages: pitch bend range, fine and coarse tuning, modulation depth range, the MPE Configuration Message and more, with friendly units, running status, and a decoder for pasted streams.">
+  <Fragment slot="lede">
+    Registered and non-registered parameters are set with a short sequence of Control Changes: select the parameter,
+    write the value, then deselect. Pick a parameter, enter the value in its own units, and get the exact bytes, or
+    paste a stream to see what it sets.
+  </Fragment>
+  <RpnBuilder />
+</Tool>

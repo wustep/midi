@@ -1,0 +1,394 @@
+---
+---
+
+<section class="widget mpe" data-mpe aria-labelledby="mpe-title">
+  <div class="widget-head">
+    <h2 class="widget-title" id="mpe-title">MPE playground</h2>
+    <span class="widget-tag">one channel per note</span>
+  </div>
+
+  <div class="mpe-bar">
+    <button type="button" class="btn btn-primary" data-sim>Simulate a performance</button>
+    <button type="button" class="btn" data-connect>Connect an MPE controller</button>
+    <label class="mpe-inline" data-in-wrap hidden><span>Input</span><select data-in></select></label>
+    <label class="mpe-check"><input type="checkbox" data-sound /> Hear it</label>
+    <button type="button" class="btn" data-mcm hidden>Send MPE Configuration</button>
+    <span class="mpe-status" data-status role="status">Try the simulation, or connect a controller such as a LinnStrument, Seaboard, Osmose or Continuum.</span>
+  </div>
+
+  <div class="mpe-stage">
+    <canvas data-canvas role="img" aria-label="Active notes: horizontal position is pitch, vertical position is timbre (CC 74), size is pressure"></canvas>
+    <p class="mpe-empty" data-empty>No notes yet. Every note gets its own channel, so it can bend, swell and change timbre on its own.</p>
+  </div>
+  <p class="mpe-axes"><span>← lower pitch · higher pitch →</span><span>↑ timbre (CC 74) · size = pressure</span></p>
+
+  <div class="mpe-grid">
+    <div>
+      <h3 class="mpe-h">Zones</h3>
+      <p class="mpe-zones" data-zones></p>
+    </div>
+    <div>
+      <h3 class="mpe-h">Notes</h3>
+      <div class="table-wrap"><table data-notes><caption class="visually-hidden">Active notes</caption><thead><tr><th>Ch</th><th>Note</th><th class="num">Pitch</th><th class="num">Bend</th><th class="num">Pressure</th><th class="num">Timbre</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <details class="mpe-log-wrap">
+    <summary>Message log</summary>
+    <ol class="mpe-log" data-log></ol>
+  </details>
+</section>
+
+<script>
+  import { MpeState, mcmBytes, simulateFrame, type SimNote } from '../lib/mpe';
+  import { GmSynth } from '../lib/synth';
+  import { noteName, hexBytes } from '../lib/midi';
+  import { decodeMessage } from '../lib/midi';
+  import { midiAccess, bindPortSelect } from '../lib/webmidi';
+
+  const HUES = [18, 172, 262, 42, 330, 120, 205, 0, 285, 85, 150, 230, 60, 300, 190];
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-mpe]')) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const canvas = $<HTMLCanvasElement>('[data-canvas]');
+    const status = $('[data-status]');
+    const state = new MpeState();
+    const releasedAt = new Map<number, number>();
+    const trails = new Map<number, { x: number; y: number }[]>();
+    let ctx: AudioContext | undefined;
+    let synth: GmSynth | undefined;
+    let simTimer: ReturnType<typeof setInterval> | undefined;
+    let raf = 0;
+    let access: MIDIAccess | undefined;
+    let wired: MIDIInput | undefined;
+    const log: string[] = [];
+
+    const sound = () => $<HTMLInputElement>('[data-sound]').checked;
+    function ensureSynth() {
+      if (!ctx) {
+        ctx = new AudioContext();
+        synth = new GmSynth(ctx);
+        // A soft pad on every channel, with the MPE bend range on member channels.
+        for (let ch = 0; ch < 16; ch++) {
+          synth.send([0xc0 | ch, 89]);
+          const range = ch === 0 || ch === 15 ? 2 : 48;
+          for (const m of [[101, 0], [100, 0], [6, range], [38, 0], [101, 127], [100, 127]]) synth.send([0xb0 | ch, m[0], m[1]]);
+        }
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return synth!;
+    }
+
+    function handle(data: number[], fromSim = false) {
+      state.handle(data, performance.now());
+      if (sound()) {
+        const s = ensureSynth();
+        const t = data[0] & 0xf0;
+        if (t === 0xd0) s.send([0xb0 | (data[0] & 0x0f), 11, Math.max(20, data[1])]); // pressure as expression
+        else s.send(data);
+      }
+      if (!fromSim || (data[0] & 0xf0) === 0x90 || (data[0] & 0xf0) === 0x80) {
+        const d = decodeMessage(data);
+        log.unshift(`${hexBytes(data).padEnd(9)}  ${d.summary}`);
+        if (log.length > 60) log.length = 60;
+      }
+      if (!raf) raf = requestAnimationFrame(draw);
+    }
+
+    /* ---------- Drawing ---------- */
+    function draw() {
+      raf = 0;
+      const now = performance.now();
+      state.prune(now, releasedAt);
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      if (canvas.width !== Math.round(w * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+      }
+      const g = canvas.getContext('2d')!;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, w, h);
+      const cs = getComputedStyle(root);
+      // Keyboard strip: C2 (36) to C7 (96).
+      const lo = 36, hi = 96;
+      const xOf = (p: number) => ((p - lo) / (hi - lo)) * w;
+      for (let n = lo; n <= hi; n++) {
+        const black = [1, 3, 6, 8, 10].includes(n % 12);
+        g.fillStyle = cs.getPropertyValue(black ? '--surface-2' : '--bg');
+        g.fillRect(xOf(n - 0.5), 0, xOf(n + 0.5) - xOf(n - 0.5), h);
+        if (n % 12 === 0) {
+          g.fillStyle = cs.getPropertyValue('--line-strong');
+          g.fillRect(Math.round(xOf(n - 0.5)), 0, 1, h);
+          g.fillStyle = cs.getPropertyValue('--muted');
+          g.font = `11px ${cs.getPropertyValue('--font-mono')}`;
+          const label = noteName(n);
+          g.fillText(label, Math.max(3, Math.min(w - g.measureText(label).width - 3, xOf(n - 0.5) + 3)), h - 5);
+        }
+      }
+      const notes = [...state.notes.values()];
+      for (const n of notes) {
+        const x = xOf(n.pitch);
+        const y = (1 - n.timbre) * (h - 24) + 8;
+        const trail = trails.get(n.id) ?? [];
+        trail.push({ x, y });
+        if (trail.length > 40) trail.shift();
+        trails.set(n.id, trail);
+        const hue = HUES[n.channel % HUES.length];
+        const fade = n.released ? Math.max(0, 1 - (now - (releasedAt.get(n.id) ?? now)) / 600) : 1;
+        g.strokeStyle = `hsl(${hue} 62% 50% / ${0.45 * fade})`;
+        g.lineWidth = 2;
+        g.beginPath();
+        trail.forEach((p, i) => (i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)));
+        g.stroke();
+        const r = 6 + n.pressure * 22;
+        g.fillStyle = `hsl(${hue} 62% 50% / ${(0.35 + 0.5 * n.pressure) * fade})`;
+        g.beginPath();
+        g.arc(x, y, r, 0, Math.PI * 2);
+        g.fill();
+        g.strokeStyle = `hsl(${hue} 62% 40% / ${fade})`;
+        g.stroke();
+        // Where the key was struck.
+        g.fillStyle = `hsl(${hue} 62% 50% / ${0.8 * fade})`;
+        g.fillRect(xOf(n.note) - 1, h - 22, 2, 8);
+      }
+      for (const id of trails.keys()) if (!state.notes.has(id)) trails.delete(id);
+      $('[data-empty]').hidden = notes.length > 0;
+      renderTable(notes.filter((n) => !n.released));
+      $('[data-log]').innerHTML = log.slice(0, 40).map((l) => `<li><code>${l.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</code></li>`).join('');
+      if (notes.length || simTimer) raf = requestAnimationFrame(draw);
+    }
+
+    function renderTable(notes: ReturnType<MpeState['notes']['get']>[]) {
+      $('[data-notes] tbody').innerHTML = notes.length
+        ? notes
+            .map((n) => {
+              const bend = n!.pitch - n!.note;
+              return `<tr><td><span class="swatch" style="background:hsl(${HUES[n!.channel % HUES.length]} 62% 50%)"></span>${n!.channel + 1}</td><td>${noteName(n!.note)}</td><td class="num">${n!.pitch.toFixed(2)}</td><td class="num">${bend >= 0 ? '+' : ''}${bend.toFixed(2)} st</td><td class="num">${Math.round(n!.pressure * 127)}</td><td class="num">${Math.round(n!.timbre * 127)}</td></tr>`;
+            })
+            .join('')
+        : `<tr><td colspan="6" class="muted">No notes held.</td></tr>`;
+      $('[data-zones]').innerHTML = state.zones.length
+        ? state.zones.map((z) => `<strong>${z.manager === 0 ? 'Lower' : 'Upper'} zone</strong>: manager channel ${z.manager + 1}, members ${Math.min(...z.members) + 1}–${Math.max(...z.members) + 1} (${z.members.length}), member bend range ±${state.bendRangeOf(z.members[0])} semitones`).join('<br>')
+        : 'No MPE zone configured: the controller sent an MPE Configuration Message turning MPE off.';
+    }
+
+    /* ---------- Simulation ---------- */
+    const simBtn = $<HTMLButtonElement>('[data-sim]');
+    simBtn.addEventListener('click', () => {
+      if (simTimer) return stopSim();
+      let sims: SimNote[] = [];
+      let nextCh = 1;
+      let lastNote = 0;
+      const t0 = performance.now();
+      const scale = [0, 2, 3, 5, 7, 8, 10];
+      simTimer = setInterval(() => {
+        const t = performance.now() - t0;
+        if (t - lastNote > 650 && sims.filter((s) => t - s.start < s.length).length < 4) {
+          lastNote = t;
+          const note = 48 + scale[Math.floor(Math.random() * 7)] + 12 * Math.floor(Math.random() * 3);
+          const s: SimNote = { channel: nextCh, note, start: t, length: 1800 + Math.random() * 1800, glide: [0, 0, 2, -2, 5, -1][Math.floor(Math.random() * 6)], vibrato: 0.15 + Math.random() * 0.35 };
+          nextCh = nextCh >= 15 ? 1 : nextCh + 1;
+          handle([0xb0 | s.channel, 74, 64], true);
+          handle([0xe0 | s.channel, 0, 64], true);
+          handle([0x90 | s.channel, note, 70 + Math.floor(Math.random() * 50)], true);
+          sims.push(s);
+        }
+        for (const m of simulateFrame(sims, t)) handle(m, true);
+        for (const s of sims) if (t - s.start > s.length) handle([0x80 | s.channel, s.note, 40], true);
+        sims = sims.filter((s) => t - s.start <= s.length);
+      }, 30);
+      simBtn.textContent = 'Stop simulation';
+      status.textContent = 'Simulating an MPE controller on a 15-channel lower zone.';
+      if (!raf) raf = requestAnimationFrame(draw);
+    });
+    function stopSim() {
+      clearInterval(simTimer);
+      simTimer = undefined;
+      for (const n of state.notes.values()) if (!n.released) handle([0x80 | n.channel, n.note, 0], true);
+      simBtn.textContent = 'Simulate a performance';
+      status.textContent = 'Simulation stopped.';
+    }
+
+    /* ---------- Device ---------- */
+    const onMsg = (ev: MIDIMessageEvent) => ev.data && ev.data[0] < 0xf0 && handle(Array.from(ev.data));
+    $('[data-connect]').addEventListener('click', async (e) => {
+      try {
+        access = await midiAccess();
+      } catch (err) {
+        status.textContent = (err as Error).message;
+        return;
+      }
+      const sel = $<HTMLSelectElement>('[data-in]');
+      const getIn = bindPortSelect<MIDIInput>(access, sel, 'inputs', {
+        onChange: () => {
+          wired?.removeEventListener('midimessage', onMsg as EventListener);
+          wired = getIn?.();
+          wired?.addEventListener('midimessage', onMsg as EventListener);
+        },
+      });
+      sel.addEventListener('change', () => {
+        wired?.removeEventListener('midimessage', onMsg as EventListener);
+        wired = getIn();
+        wired?.addEventListener('midimessage', onMsg as EventListener);
+      });
+      wired = getIn();
+      wired?.addEventListener('midimessage', onMsg as EventListener);
+      $('[data-in-wrap]').hidden = false;
+      $('[data-mcm]').hidden = !access.outputs.size;
+      (e.currentTarget as HTMLButtonElement).hidden = true;
+      status.textContent = wired ? `Listening to ${wired.name}. Play some notes.` : 'No MIDI inputs found. Plug in a controller.';
+    });
+    $('[data-mcm]').addEventListener('click', () => {
+      // Turn on a 15-member lower zone on every output (many synths need this to enter MPE mode).
+      const outs = [...(access?.outputs.values() ?? [])];
+      for (const o of outs) o.send(mcmBytes(true, 15));
+      status.textContent = `Sent the MPE Configuration Message (lower zone, 15 members) to ${outs.map((o) => o.name).join(', ')}.`;
+    });
+    $<HTMLInputElement>('[data-sound]').addEventListener('change', (e) => {
+      if ((e.target as HTMLInputElement).checked) ensureSynth();
+      else synth?.panic();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && simTimer) stopSim();
+    });
+    renderTable([]);
+    draw();
+    new ResizeObserver(() => draw()).observe(canvas);
+  }
+</script>
+
+<style>
+  .mpe-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.9rem;
+  }
+  .mpe-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .mpe-inline select {
+    width: auto;
+    max-width: 14rem;
+  }
+  .mpe-inline[hidden] {
+    display: none;
+  }
+  .mpe-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.88rem;
+    min-height: 2.5rem;
+  }
+  .mpe-check input {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+  }
+  .mpe-status {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+    flex-basis: 100%;
+  }
+  .mpe-stage {
+    position: relative;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: clamp(220px, 32vw, 340px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    touch-action: none;
+  }
+  .mpe-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.92rem;
+    pointer-events: none;
+    margin: 0;
+  }
+  .mpe-axes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0.35rem 0 0;
+  }
+  .mpe-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    gap: 1rem 1.5rem;
+    margin-top: 1rem;
+  }
+  .mpe-h {
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem;
+  }
+  .mpe-zones {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+  }
+  [data-notes] :global(td) {
+    font-size: 0.85rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+  }
+  :global(.swatch) {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+  }
+  :global(.muted) {
+    color: var(--muted);
+  }
+  .mpe-log-wrap {
+    margin-top: 1rem;
+    font-size: 0.88rem;
+  }
+  .mpe-log-wrap summary {
+    cursor: pointer;
+    font-weight: 600;
+    min-height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  .mpe-log {
+    list-style: none;
+    padding: 0.5rem 0.75rem;
+    margin: 0;
+    max-height: 14rem;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+  }
+  .mpe-log :global(code) {
+    background: none;
+    white-space: pre;
+    font-size: 0.8rem;
+  }
+  @media (max-width: 720px) {
+    .mpe-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

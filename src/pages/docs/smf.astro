@@ -2,6 +2,7 @@
 import Doc from '../../layouts/Doc.astro';
 import Callout from '../../components/Callout.astro';
 import VlqTool from '../../components/VlqTool.astro';
+import SmfChunksDiagram from '../../components/diagrams/SmfChunksDiagram.astro';
 
 const vlqExamples = [
   ['00000000', '00'],
@@ -76,6 +77,7 @@ data    length bytes</code></pre>
     A file is one <code>MThd</code> header chunk followed by one or more <code>MTrk</code> track chunks. Readers must
     skip chunk types they do not recognize by using the length. That rule is how the format stays extensible.
   </p>
+  <SmfChunksDiagram />
 
   <h2 id="header">Header chunk: MThd</h2>
   <pre><code>4D 54 68 64   00 00 00 06   <span class="b b-d">ffff</span>   <span class="b b-d">nnnn</span>   <span class="b b-d">dddd</span>

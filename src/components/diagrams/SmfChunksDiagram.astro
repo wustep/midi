@@ -1,0 +1,134 @@
+---
+/**
+ * Standard MIDI File structure: the file, the MThd and MTrk chunks with exact byte widths,
+ * and one MIDI event and one meta event broken into fields. Byte values are taken from the
+ * annotated hexdump on the SMF page (format 0, 1 track, 96 PPQ).
+ */
+import Diagram from '../Diagram.astro';
+
+const id = 'dg-smf';
+type Field = { x: number; w: number; ruler: string; name: string; hex: string; note: string; box: string; hexCls: string };
+
+const BOX_H = 62;
+// MThd: 40 units per byte, so widths are proportional to the 4 + 4 + 2 + 2 + 2 = 14 bytes.
+const header: Field[] = [
+  { x: 20, w: 160, ruler: '4 bytes', name: 'chunk ID', hex: '4D 54 68 64', note: '"MThd"', box: 'box-n', hexCls: '' },
+  { x: 180, w: 160, ruler: '4 bytes', name: 'length', hex: '00 00 00 06', note: '= 6', box: 'box-n', hexCls: '' },
+  { x: 340, w: 80, ruler: '2 bytes', name: 'format', hex: '00 00', note: 'format 0', box: 'box-d', hexCls: 'c-d' },
+  { x: 420, w: 80, ruler: '2 bytes', name: 'ntrks', hex: '00 01', note: '1 track', box: 'box-d', hexCls: 'c-d' },
+  { x: 500, w: 80, ruler: '2 bytes', name: 'division', hex: '00 60', note: '96 PPQ', box: 'box-d', hexCls: 'c-d' },
+];
+const track: Field[] = [
+  { x: 20, w: 160, ruler: '4 bytes', name: 'chunk ID', hex: '4D 54 72 6B', note: '"MTrk"', box: 'box-n', hexCls: '' },
+  { x: 180, w: 160, ruler: '4 bytes', name: 'length', hex: '00 00 00 1E', note: '= 30 bytes', box: 'box-n', hexCls: '' },
+];
+const midiEvent: Field[] = [
+  { x: 20, w: 150, ruler: '1–4 bytes', name: 'delta-time (VLQ)', hex: '60', note: '96 ticks', box: 'box-w', hexCls: 'c-w' },
+  { x: 178, w: 150, ruler: '1 byte', name: 'status', hex: '80', note: 'Note Off, ch 1', box: 'box-s', hexCls: 'c-s' },
+  { x: 336, w: 150, ruler: '1 byte', name: 'data 1', hex: '3C', note: 'note 60', box: 'box-d', hexCls: 'c-d' },
+  { x: 494, w: 150, ruler: '1 byte', name: 'data 2', hex: '40', note: 'velocity 64', box: 'box-d', hexCls: 'c-d' },
+];
+const metaEvent: Field[] = [
+  { x: 20, w: 110, ruler: '1–4 bytes', name: 'delta-time', hex: '00', note: '0 ticks', box: 'box-w', hexCls: 'c-w' },
+  { x: 138, w: 110, ruler: '1 byte', name: 'meta', hex: 'FF', note: 'meta event', box: 'box-m', hexCls: 'c-m' },
+  { x: 256, w: 110, ruler: '1 byte', name: 'type', hex: '51', note: 'Set Tempo', box: 'box-m', hexCls: 'c-m' },
+  { x: 374, w: 110, ruler: '1–4 bytes', name: 'length (VLQ)', hex: '03', note: '3 bytes', box: 'box-m', hexCls: 'c-m' },
+  { x: 492, w: 208, ruler: 'length bytes', name: 'data', hex: '07 A1 20', note: '500,000 µs per quarter', box: 'box-n', hexCls: '' },
+];
+const rows = [
+  { y: 96, label: 'MThd header chunk', fields: header },
+  { y: 248, label: 'MTrk track chunk', fields: track },
+  { y: 400, label: 'One MIDI event: delta-time, then the message', fields: midiEvent },
+  { y: 524, label: 'One meta event: FF type length data', fields: metaEvent },
+];
+const brace = (x1: number, x2: number, y: number) => `M${x1 + 2} ${y} v6 H${x2 - 2} v-6`;
+---
+
+<Diagram
+  caption="A Standard MIDI File: one MThd chunk, then MTrk chunks. Every chunk starts with a 4-byte ID and a 4-byte big-endian length. Values are from the example file below."
+  minWidth={660}
+>
+  <svg viewBox="0 0 720 624" role="img" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>Chunk structure of a Standard MIDI File</title>
+    <desc id={`${id}-d`}>
+      A file is an MThd header chunk followed by one or more MTrk track chunks. The MThd chunk is 14 bytes: a 4-byte
+      chunk ID "MThd" (4D 54 68 64), a 4-byte length of 6 (00 00 00 06), then three 2-byte fields: format (00 00, format
+      0), ntrks (00 01, one track) and division (00 60, 96 ticks per quarter note). The ID and length form an 8-byte
+      preamble, followed by 6 bytes of header data. An MTrk chunk has a 4-byte ID "MTrk" (4D 54 72 6B) and a 4-byte
+      length (00 00 00 1E, 30 bytes), followed by exactly that many bytes of events. Each event is a delta-time followed by
+      an event, and the last event is End of Track, FF 2F 00. One MIDI event, 60 80 3C 40: a delta-time variable-length
+      quantity of 1 to 4 bytes (60, 96 ticks), a 1-byte status (80, Note Off channel 1) and two 1-byte data bytes (3C, note
+      60, and 40, velocity 64). One meta event, 00 FF 51 03 07 A1 20: delta-time 00, the byte FF, a 1-byte type (51, Set
+      Tempo), a variable-length length (03), and that many data bytes (07 A1 20, 500,000 microseconds per quarter note).
+    </desc>
+
+    <!-- The file as a whole -->
+    <text x="20" y="16" class="disp mu">File</text>
+    <rect x="20" y="26" width="140" height="36" rx="5" class="box-n" />
+    <text x="90" y="49" class="b mid">MThd · 14 bytes</text>
+    <rect x="166" y="26" width="180" height="36" rx="5" class="box-n" />
+    <text x="256" y="49" class="b mid">MTrk · track 1</text>
+    <rect x="352" y="26" width="180" height="36" rx="5" class="box-n" />
+    <text x="442" y="49" class="b mid">MTrk · track 2</text>
+    <rect x="538" y="26" width="162" height="36" rx="5" class="ghost" />
+    <text x="619" y="49" class="mid mu">… more MTrk chunks</text>
+
+    {
+      rows.map((r) => (
+        <g>
+          <text x="20" y={r.y} class="b md i2">
+            {r.label}
+          </text>
+          {r.fields.map((f) => (
+            <g>
+              <text x={f.x + f.w / 2} y={r.y + 18} class="mono sm mu mid">
+                {f.ruler}
+              </text>
+              <rect x={f.x} y={r.y + 26} width={f.w} height={BOX_H} class={f.box} />
+              <text x={f.x + f.w / 2} y={r.y + 44} class="sm i2 mid">
+                {f.name}
+              </text>
+              <text x={f.x + f.w / 2} y={r.y + 64} class:list={['mono', 'b', 'md', 'mid', f.hexCls]}>
+                {f.hex}
+              </text>
+              <text x={f.x + f.w / 2} y={r.y + 80} class="sm mu mid">
+                {f.note}
+              </text>
+            </g>
+          ))}
+        </g>
+      ))
+    }
+
+    <!-- MThd extras -->
+    <text x="700" y="160" class="end mu">= 14 bytes</text>
+    <path d={brace(20, 340, 194)} class="ln-mu" />
+    <text x="180" y="214" class="sm mu mid">8-byte preamble</text>
+    <path d={brace(340, 580, 194)} class="ln-mu" />
+    <text x="460" y="214" class="sm mu mid">6 bytes of header data</text>
+
+    <!-- MTrk events area -->
+    <text x="520" y="266" class="mono sm mu mid">length bytes</text>
+    <rect x="340" y="274" width="360" height={BOX_H} class="box-b" />
+    <rect x="348" y="284" width="26" height="30" class="box-w" />
+    <text x="361" y="304" class="b c-w mid">Δ</text>
+    <rect x="374" y="284" width="60" height="30" class="box-n" />
+    <text x="404" y="304" class="sm mid">event</text>
+    <text x="391" y="330" class="sm mu mid">event 1</text>
+    <rect x="440" y="284" width="26" height="30" class="box-w" />
+    <text x="453" y="304" class="b c-w mid">Δ</text>
+    <rect x="466" y="284" width="60" height="30" class="box-n" />
+    <text x="496" y="304" class="sm mid">event</text>
+    <text x="483" y="330" class="sm mu mid">event 2</text>
+    <text x="540" y="304" class="b mu mid">…</text>
+    <rect x="554" y="284" width="26" height="30" class="box-w" />
+    <text x="567" y="304" class="b c-w mid">Δ</text>
+    <rect x="580" y="284" width="112" height="30" class="box-m" />
+    <text x="636" y="304" class="mono b c-m mid">FF 2F 00</text>
+    <text x="623" y="330" class="sm mu mid">End of Track</text>
+    <path d={brace(20, 340, 346)} class="ln-mu" />
+    <text x="180" y="366" class="sm mu mid">8-byte preamble</text>
+    <path d={brace(340, 700, 346)} class="ln-mu" />
+    <text x="520" y="366" class="sm mu mid">events: exactly length bytes (30 here)</text>
+  </svg>
+</Diagram>

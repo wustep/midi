@@ -84,7 +84,7 @@ export const terms: [string, string][] = [
   ['VLQ', 'Variable-length quantity: the Standard MIDI File encoding for delta times and lengths, 7 bits per byte with bit 7 as a continuation flag, up to 4 bytes. See <a href="/docs/smf/#vlq">VLQ</a>.'],
   ['Web MIDI API', 'The W3C browser API (<code>navigator.requestMIDIAccess</code>) that lets web pages list MIDI ports and send and receive messages. Try it on the <a href="/tools/monitor/">Try it</a> page.'],
   ['XG', 'Yamaha\'s extended General MIDI format, introduced in 1994. It adds many voices, effects, and NRPN- and SysEx-addressable parameters. See <a href="/docs/general-midi/#extensions">Extensions</a>.'],
-  ['Zone', 'In MPE, a master channel plus a range of member channels. The Lower Zone uses channel 1 as master; the Upper Zone uses channel 16. See <a href="/docs/mpe/#zones">Zones</a>.'],
+  ['Zone', 'In MPE, a manager channel (the master channel in MPE 1.0) plus a range of member channels. The Lower Zone uses channel 1 as its manager; the Upper Zone uses channel 16. See <a href="/docs/mpe/#zones">Zones</a>.'],
 ];
 
 export const termSlug = (s: string) =>

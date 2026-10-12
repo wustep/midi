@@ -1,6 +1,7 @@
 ---
 import Doc from '../../layouts/Doc.astro';
 import Callout from '../../components/Callout.astro';
+import MpeZonesDiagram from '../../components/diagrams/MpeZonesDiagram.astro';
 ---
 
 <Doc
@@ -44,16 +45,16 @@ import Callout from '../../components/Callout.astro';
     Pressure is the norm and what receivers should expect by default.
   </p>
 
-  <h2 id="zones">Zones, master channels and member channels</h2>
+  <h2 id="zones">Zones, manager channels and member channels</h2>
   <p>
     The 16 channels of a MIDI port are split into at most two <strong>zones</strong>. Each zone has one
-    <strong>master channel</strong>, which carries messages that apply to the whole zone, and a range of
+    <strong>manager channel</strong> (called the master channel in MPE 1.0), which carries messages that apply to the whole zone, and a range of
     <strong>member channels</strong> that carry individual notes.
   </p>
   <div class="table-wrap">
     <table>
       <thead>
-        <tr><th>Zone</th><th>Master channel</th><th>Member channels</th></tr>
+        <tr><th>Zone</th><th>Manager channel</th><th>Member channels</th></tr>
       </thead>
       <tbody>
         <tr><td>Lower zone</td><td>Channel 1</td><td>2 upward: 2 … (1 + <var>n</var>)</td></tr>
@@ -64,12 +65,13 @@ import Callout from '../../components/Callout.astro';
   <ul>
     <li>A single Lower zone with 15 member channels (2–16) is the most common setup and is what most controllers send out of the box.</li>
     <li>Two zones split the channels, for example a Lower zone of 7 members (2–8) and an Upper zone of 7 members (9–15). The zones may not overlap. If a new configuration makes them overlap, the zone that was configured first shrinks.</li>
-    <li>Messages on the master channel, such as sustain pedal, program change, or a zone-wide pitch bend, apply to every note in the zone. They combine with each note's own member-channel values.</li>
+    <li>Messages on the manager channel, such as sustain pedal, program change, or a zone-wide pitch bend, apply to every note in the zone. They combine with each note's own member-channel values.</li>
   </ul>
+  <MpeZonesDiagram />
 
   <h2 id="mcm">The MPE Configuration Message (MCM)</h2>
   <p>
-    A zone is set up with <strong>Registered Parameter Number 6</strong>, sent on the zone's master channel. The Data
+    A zone is set up with <strong>Registered Parameter Number 6</strong>, sent on the zone's manager channel. The Data
     Entry MSB gives the number of member channels. A value of <code>0</code> turns the zone off.
   </p>
   <pre><code>Lower zone, 15 member channels (sent on channel 1)
@@ -80,7 +82,7 @@ B0 06 0F   CC 6   Data Entry MSB = 15 member channels
 Upper zone, 4 member channels (sent on channel 16)
 BF 65 00
 BF 64 06
-BF 06 04   → master = 16, members = 15, 14, 13, 12</code></pre>
+BF 06 04   → manager = 16, members = 15, 14, 13, 12</code></pre>
   <p>
     Senders often follow with the <a href="/docs/rpn-nrpn/#null-rpn">null RPN</a> (<code>CC 101 = 127</code>,
     <code>CC 100 = 127</code>) so that later Data Entry messages can't change the parameter by accident.
@@ -93,7 +95,7 @@ BF 06 04   → master = 16, members = 15, 14, 13, 12</code></pre>
       </thead>
       <tbody>
         <tr><td>Member channels</td><td>±48 semitones</td><td>RPN 0 on any member channel; applies to all members of the zone</td></tr>
-        <tr><td>Master channel</td><td>±2 semitones</td><td>RPN 0 on the master channel</td></tr>
+        <tr><td>Manager channel</td><td>±2 semitones</td><td>RPN 0 on the manager channel</td></tr>
       </tbody>
     </table>
   </div>
@@ -144,8 +146,8 @@ BF 06 04   → master = 16, members = 15, 14, 13, 12</code></pre>
 
   <h2 id="receivers">Receiver behavior</h2>
   <ul>
-    <li>Combine a voice's member-channel pitch bend with the zone's master-channel pitch bend, each scaled by its own bend range.</li>
-    <li>Apply master-channel controllers (sustain, modulation, volume) to every voice in the zone.</li>
+    <li>Combine a voice's member-channel pitch bend with the zone's manager-channel pitch bend, each scaled by its own bend range.</li>
+    <li>Apply manager-channel controllers (sustain, modulation, volume) to every voice in the zone.</li>
     <li>CC 74 is often sent as an absolute value from 0 to 127 starting near 64. Some controllers instead start each note at 0 and send motion relative to the initial touch point. Synths usually let you set this per patch.</li>
     <li>A receiver in "MPE mode" should accept an MCM at any time and reconfigure. If it receives no MCM, it should still accept the common default of one Lower zone with 15 members.</li>
   </ul>

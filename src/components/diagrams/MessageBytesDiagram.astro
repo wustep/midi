@@ -1,0 +1,107 @@
+---
+/** Bit layout of a MIDI 1.0 Note On, 90 3C 64: one status byte and two data bytes. */
+import Diagram from '../Diagram.astro';
+
+const id = 'dg-msg-bytes';
+const CELL = 25;
+const bytes = [
+  {
+    x: 20,
+    role: 'Status byte',
+    hex: '0x90',
+    bits: '10010000',
+    kind: 's',
+    groups: [
+      { from: 7, to: 4, title: 'message type', sub: '9 = Note On' },
+      { from: 3, to: 0, title: 'channel', sub: '0 = ch 1' },
+    ],
+  },
+  {
+    x: 240,
+    role: 'Data byte 1',
+    hex: '0x3C',
+    bits: '00111100',
+    kind: 'd',
+    groups: [{ from: 6, to: 0, title: 'note 60 (C4)', sub: '7-bit value, 0–127' }],
+  },
+  {
+    x: 460,
+    role: 'Data byte 2',
+    hex: '0x64',
+    bits: '01100100',
+    kind: 'd',
+    groups: [{ from: 6, to: 0, title: 'velocity 100', sub: '7-bit value, 0–127' }],
+  },
+];
+const cellX = (x0: number, bit: number) => x0 + (7 - bit) * CELL;
+---
+
+<Diagram
+  caption="Note On, channel 1, note 60, velocity 100 (90 3C 64). Bit 7 tells status bytes from data bytes."
+  minWidth={625}
+>
+  <svg viewBox="0 0 680 190" role="img" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>Bit layout of the Note On message 90 3C 64</title>
+    <desc id={`${id}-d`}>
+      Three bytes. The status byte 0x90 is binary 1001 0000: bit 7 is 1, marking a status byte. The high nibble 1001
+      (9) is the message type, Note On, and the low nibble 0000 (0) is the channel, channel 1. Data byte 1, 0x3C, is
+      binary 0011 1100: bit 7 is 0, marking a data byte, and the remaining 7 bits are the note number 60 (C4). Data
+      byte 2, 0x64, is binary 0110 0100: bit 7 is 0 and the 7-bit value is velocity 100. Data values are 7 bits wide,
+      0 to 127.
+    </desc>
+    {
+      bytes.map((b) => (
+        <g>
+          <text x={b.x} y="20" class:list={['disp', b.kind === 's' ? 'c-s' : 'c-d']}>
+            {b.role}
+          </text>
+          <text x={b.x + 200} y="21" class:list={['mono', 'b', 'lg', 'end', b.kind === 's' ? 'c-s' : 'c-d']}>
+            {b.hex}
+          </text>
+          {[...b.bits].map((bit, i) => {
+            const x = b.x + i * CELL;
+            const flag = i === 0;
+            return (
+              <g>
+                <text x={x + CELL / 2} y="44" class="mono sm mu mid">
+                  {7 - i}
+                </text>
+                <rect
+                  x={x}
+                  y="52"
+                  width={CELL}
+                  height="36"
+                  class={flag ? (b.kind === 's' ? 'solid-s' : 'solid-d') : b.kind === 's' ? 'box-s' : 'box-d'}
+                />
+                <text x={x + CELL / 2} y="76" class:list={['mono', 'b', 'lg', 'mid', flag && 'on-solid']}>
+                  {bit}
+                </text>
+              </g>
+            );
+          })}
+          {b.groups.map((g) => {
+            const xa = cellX(b.x, g.from) + 3;
+            const xb = cellX(b.x, g.to) + CELL - 3;
+            const cx = (xa + xb) / 2;
+            return (
+              <g>
+                <path d={`M${xa} 96 v6 H${xb} v-6`} class={b.kind === 's' ? 'ln-s' : 'ln-d'} />
+                <text x={cx} y="121" class="b mid">
+                  {g.title}
+                </text>
+                <text x={cx} y="138" class="sm i2 mid">
+                  {g.sub}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      ))
+    }
+    <rect x="20" y="164" width="12" height="12" rx="2" class="solid-s" />
+    <rect x="36" y="164" width="12" height="12" rx="2" class="solid-d" />
+    <text x="56" y="175" class="i2">
+      Bit 7 is the flag: 1 = status byte, 0 = data byte. Data values are 7 bits: 0–127.
+    </text>
+  </svg>
+</Diagram>

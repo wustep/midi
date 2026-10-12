@@ -1,0 +1,65 @@
+---
+/** Running status: three Note Ons where the second and third leave out the repeated 90 status byte. */
+import Diagram from '../Diagram.astro';
+
+const id = 'dg-running-status';
+const CHIP = 44;
+const GAP = 6;
+const groups = [
+  { cx: 125, sent: true, d1: '3C', title: 'Note On, ch 1', sub: 'note 60, velocity 100' },
+  { cx: 340, sent: false, d1: '3E', title: 'running status', sub: 'note 62, velocity 100' },
+  { cx: 555, sent: false, d1: '40', title: 'running status', sub: 'note 64, velocity 100' },
+];
+const left = (cx: number) => cx - (3 * CHIP + 2 * GAP) / 2;
+---
+
+<Diagram caption="Running status: after 90, later Note Ons on the same channel send only their two data bytes." minWidth={625}>
+  <svg viewBox="0 0 680 146" role="img" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>Running status in the byte stream 90 3C 64 3E 64 40 64</title>
+    <desc id={`${id}-d`}>
+      Three Note On messages on channel 1. The first is sent in full: status 90, note 3C (60), velocity 64 (100). The
+      second and third reuse the remembered status 90, which is not sent: 3E 64 is note 62 at velocity 100, and 40 64 is
+      note 64 at velocity 100. On the wire this is 90 3C 64 3E 64 40 64, 7 bytes instead of 9.
+    </desc>
+    {
+      groups.map((g, k) => {
+        const x = left(g.cx);
+        return (
+          <g>
+            {!g.sent && (
+              <text x={x + CHIP / 2} y="20" class="sm mu mid">
+                not sent
+              </text>
+            )}
+            <rect x={x} y="28" width={CHIP} height="32" rx="5" class={g.sent ? 'box-s' : 'ghost'} />
+            <text x={x + CHIP / 2} y="50" class:list={['mono', 'b', 'lg', 'mid', g.sent ? 'c-s' : 'mu']}>
+              90
+            </text>
+            <rect x={x + CHIP + GAP} y="28" width={CHIP} height="32" rx="5" class="box-d" />
+            <text x={x + CHIP + GAP + CHIP / 2} y="50" class="mono b lg mid c-d">
+              {g.d1}
+            </text>
+            <rect x={x + 2 * (CHIP + GAP)} y="28" width={CHIP} height="32" rx="5" class="box-d" />
+            <text x={x + 2 * (CHIP + GAP) + CHIP / 2} y="50" class="mono b lg mid c-d">
+              64
+            </text>
+            <text x={g.cx} y="84" class="b mid">
+              {g.title}
+            </text>
+            <text x={g.cx} y="101" class="sm i2 mid">
+              {g.sub}
+            </text>
+            {k > 0 && (
+              <text x={g.cx - 107.5} y="50" class="mono lg mu mid">
+                ·
+              </text>
+            )}
+          </g>
+        );
+      })
+    }
+    <text x="340" y="134" class="mid i2">
+      On the wire: <tspan class="mono b">90 3C 64 3E 64 40 64</tspan>, 7 bytes instead of 9
+    </text>
+  </svg>
+</Diagram>

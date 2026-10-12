@@ -1,5 +1,4 @@
 ---
-import '@fontsource-variable/archivo/wdth.css';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 import '@fontsource-variable/atkinson-hyperlegible-next/wght-italic.css';
 import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css';
@@ -16,6 +15,9 @@ interface Props {
 const { title, description = 'The field guide to MIDI: protocol docs, interactive tools, and a curated catalog of open-source MIDI libraries.', section } = Astro.props;
 const fullTitle = title === 'MIDI Field Guide' ? title : `${title} · MIDI Field Guide`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+// One social card per section (public/og/*.png, rendered from src/pages/og-cards/[section].astro).
+const OG: Record<string, string> = { '/docs': 'docs', '/tools': 'tools', '/reader': 'reader', '/libraries': 'libraries', '/samples': 'samples', '/community': 'community' };
+const ogImage = new URL(`/og/${(section && OG[section]) || 'home'}.png`, Astro.site);
 
 const nav = [
   { href: '/docs/', label: 'Docs', key: '/docs' },
@@ -35,6 +37,7 @@ const nav = [
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    <link rel="preload" href="/fonts/archivo-display.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -46,13 +49,13 @@ const nav = [
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="MIDI Field Guide" />
-    <meta property="og:image" content={new URL('/og.png', Astro.site)} />
+    <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="MIDI Field Guide: the bytes 90 3C 64 decoded as Note On, middle C, velocity 100." />
+    <meta property="og:image:alt" content={`MIDI Field Guide: ${title === 'MIDI Field Guide' ? 'the field guide to MIDI' : title}`} />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={new URL('/og.png', Astro.site)} />
+    <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
     <script is:inline>
       try {
@@ -467,6 +470,7 @@ const nav = [
     }
     .menu-open .site-nav {
       display: block;
+      animation: fade-up 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
     }
     .site-nav ul {
       display: grid;

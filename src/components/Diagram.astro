@@ -1,0 +1,240 @@
+---
+/**
+ * Wrapper for the hand-drawn inline SVG diagrams in src/components/diagrams/.
+ *
+ * Accessibility pattern (used by every diagram): the <svg> has role="img" and
+ * aria-labelledby pointing at its own <title> and <desc>, which carry the full text
+ * description. The visible <figcaption> is a short summary for sighted readers.
+ *
+ * Colors come only from the theme tokens in global.css via the classes below, so the
+ * diagrams follow light/dark mode. Diagrams keep a minimum width so their text stays
+ * legible; on narrow screens the frame scrolls sideways instead of shrinking the text.
+ */
+interface Props {
+  /** Visible caption under the diagram. */
+  caption: string;
+  /** Smallest rendered width of the SVG in px before the frame starts to scroll. */
+  minWidth: number;
+  /** Largest rendered width of the SVG in px. Defaults to 1.2 × minWidth. */
+  maxWidth?: number;
+}
+
+const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props;
+---
+
+<figure class="diagram">
+  <div class="diagram-scroll" data-label={`Diagram: ${caption}`} style={`--dg-min:${minWidth}px;--dg-max:${maxWidth}px`}>
+    <slot />
+  </div>
+  <figcaption>{caption}</figcaption>
+</figure>
+
+<script>
+  // Frames that actually overflow become keyboard-focusable so they can be scrolled with arrow keys.
+  const update = (el: HTMLElement) => {
+    const scrolls = el.scrollWidth > el.clientWidth + 1;
+    if (scrolls && !el.hasAttribute('tabindex')) {
+      el.tabIndex = 0;
+      el.setAttribute('role', 'region');
+      el.setAttribute('aria-label', el.dataset.label ?? 'Diagram');
+    } else if (!scrolls && el.hasAttribute('tabindex')) {
+      el.removeAttribute('tabindex');
+      el.removeAttribute('role');
+      el.removeAttribute('aria-label');
+    }
+  };
+  // Fade the edge that has more to see, so it's obvious the diagram scrolls.
+  const edges = (el: HTMLElement) => {
+    const max = el.scrollWidth - el.clientWidth;
+    el.classList.toggle('more-right', max > 1 && el.scrollLeft < max - 1);
+    el.classList.toggle('more-left', el.scrollLeft > 1);
+  };
+  const frames = [...document.querySelectorAll<HTMLElement>('.diagram-scroll')];
+  const observer = new ResizeObserver((entries) => entries.forEach((e) => (update(e.target as HTMLElement), edges(e.target as HTMLElement))));
+  for (const el of frames) {
+    observer.observe(el);
+    el.addEventListener('scroll', () => edges(el), { passive: true });
+  }
+</script>
+
+<style>
+  .diagram {
+    margin: 1.5rem 0 1.75rem;
+  }
+  .diagram-scroll {
+    position: relative;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.85rem 0.75rem;
+  }
+  .diagram-scroll.more-right {
+    mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+  }
+  .diagram-scroll.more-left {
+    mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent);
+  }
+  .diagram-scroll.more-left.more-right {
+    mask-image: linear-gradient(to right, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  }
+  .diagram-scroll > :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-width: var(--dg-min);
+    max-width: var(--dg-max);
+    margin: 0 auto;
+    overflow: visible;
+  }
+  figcaption {
+    margin-top: 0.55rem;
+    max-width: var(--measure);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
+  /* ---------- Shared SVG vocabulary (all colors are theme tokens) ---------- */
+  .diagram :global(svg text) {
+    font-family: var(--font-text);
+    font-size: 13px;
+    fill: var(--ink);
+  }
+  .diagram :global(svg .mono) {
+    font-family: var(--font-mono);
+  }
+  .diagram :global(svg .disp) {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-stretch: 112%;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .diagram :global(svg .sm) {
+    font-size: 12px;
+  }
+  .diagram :global(svg .md) {
+    font-size: 14px;
+  }
+  .diagram :global(svg .lg) {
+    font-size: 16px;
+  }
+  .diagram :global(svg .xl) {
+    font-size: 18px;
+  }
+  .diagram :global(svg .b) {
+    font-weight: 700;
+  }
+  .diagram :global(svg .mid) {
+    text-anchor: middle;
+  }
+  .diagram :global(svg .end) {
+    text-anchor: end;
+  }
+  .diagram :global(svg .mu) {
+    fill: var(--muted);
+  }
+  .diagram :global(svg .i2) {
+    fill: var(--ink-2);
+  }
+  .diagram :global(svg .c-s) {
+    fill: var(--accent);
+  }
+  .diagram :global(svg .c-d) {
+    fill: var(--data);
+  }
+  .diagram :global(svg .c-m) {
+    fill: var(--meta);
+  }
+  .diagram :global(svg .c-w) {
+    fill: var(--warn);
+  }
+  .diagram :global(svg .on-solid) {
+    fill: var(--surface);
+  }
+
+  /* Boxes: soft fill + matching stroke, like the byte chips. */
+  .diagram :global(svg :is(.box-s, .box-d, .box-m, .box-w, .box-n, .box-b, .solid-s, .solid-d, .solid-m, .ghost)) {
+    stroke-width: 1.25;
+  }
+  .diagram :global(svg .box-s) {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+  }
+  .diagram :global(svg .box-d) {
+    fill: var(--data-soft);
+    stroke: var(--data);
+  }
+  .diagram :global(svg .box-m) {
+    fill: var(--meta-soft);
+    stroke: var(--meta);
+  }
+  .diagram :global(svg .box-w) {
+    fill: var(--warn-soft);
+    stroke: var(--warn);
+  }
+  .diagram :global(svg .box-n) {
+    fill: var(--surface-2);
+    stroke: var(--line-strong);
+  }
+  .diagram :global(svg .box-b) {
+    fill: var(--bg);
+    stroke: var(--line-strong);
+  }
+  .diagram :global(svg .solid-s) {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+  .diagram :global(svg .solid-d) {
+    fill: var(--data);
+    stroke: var(--data);
+  }
+  .diagram :global(svg .solid-m) {
+    fill: var(--meta);
+    stroke: var(--meta);
+  }
+  .diagram :global(svg .ghost) {
+    fill: none;
+    stroke: var(--muted);
+    stroke-dasharray: 4 3;
+  }
+
+  /* Lines and arrowheads. */
+  .diagram :global(svg :is(.ln, .ln-mu, .ln-s, .ln-d, .ln-m)) {
+    fill: none;
+    stroke-width: 1.25;
+  }
+  .diagram :global(svg .ln) {
+    stroke: var(--line-strong);
+  }
+  .diagram :global(svg .ln-mu) {
+    stroke: var(--muted);
+  }
+  .diagram :global(svg .ln-s) {
+    stroke: var(--accent);
+  }
+  .diagram :global(svg .ln-d) {
+    stroke: var(--data);
+  }
+  .diagram :global(svg .ln-m) {
+    stroke: var(--meta);
+  }
+  .diagram :global(svg .dash) {
+    stroke-dasharray: 4 3;
+  }
+  .diagram :global(svg .tick) {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .diagram :global(svg .head-mu) {
+    fill: var(--muted);
+  }
+  .diagram :global(svg .head-d) {
+    fill: var(--data);
+  }
+  .diagram :global(svg .head-m) {
+    fill: var(--meta);
+  }
+</style>

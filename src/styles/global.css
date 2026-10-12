@@ -2,6 +2,17 @@
  * Display: Archivo (expanded widths) · Text: Atkinson Hyperlegible Next · Bytes: Atkinson Hyperlegible Mono
  */
 
+/* Archivo, instanced to the weights (400–900) and widths (100–125%) the site uses and subset to Latin,
+   punctuation, arrows and ♯♭ with fontTools: 55 KB instead of 88 KB plus extra subsets. OFL-1.1. */
+@font-face {
+  font-family: 'Archivo Variable';
+  src: url('/fonts/archivo-display.woff2') format('woff2-variations'), url('/fonts/archivo-display.woff2') format('woff2');
+  font-weight: 400 900;
+  font-stretch: 100% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --font-display: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
   --font-text: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;
@@ -26,6 +37,11 @@
   --warn-soft: #f5e6c4;
   --focus: #1f5fd6;
   --shadow: 0 1px 0 rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(40 30 10 / 0.18);
+  /* Piano keys: real ivory and ebony in light mode, toned down in dark mode to avoid glare. */
+  --key-w: #fbfaf6;
+  --key-w-hover: #f1ede2;
+  --key-b: #1d1c18;
+  --key-label: #645e52;
 
   --radius: 10px;
   --radius-sm: 6px;
@@ -83,6 +99,10 @@
     --warn-soft: #33290f;
     --focus: #7aa7ff;
     --shadow: 0 1px 0 rgb(255 255 255 / 0.03), 0 10px 30px -12px rgb(0 0 0 / 0.6);
+    --key-w: #c9c3b4;
+    --key-w-hover: #bdb6a6;
+    --key-b: #0b0b0a;
+    --key-label: #4a463d;
     color-scheme: dark;
   }
 }
@@ -107,6 +127,10 @@
   --warn-soft: #33290f;
   --focus: #7aa7ff;
   --shadow: 0 1px 0 rgb(255 255 255 / 0.03), 0 10px 30px -12px rgb(0 0 0 / 0.6);
+  --key-w: #c9c3b4;
+  --key-w-hover: #bdb6a6;
+  --key-b: #0b0b0a;
+  --key-label: #4a463d;
   color-scheme: dark;
 }
 
@@ -176,11 +200,17 @@ ul,
 ol {
   margin: 0 0 1em;
 }
+p {
+  text-wrap: pretty;
+}
 
 a {
   color: var(--accent);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.18em;
+}
+a {
+  transition: text-decoration-color 120ms, text-decoration-thickness 120ms, color 120ms;
 }
 a:hover {
   text-decoration-thickness: 2px;
@@ -190,6 +220,23 @@ a:hover {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: 3px;
+}
+/* Cards and buttons keep their own radius when focused. */
+a.card:focus-visible,
+.btn:focus-visible,
+.chip:focus-visible {
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+summary:focus-visible {
+  outline-offset: 4px;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
 }
 
 code,
@@ -326,6 +373,16 @@ a.card,
 a.card:hover,
 .card:has(> .card-cover:hover) {
   border-color: var(--accent);
+}
+a.card {
+  transition: border-color 140ms, transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 160ms;
+}
+a.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+a.card:active {
+  transform: translateY(0);
 }
 .card-title {
   font-family: var(--font-display);
@@ -599,8 +656,20 @@ textarea:focus-visible {
   text-decoration: none;
   color: var(--ink);
 }
+.btn {
+  transition: background-color 120ms, border-color 120ms, transform 80ms;
+}
 .btn:hover {
   background: var(--surface-2);
+}
+.btn:active,
+.chip:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
 }
 .btn-primary {
   background: var(--ink);
@@ -621,8 +690,14 @@ textarea:focus-visible {
   min-height: 2.25rem;
   color: var(--ink);
 }
+.chip {
+  transition: background-color 120ms, border-color 120ms, color 120ms, transform 80ms;
+}
 .chip:hover {
   background: var(--surface-2);
+}
+.chip[aria-pressed='true']:hover {
+  background: var(--ink-2);
 }
 .chip[aria-pressed='true'] {
   background: var(--ink);
@@ -699,7 +774,17 @@ textarea:focus-visible {
   max-width: 60ch;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  a.card:hover,
+  .btn:active,
+  .chip:active {
+    transform: none;
+  }
   *,
   *::before,
   *::after {

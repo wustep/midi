@@ -2,6 +2,7 @@
 import Doc from '../../layouts/Doc.astro';
 import Callout from '../../components/Callout.astro';
 import TempoCalc from '../../components/TempoCalc.astro';
+import ClockTimingDiagram from '../../components/diagrams/ClockTimingDiagram.astro';
 ---
 
 <Doc
@@ -63,6 +64,7 @@ import TempoCalc from '../../components/TempoCalc.astro';
     <strong>24 pulses per quarter note</strong>. Followers derive tempo from the spacing between pulses. There is no
     tempo value in the stream, so tempo changes appear as changes in pulse spacing.
   </p>
+  <ClockTimingDiagram />
   <div class="table-wrap">
     <table>
       <thead><tr><th>Status</th><th>Name</th><th>Meaning</th></tr></thead>
@@ -147,7 +149,7 @@ F2 20 00  →  32 sixteenths  →  bar 3, beat 1 in 4/4</code></pre>
 
   <h3 id="full-frame">Full-frame message</h3>
   <p>When locating, rewinding, or jumping, a full time stamp is sent at once as Universal Real-Time SysEx:</p>
-  <pre><code><span class="b b-s">F0</span> <span class="b b-m">7F</span> <span class="b b-d">7F</span> <span class="b b-d">01 01</span> <span class="b b-d">hh mm ss ff</span> <span class="b b-s">F7</span></code></pre>
+  <pre><code><span class="b b-m">F0</span> <span class="b b-m">7F</span> <span class="b b-d">7F</span> <span class="b b-d">01 01</span> <span class="b b-d">hh mm ss ff</span> <span class="b b-m">F7</span></code></pre>
   <p>
     <code>hh</code> is <code>0rrhhhhh</code>, with the rate bits as above and the hour in the low 5 bits. The other bytes
     hold minutes (0–59), seconds (0–59), and frames.

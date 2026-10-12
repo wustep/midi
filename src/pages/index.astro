@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import HeroStream from '../components/HeroStream.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import community from '../../data/community.json';
@@ -34,7 +35,7 @@ const topCats = [...categories]
   <section class="hero">
     <div class="hero-inner">
       <p class="eyebrow">An open reference</p>
-      <h1>The field guide<br />to <span class="hl">MIDI</span>.</h1>
+      <h1><span>The field</span> <span>guide</span> <span>to <span class="hl">MIDI</span>.</span></h1>
       <p class="lede">
         How MIDI works down to the byte, from MIDI 1.0 to MIDI 2.0. A MIDI file reader, playable instruments, a live
         Web MIDI monitor, runnable recipes, and {libRounded}+ open-source libraries, each one checked against GitHub.
@@ -46,29 +47,7 @@ const topCats = [...categories]
       </div>
     </div>
 
-    <figure class="anatomy" aria-label="Anatomy of a Note On message">
-      <div class="bytes">
-        <div class="byte status">
-          <span class="hexv">90</span>
-          <span class="bin"><b>1001</b><i>0000</i></span>
-          <span class="lbl">Status<br /><small>Note On · channel 1</small></span>
-        </div>
-        <div class="byte data">
-          <span class="hexv">3C</span>
-          <span class="bin"><b>0</b>0111100</span>
-          <span class="lbl">Data 1<br /><small>note 60 · C4</small></span>
-        </div>
-        <div class="byte data">
-          <span class="hexv">64</span>
-          <span class="bin"><b>0</b>1100100</span>
-          <span class="lbl">Data 2<br /><small>velocity 100</small></span>
-        </div>
-      </div>
-      <figcaption>
-        Three bytes, 960 µs on a 5-pin DIN cable. Status bytes have the top bit set; data bytes never do.
-        <a href="/docs/messages/">How messages work →</a>
-      </figcaption>
-    </figure>
+    <HeroStream />
   </section>
   <div class="page home">
     <section class="band" aria-labelledby="start-title">
@@ -204,8 +183,14 @@ const topCats = [...categories]
     gap: 3rem;
     align-items: center;
   }
+  /* Three fixed lines that never wrap, so the headline is the same height in the fallback font and in
+     Archivo: no layout shift when the web font arrives. */
+  .hero h1 > span {
+    display: block;
+    white-space: nowrap;
+  }
   .hero h1 {
-    font-size: clamp(2.8rem, 7vw, 5.4rem);
+    font-size: clamp(2.6rem, 7vw, 5.4rem);
     line-height: 0.98;
     font-stretch: 125%;
     font-weight: 900;
@@ -221,78 +206,6 @@ const topCats = [...categories]
     gap: 0.6rem;
     margin-top: 1.75rem;
   }
-  .anatomy {
-    margin: 0;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    border-radius: 16px;
-    padding: clamp(1.25rem, 3vw, 2rem);
-    box-shadow: var(--shadow);
-  }
-  .bytes {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(0.5rem, 1.5vw, 1rem);
-  }
-  .byte {
-    display: grid;
-    gap: 0.6rem;
-    justify-items: center;
-    text-align: center;
-  }
-  .hexv {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: clamp(2rem, 5vw, 3.4rem);
-    line-height: 1;
-    width: 100%;
-    padding: 0.9rem 0;
-    border-radius: 12px;
-  }
-  .status .hexv {
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-  .data .hexv {
-    background: var(--data-soft);
-    color: var(--data);
-  }
-  .bin {
-    font-family: var(--font-mono);
-    font-size: clamp(0.72rem, 1.4vw, 0.9rem);
-    letter-spacing: 0.08em;
-    color: var(--muted);
-  }
-  .bin b {
-    color: var(--accent);
-  }
-  .status .bin i {
-    font-style: normal;
-    color: var(--data);
-    font-weight: 700;
-  }
-  .lbl {
-    font-family: var(--font-display);
-    font-stretch: 115%;
-    font-weight: 700;
-    font-size: 0.85rem;
-    line-height: 1.3;
-  }
-  .lbl small {
-    font-family: var(--font-text);
-    font-weight: 400;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-  .anatomy figcaption {
-    margin-top: 1.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--line);
-    font-size: 0.9rem;
-    color: var(--ink-2);
-  }
-
-  /* Chapter strip */
   .qr {
     position: sticky;
     top: 5rem;

@@ -1,0 +1,88 @@
+---
+/**
+ * MPE zones on one 16-channel port: a Lower zone (manager 1, members 2–8) and an Upper zone
+ * (manager 16, members 15–9), with per-note vs zone-wide messages. Terminology follows MPE 1.1
+ * ("manager channel").
+ */
+import Diagram from '../Diagram.astro';
+
+const id = 'dg-mpe-zones';
+const cellX = (ch: number) => 20 + (ch - 1) * 40;
+const cells = Array.from({ length: 16 }, (_, i) => {
+  const ch = i + 1;
+  const lower = ch <= 8;
+  const master = ch === 1 || ch === 16;
+  return { ch, cls: master ? (lower ? 'solid-d' : 'solid-m') : lower ? 'box-d' : 'box-m', master };
+});
+const boxes = [
+  { x: 20, zone: 'd', title: 'ch 1 · zone-wide', lines: ['sustain (CC 64)', 'program change', 'pitch bend, ±2'], foot: 'applies to every note' },
+  { x: 184, zone: 'd', title: 'ch 2–8 · per note', lines: ['Note On / Off', 'pitch bend, ±48', 'channel pressure'], foot: 'CC 74 (Slide)' },
+  { x: 346, zone: 'm', title: 'ch 15–9 · per note', lines: ['Note On / Off', 'pitch bend, ±48', 'channel pressure'], foot: 'CC 74 (Slide)' },
+  { x: 510, zone: 'm', title: 'ch 16 · zone-wide', lines: ['sustain (CC 64)', 'program change', 'pitch bend, ±2'], foot: 'applies to every note' },
+];
+---
+
+<Diagram
+  caption="Two MPE zones on one port: Lower zone (manager 1, members 2–8) and Upper zone (manager 16, members 15–9). Each note gets its own member channel; the manager channel carries messages for the whole zone. Bend ranges are the MPE defaults."
+  minWidth={625}
+>
+  <svg viewBox="0 0 680 264" role="img" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>MPE Lower and Upper zones across 16 channels</title>
+    <desc id={`${id}-d`}>
+      Channels 1 to 16 in a row. The Lower zone has manager channel 1 and 7 member channels, 2 to 8, assigned upward. The
+      Upper zone has manager channel 16 and 7 member channels, 15 down to 9. Member channels each carry one note and its
+      own expression: Note On and Note Off, pitch bend (default range plus or minus 48 semitones), channel pressure, and
+      CC 74 (Slide). The manager channel of each zone carries zone-wide messages that apply to every note in the zone,
+      such as sustain (CC 64), program change, and a zone-wide pitch bend (default range plus or minus 2 semitones).
+    </desc>
+
+    <text x="180" y="22" class="b md c-d mid">Lower zone</text>
+    <text x="180" y="40" class="sm i2 mid">manager ch 1 · members 2–8</text>
+    <path d="M22 56 V49 H338 V56" class="ln-d" />
+    <text x="500" y="22" class="b md c-m mid">Upper zone</text>
+    <text x="500" y="40" class="sm i2 mid">members 15–9 · manager ch 16</text>
+    <path d="M342 56 V49 H658 V56" class="ln-m" />
+
+    {
+      cells.map((c) => (
+        <g>
+          <rect x={cellX(c.ch)} y="60" width="40" height="44" class={c.cls} />
+          <text x={cellX(c.ch) + 20} y="88" class:list={['mono', 'b', 'md', 'mid', c.master && 'on-solid']}>
+            {c.ch}
+          </text>
+        </g>
+      ))
+    }
+
+    <!-- Member allocation direction -->
+    <line x1="62" y1="117" x2="330" y2="117" class="ln-d" />
+    <polygon points="338,117 329,112.5 329,121.5" class="head-d" />
+    <line x1="350" y1="117" x2="618" y2="117" class="ln-m" />
+    <polygon points="342,117 351,112.5 351,121.5" class="head-m" />
+
+    <!-- Leaders to the message boxes -->
+    <line x1="40" y1="104" x2="40" y2="150" class="ln-d" />
+    <line x1="200" y1="117" x2="200" y2="150" class="ln-d" />
+    <line x1="480" y1="117" x2="480" y2="150" class="ln-m" />
+    <line x1="640" y1="104" x2="640" y2="150" class="ln-m" />
+
+    {
+      boxes.map((b) => (
+        <g>
+          <rect x={b.x} y="150" width="150" height="104" rx="6" class={b.zone === 'd' ? 'box-d' : 'box-m'} />
+          <text x={b.x + 10} y="171" class:list={['b', b.zone === 'd' ? 'c-d' : 'c-m']}>
+            {b.title}
+          </text>
+          {b.lines.map((l, i) => (
+            <text x={b.x + 10} y={191 + i * 17} class="sm">
+              {l}
+            </text>
+          ))}
+          <text x={b.x + 10} y="242" class:list={['sm', b.foot.startsWith('CC') ? '' : 'i2']}>
+            {b.foot}
+          </text>
+        </g>
+      ))
+    }
+  </svg>
+</Diagram>

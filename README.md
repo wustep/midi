@@ -7,7 +7,7 @@
 **A curated list of open-source MIDI libraries and tools, plus a byte-level guide to the protocol.**
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
-[![Libraries](https://img.shields.io/badge/libraries-460-a83508)](https://midi.community/libraries/)
+[![Libraries](https://img.shields.io/badge/libraries-479-a83508)](https://midi.community/libraries/)
 [![Verified](https://img.shields.io/badge/verified-2026--10--12-0b6b63)](scripts/verify-links.mjs)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-3d3a33)](LICENSE)
 [![Data: CC0](https://img.shields.io/badge/data%20%26%20docs-CC0-3d3a33)](LICENSE-CC0)
@@ -22,19 +22,19 @@ Every project below is checked against the GitHub API: it must exist and be publ
 
 - [On the website](#on-the-website)
 - [Libraries and tools](#libraries-and-tools)
-  - [Parsing & Standard MIDI Files](#parsing--standard-midi-files) (34)
+  - [Parsing & Standard MIDI Files](#parsing--standard-midi-files) (36)
   - [Realtime I/O](#realtime-io) (37)
-  - [Web MIDI & JavaScript](#web-midi--javascript) (30)
-  - [Synthesis & SoundFonts](#synthesis--soundfonts) (48)
-  - [Hardware & Firmware](#hardware--firmware) (56)
+  - [Web MIDI & JavaScript](#web-midi--javascript) (31)
+  - [Synthesis & SoundFonts](#synthesis--soundfonts) (51)
+  - [Hardware & Firmware](#hardware--firmware) (61)
   - [Network & Wireless](#network--wireless) (17)
-  - [DAWs, Sequencers & Live Tools](#daws-sequencers--live-tools) (75)
-  - [Utilities, Routing & Visualization](#utilities-routing--visualization) (40)
+  - [DAWs, Sequencers & Live Tools](#daws-sequencers--live-tools) (76)
+  - [Utilities, Routing & Visualization](#utilities-routing--visualization) (45)
   - [Synth Editors & Librarians](#synth-editors--librarians) (19)
   - [Notation & Music Theory](#notation--music-theory) (38)
-  - [Machine Learning & Generative](#machine-learning--generative) (32)
+  - [Machine Learning & Generative](#machine-learning--generative) (33)
   - [Datasets](#datasets) (20)
-  - [MIDI 2.0](#midi-20) (14)
+  - [MIDI 2.0](#midi-20) (15)
 - [Browse by language](#browse-by-language)
 - [Specifications](#specifications)
 - [Contributing](#contributing)
@@ -54,7 +54,7 @@ The catalog is one part of **[midi.community](https://midi.community)**, an open
 
 ## Libraries and tools
 
-**460 projects** in 13 categories (15 archived), last verified 2026-10-12.
+**479 projects** in 13 categories (16 archived), last verified 2026-10-12.
 
 ### Parsing & Standard MIDI Files
 
@@ -71,7 +71,7 @@ Read, write, and transform .mid files and MIDI byte streams.
 | [DryWetMIDI](https://github.com/melanchall/drywetmidi) | C# | Comprehensive .NET library for MIDI files, devices, playback, and recording. | 704 | MIT |
 | [MidiWriterJS](https://github.com/grimmdude/MidiWriterJS) | JavaScript | Fluent API for generating multi-track MIDI files in JavaScript. | 608 | MIT |
 | [MidiPlayerJS](https://github.com/grimmdude/MidiPlayerJS) | JavaScript | MIDI file player that emits events for each message as it plays. | 397 | MIT |
-| [gomidi](https://github.com/gomidi/midi) | Go | Modular MIDI library for Go: messages, SMF read/write, and pluggable realtime drivers. | 360 | MIT |
+| [gomidi](https://github.com/gomidi/midi) | Go | Modular MIDI library for Go: messages, SMF read/write, and pluggable realtime drivers. Developed on GitLab; GitHub is a mirror. | 360 | MIT |
 | [miditoolkit](https://github.com/YatingMusic/miditoolkit) | Python | MIDI file toolkit with tick-level precision, piano-roll and chord utilities. | 285 | MIT |
 | [MIDIUtil](https://github.com/MarkCWirt/MIDIUtil) | Python | Pure-Python library for writing multi-track MIDI files. | 272 | Other |
 | [android-midi-lib](https://github.com/LeffelMania/android-midi-lib) | Java | Lightweight library for reading, editing and writing MIDI files on Android/Java. | 265 | MIT |
@@ -84,8 +84,10 @@ Read, write, and transform .mid files and MIDI byte streams.
 | [MIDITONES](https://github.com/LenShustek/miditones) | C | Converts MIDI files into a compact note bytestream for playback on Arduino and other microcontrollers. | 172 | MIT |
 | [midi-file](https://github.com/carter-thaxton/midi-file) | JavaScript | Small, dependency-free MIDI file parser and writer for Node and browsers. | 158 | MIT |
 | [pypianoroll](https://github.com/salu133445/pypianoroll) | Python | Multitrack piano-roll representation with MIDI I/O and visualization. | 148 | MIT |
+| [Godot MIDI](https://github.com/nlaha/godot-midi) | C++ | Godot 4 extension that imports MIDI files as assets and emits note events in sync with playback. | 147 | MIT |
 | [midi-json-parser](https://github.com/chrisguttandin/midi-json-parser) | TypeScript | Parses MIDI files into JSON, running the work in a Web Worker. | 133 | MIT |
 | [jdksmidi](https://github.com/jdkoftinoff/jdksmidi) | C++ | Long-standing C++ library for reading, writing, and sequencing Standard MIDI Files. | 120 | Other |
+| [MD_MIDIFile](https://github.com/MajicDesigns/MD_MIDIFile) | C++ | Arduino library that reads Standard MIDI Files from an SD card and plays them out with tempo, looping, and SysEx callbacks. | 120 | LGPL-2.1 |
 | [wmidi](https://github.com/RustAudio/wmidi) | Rust | Allocation-free Rust library for encoding and decoding MIDI messages from raw bytes. | 103 | MIT |
 | [midicomp](https://github.com/markc/midicomp) | C | Converts Standard MIDI Files to an editable plain-text format and compiles them back (based on mf2t/t2mf). | 100 | Other |
 | [MidiParser](https://github.com/matsune/MidiParser) | Swift | Reads and writes Standard MIDI Files in Swift for iOS and macOS. | 90 | MIT |
@@ -111,7 +113,6 @@ Cross-platform access to MIDI ports: CoreMIDI, ALSA, WinMM, JACK and friends.
 | [RtMidi](https://github.com/thestk/rtmidi) | C++ | The classic cross-platform realtime MIDI I/O API (CoreMIDI, ALSA, JACK, WinMM). | 1.2k | Other |
 | [midir](https://github.com/Boddlnagg/midir) | Rust | Cross-platform realtime MIDI processing in Rust. | 829 | MIT |
 | [node-midi](https://github.com/justinlatimer/node-midi) | JavaScript | Node.js wrapper around RtMidi for realtime MIDI ports. | 760 | MIT |
-| [MidiJack](https://github.com/keijiro/MidiJack) | C# | MIDI input plugin for Unity. | 730 | n/a |
 | [Minis](https://github.com/keijiro/Minis) | C# | MIDI input via the Unity Input System. | 721 | Other |
 | [libremidi](https://github.com/celtera/libremidi) | C++ | Modern C++20 MIDI 1.0 and MIDI 2.0 realtime and file I/O library. | 712 | Other |
 | [SoundFlow](https://github.com/LSXPrime/SoundFlow) | C# | .NET audio and MIDI engine with device I/O, MIDI routing and sequencing, and SoundFont and MPE synthesis. | 520 | MIT |
@@ -123,7 +124,7 @@ Cross-platform access to MIDI ports: CoreMIDI, ALSA, WinMM, JACK and friends.
 | [portmidi (Go)](https://github.com/rakyll/portmidi) | Go | Go bindings for PortMidi. | 290 | Apache-2.0 |
 | [unimidi](https://github.com/arirusso/unimidi) | Ruby | Platform-independent realtime MIDI input and output for Ruby. | 256 | Other |
 | [rust-jack](https://github.com/RustAudio/rust-jack) | Rust | Rust bindings for JACK, with MIDI ports. | 247 | MIT |
-| [managed-midi](https://github.com/atsushieno/managed-midi) | C# | Cross-platform .NET MIDI device access and SMF support. | 217 | MIT |
+| [managed-midi](https://github.com/atsushieno/managed-midi) | C# | Cross-platform .NET MIDI device access and SMF support. Its author now recommends ktmidi for new work. | 217 | MIT |
 | [PortMidi](https://github.com/PortMidi/portmidi) | C | Portable realtime MIDI I/O library used by many audio applications. | 212 | Other |
 | [easymidi](https://github.com/dinchak/node-easymidi) | JavaScript | Simple event-based MIDI messaging for Node.js. | 196 | MIT |
 | [mididriver](https://github.com/billthefarmer/mididriver) | Java | Android MIDI driver using the Sonivox EAS synthesizer. | 191 | n/a |
@@ -131,6 +132,7 @@ Cross-platform access to MIDI ports: CoreMIDI, ALSA, WinMM, JACK and friends.
 | [alsa-rs](https://github.com/diwic/alsa-rs) | Rust | Rust bindings for ALSA, including the sequencer and rawmidi APIs. | 163 | Apache-2.0 |
 | [WebMIDIKit](https://github.com/adamnemecek/WebMIDIKit) | Swift | Swift CoreMIDI library modeled on the Web MIDI API. | 154 | MIT |
 | [micromidi](https://github.com/arirusso/micromidi) | Ruby | Ruby DSL for live MIDI messaging and scripting. | 138 | Other |
+| [RtMidi for Unity](https://github.com/keijiro/jp.keijiro.rtmidi) | C# | RtMidi wrapper that gives Unity C# scripts low-level access to MIDI input and output ports. | 128 | Other |
 | [flutter_midi_command](https://github.com/InvisibleWrench/FlutterMidiCommand) | Dart | Flutter plugin for MIDI over USB and BLE on iOS, Android, macOS, and Linux. | 121 | BSD-3-Clause |
 | [coremidi (Rust)](https://github.com/chris-zen/coremidi) | Rust | Safe Rust bindings for Apple's CoreMIDI. | 87 | MIT |
 | [Gong](https://github.com/dclelland/Gong) | Swift | Swift wrapper around CoreMIDI for sending and receiving MIDI on iOS and macOS. | 84 | MIT |
@@ -162,6 +164,7 @@ MIDI in the browser and Node.js: Web MIDI API wrappers, players, and editors.
 | [Gibber](https://github.com/gibber-cc/gibber) | JavaScript | Browser live-coding environment with Web MIDI output. | 976 | MIT |
 | [html-midi-player](https://github.com/cifkao/html-midi-player) | JavaScript | Web components for playing and visualizing MIDI files on any web page. | 910 | BSD-2-Clause |
 | [midi-js-soundfonts](https://github.com/gleitz/midi-js-soundfonts) | JavaScript | Pre-rendered General MIDI SoundFonts packaged for MIDI.js and the web. | 790 | MIT |
+| [MIDI Synth](https://github.com/cwilso/midi-synth) | JavaScript | Web Audio analog-style synthesizer played through the Web MIDI API, by an editor of the Web MIDI spec. | 609 | MIT |
 | [JZZ](https://github.com/jazz-soft/JZZ) | JavaScript | MIDI library for Node.js and browsers with Web MIDI polyfill and MIDI 2.0 support. | 595 | MIT |
 | [web-synth](https://github.com/Ameobea/web-synth) | TypeScript | Browser-based DAW and modular synthesis platform with a MIDI editor and Web MIDI controller input. | 579 | Other |
 | [SpessaSynth](https://github.com/spessasus/SpessaSynth) | JavaScript | SoundFont2/DLS synthesizer and MIDI player for the web. | 408 | Apache-2.0 |
@@ -208,7 +211,7 @@ Turn MIDI into sound: SoundFont/SFZ players, software synths, and audio language
 | [TinySoundFont](https://github.com/schellingb/TinySoundFont) | C | Single-header SoundFont2 synthesizer and MIDI file player. | 887 | MIT |
 | [Odin 2](https://github.com/TheWaveWarden/odin2) | C++ | Polyphonic synthesizer plugin with MPE support. | 821 | Other |
 | [Munt](https://github.com/munt/munt) | C++ | Roland MT-32, CM-32L, and LAPC-I synthesizer emulator. | 818 | n/a |
-| [Calf Studio Gear](https://github.com/calf-studio-gear/calf) | C++ | Audio plugin suite for Linux, including MIDI-driven synths. | 805 | LGPL-2.1 |
+| [Calf Studio Gear](https://github.com/calf-studio-gear/calf) | C++ | Audio plugin suite for Linux, including MIDI-driven synths. Now maintenance-only; calfNXT is the designated successor. | 805 | LGPL-2.1 |
 | [Vaporizer2](https://github.com/VASTDynamics/Vaporizer2) | C++ | Hybrid wavetable synthesizer and sampler plugin with MPE support and MIDI modulation sources. | 590 | GPL-3.0 |
 | [ADLplug](https://github.com/jpcima/ADLplug) | C++ | FM chip synthesizer plugin (OPL3/OPN2) built on libADLMIDI. | 532 | BSL-1.0 |
 | [amsynth](https://github.com/amsynth/amsynth) | C++ | Analog-modelling software synthesizer. | 506 | GPL-2.0 |
@@ -226,9 +229,12 @@ Turn MIDI into sound: SoundFont/SFZ players, software synths, and audio language
 | [MinimalMIDIPlayer](https://github.com/SamusAranX/MinimalMIDIPlayer) | Swift | macOS app that plays Standard MIDI Files through SF2 or DLS SoundFonts. | 155 | n/a |
 | [JS80P](https://github.com/attilammagyar/js80p) | C++ | MIDI-driven virtual analog and FM synthesizer plugin with MPE support and MTS-ESP tuning. | 140 | GPL-3.0 |
 | [midi2audio](https://github.com/bzamecnik/midi2audio) | Python | Render MIDI to audio with FluidSynth from Python or the command line. | 134 | MIT |
+| [miniBAE](https://github.com/heyigor/miniBAE) | C | Beatnik Audio Engine (mini edition): an embeddable MIDI, RMF, and wavetable synthesizer, open-sourced after Beatnik closed. | 132 | BSD-3-Clause |
 | [libOPNMIDI](https://github.com/Wohlstand/libOPNMIDI) | C++ | MIDI player library with OPN2 (YM2612) FM emulation. | 130 | LGPL-3.0 |
+| [FluidPatcher](https://github.com/GeekFunkLabs/fluidpatcher) | Python | Python toolkit for building FluidSynth instruments with YAML patch banks, MIDI routing, and MIDI-triggered rules. | 128 | MIT |
 | [liquidsfz](https://github.com/swesterfeld/liquidsfz) | C++ | SFZ sampler library with a JACK client and LV2 plugin that plays SFZ instruments from MIDI input. | 123 | MPL-2.0 |
 | [SFZero](https://github.com/stevefolta/SFZero) | C++ | JUCE SFZ and SF2 player plugin that maps MIDI notes onto sample regions. | 104 | MIT |
+| [foo_midi](https://github.com/stuerp/foo_midi) | C++ | foobar2000 component that plays MIDI and game MIDI formats through FluidSynth, BASSMIDI, emulated chips, and VSTi. | 104 | MIT |
 | [ZiggySynth](https://github.com/sinshu/ziggysynth) | Zig | SoundFont MIDI synthesizer written in pure Zig. | 87 | Other |
 | [go-meltysynth](https://github.com/sinshu/go-meltysynth) | Go | SoundFont MIDI synthesizer written in pure Go. | 80 | Other |
 | [Qsynth](https://github.com/rncbc/qsynth) | C++ | Qt front-end for FluidSynth with SoundFont stacks, multiple engines, and MIDI channel and port setup. | 80 | GPL-2.0 |
@@ -258,6 +264,7 @@ Arduino, Teensy, RP2040, ESP32, Daisy and USB-MIDI device stacks.
 | [Piano LED Visualizer](https://github.com/onlaj/Piano-LED-Visualizer) | Python | Raspberry Pi app that lights an LED strip above a piano from incoming MIDI notes, with learning modes. | 773 | MIT |
 | [Push 2 interface](https://github.com/Ableton/push-interface) | Docs | Ableton's manual for the Push 2 MIDI mapping, SysEx commands, and USB display protocol. | 711 | n/a |
 | [Deluge Community Firmware](https://github.com/SynthstromAudible/DelugeFirmware) | C++ | Community-developed firmware for the Synthstrom Deluge sequencer, synth and sampler, with MIDI, MPE, and clock sync. | 684 | GPL-3.0 |
+| [HIDUINO](https://github.com/ddiakopoulos/hiduino) | C | LUFA firmware that turns the USB chip on an Arduino Uno or Mega into a class-compliant USB-MIDI device. | 669 | n/a |
 | [Adafruit TinyUSB Arduino](https://github.com/adafruit/Adafruit_TinyUSB_Arduino) | C++ | TinyUSB for Arduino cores, enabling USB-MIDI on RP2040, SAMD, nRF52, ESP32-S2/S3. | 651 | MIT |
 | [PedalinoMini](https://github.com/alf45tar/PedalinoMini) | C++ | ESP32 foot controller firmware with USB, DIN, BLE-MIDI, RTP-MIDI, and OSC support. | 622 | n/a |
 | [Teensy cores](https://github.com/PaulStoffregen/cores) | C | Teensy core libraries, including the usbMIDI device implementation. | 578 | n/a |
@@ -270,6 +277,7 @@ Arduino, Teensy, RP2040, ESP32, Daisy and USB-MIDI device stacks.
 | [MIDI2CV](https://github.com/elkayem/midi2cv) | C++ | Arduino-based MIDI to CV/gate converter. | 472 | GPL-3.0 |
 | [16n Faderbank](https://github.com/16n-faderbank/16n) | C++ | Open-source 16-fader MIDI/CV/I2C controller (Teensy). | 384 | Other |
 | [launchpad.py](https://github.com/FMMT666/launchpad.py) | Python | Python library for controlling Novation Launchpad and Midi Fighter grid LEDs and buttons over MIDI. | 383 | Other |
+| [Arduinoboy](https://github.com/trash80/Arduinoboy) | C++ | Arduino firmware that bridges MIDI and the Game Boy link port for LSDJ, Nanoloop, and other Game Boy music software. | 373 | GPL-2.0 |
 | [picostepseq](https://github.com/todbot/picostepseq) | Python | MIDI step sequencer for the Raspberry Pi Pico. | 352 | GPL-3.0 |
 | [Aciduino](https://github.com/midilab/aciduino) | C++ | DIY Arduino TB-303 and TR-808 style step sequencer and MIDI controller with MIDI clock sync. | 333 | MIT |
 | [Moppy2](https://github.com/samphonic/Moppy2) | Java | Play MIDI on floppy drives and other hardware ("Musical flOPPY controller"). | 331 | Other |
@@ -283,6 +291,8 @@ Arduino, Teensy, RP2040, ESP32, Daisy and USB-MIDI device stacks.
 | [midi2usbhost](https://github.com/rppicomidi/midi2usbhost) | C | Raspberry Pi Pico bridge from a USB-MIDI device to a serial MIDI port. | 199 | MIT |
 | [USBH_MIDI](https://github.com/YuuichiAkagawa/USBH_MIDI) | C++ | USB MIDI class driver for the Arduino USB Host Shield 2.0 library. | 163 | GPL-2.0 |
 | [USBMidiKliK4x4](https://github.com/TheKikGen/USBMidiKliK4x4) | C | Firmware for a multi-port USB-MIDI interface on STM32 "Blue Pill" boards. | 160 | n/a |
+| [picotouch](https://github.com/todbot/picotouch) | C++ / CircuitPython | Open-hardware capacitive-touch USB-MIDI keyboard controller built on a Raspberry Pi Pico. | 136 | GPL-3.0 |
+| [Mega Drive MIDI Interface](https://github.com/rhargreaves/mega-drive-midi-interface) | C | Sega Mega Drive ROM that plays the YM2612 FM and PSG chips as a multitimbral MIDI sound module. | 133 | GPL-3.0 |
 | [usb_midi_host](https://github.com/rppicomidi/usb_midi_host) | C | USB-MIDI host driver for TinyUSB on the Raspberry Pi Pico (RP2040). | 119 | MIT |
 | [Launchpad Pro performance firmware](https://github.com/mat1jaczyyy/lpp-performance-cfw) | C | Custom Novation Launchpad Pro firmware optimized for low-latency MIDI input and LED light shows. | 119 | BSD-3-Clause |
 | [Midi Fighter Twister firmware](https://github.com/DJ-TechTools/Midi_Fighter_Twister_Open_Source) | C | Official open-source firmware for the DJ TechTools Midi Fighter Twister USB-MIDI encoder controller. | 111 | n/a |
@@ -299,10 +309,11 @@ Arduino, Teensy, RP2040, ESP32, Daisy and USB-MIDI device stacks.
 | [Organelle OS](https://github.com/critterandguitari/Organelle_OS) | C | Operating system for the Organelle Pd-based instrument. | 66 | Other |
 | [usbd-midi](https://github.com/rust-embedded-community/usbd-midi) | Rust | USB-MIDI device class for embedded Rust (usb-device). | 63 | MIT |
 | [CircuitPython MIDI](https://github.com/adafruit/Adafruit_CircuitPython_MIDI) | Python | MIDI over USB and serial for CircuitPython boards. | 57 | MIT |
-| [MicroDexed](https://github.com/dcoredump/MicroDexed) | C++ | Dexed (DX7) FM synth engine running on a Teensy. | 57 | n/a |
+| [MicroDexed](https://github.com/dcoredump/MicroDexed) | C++ | Dexed (DX7) FM synth engine running on a Teensy. Development continues on Codeberg. | 57 | n/a |
 | [pico-usb-midi-filter](https://github.com/rppicomidi/pico-usb-midi-filter) | C | Raspberry Pi Pico that sits between a USB-MIDI device and host and filters messages. | 42 | MIT |
 | [Adafruit CircuitPython USB Host MIDI](https://github.com/adafruit/Adafruit_CircuitPython_USB_Host_MIDI) | Python | USB host MIDI for CircuitPython boards. | 9 | MIT |
 | [midi2usbdev](https://github.com/rppicomidi/midi2usbdev) | C | Raspberry Pi Pico as a USB-MIDI device bridging serial MIDI ports. | 5 | MIT |
+| [MIDIpal](https://github.com/pichenettes/midipal) 🗄️ | C++ | Firmware for the Mutable Instruments MIDIpal, a MIDI processor with arpeggiator, monitor, splitter, and clock tools. | 306 | n/a |
 
 [↑ back to contents](#contents)
 
@@ -363,7 +374,8 @@ Sequencers, live-coding environments, plugin frameworks, and performance tools.
 | [Schism Tracker](https://github.com/schismtracker/schismtracker) | C | Impulse Tracker clone with MIDI in/out. | 1.6k | GPL-2.0 |
 | [Tracktion Engine](https://github.com/Tracktion/tracktion_engine) | C++ | High-level JUCE module for building sequencer and DAW apps. | 1.5k | Other |
 | [Hydrogen](https://github.com/hydrogen-music/hydrogen) | C++ | Advanced drum machine with MIDI in/out. | 1.3k | GPL-2.0 |
-| [FoxDot](https://github.com/Qirky/FoxDot) | Python | Live-coding environment in Python for SuperCollider and MIDI. | 1.2k | Other |
+| [DawDreamer](https://github.com/DBraun/DawDreamer) | Python | Python-scriptable audio engine that renders MIDI notes and files through VST instruments, Faust, and effect graphs. | 1.3k | GPL-3.0 |
+| [FoxDot](https://github.com/Qirky/FoxDot) | Python | Live-coding environment in Python for SuperCollider and MIDI. Its author is no longer actively developing it. | 1.2k | Other |
 | [Radium](https://github.com/kmatheussen/radium) | C++ | Music editor with a tracker interface and MIDI support. | 1.1k | GPL-2.0 |
 | [Stargate](https://github.com/stargatedaw/stargate) | C | All-in-one DAW and plugin suite. | 880 | GPL-3.0 |
 | [DPF](https://github.com/DISTRHO/DPF) | C++ | DISTRHO Plugin Framework for LV2, VST, CLAP, and JACK. | 874 | ISC |
@@ -377,7 +389,7 @@ Sequencers, live-coding environments, plugin frameworks, and performance tools.
 | [MidiAnimationTrack](https://github.com/keijiro/MidiAnimationTrack) | C# | Unity Timeline track that plays MIDI files as animation. | 467 | Unlicense |
 | [textbeat](https://github.com/flipcoder/textbeat) | Python | Plaintext music sequencer and MIDI shell that plays column-based scores to MIDI outputs. | 444 | MIT |
 | [isobar](https://github.com/ideoforms/isobar) | Python | Algorithmic composition and pattern sequencing over MIDI and OSC. | 439 | MIT |
-| [ReaScripts](https://github.com/ReaTeam/ReaScripts) | Lua | Community script repository for REAPER, with many MIDI editing tools. | 424 | n/a |
+| [ReaScripts](https://github.com/ReaTeam/ReaScripts) | Lua | Community script repository for REAPER, with many MIDI editing tools. | 425 | n/a |
 | [Launchpad95](https://github.com/hdavid/Launchpad95) | Python | Ableton Live MIDI remote scripts that add step sequencer, scale, and device modes to Novation Launchpads. | 398 | GPL-3.0 |
 | [Sardine](https://github.com/Bubobubobubobubo/sardine) | Python | Python live-coding library for MIDI, OSC, and SuperDirt. | 325 | GPL-3.0 |
 | [polyrhythmix](https://github.com/dredozubov/polyrhythmix) | Rust | Command-line polyrhythmic MIDI drum generator. | 309 | Unlicense |
@@ -405,14 +417,14 @@ Sequencers, live-coding environments, plugin frameworks, and performance tools.
 | [cubase-mcu-midiremote](https://github.com/bjoluc/cubase-mcu-midiremote) | TypeScript | Cubase MIDI Remote scripts for Mackie Control (MCU) protocol controllers such as the X-Touch and iCON devices. | 87 | MIT |
 | [Anklang](https://github.com/tim-janik/anklang) | C++ | MIDI and audio synthesizer and composer with a piano-roll editor and ALSA and JACK MIDI drivers. | 83 | MPL-2.0 |
 | [Beat Pads](https://github.com/anzbert/beat_pads) | Dart | Flutter app that turns phones and tablets into USB or Bluetooth MIDI and MPE pad controllers. | 80 | GPL-3.0 |
-| [Pagan](https://github.com/quintinfsmith/pagan) | Kotlin | Music sequencer for Android. | 75 | GPL-3.0 |
+| [Pagan](https://github.com/quintinfsmith/pagan) | Kotlin | Music sequencer for Android. Development continues on Codeberg. | 75 | GPL-3.0 |
 | [Karya](https://github.com/elaforge/karya) | Haskell | Haskell music sequencer with a score language that renders to MIDI and other backends. | 73 | GPL-3.0 |
 | [Noteahead](https://github.com/juzzlin/Noteahead) | C++ | Pattern-based tracker-style MIDI sequencer for Linux that drives external MIDI hardware and built-in instruments. | 73 | GPL-3.0 |
 | [Seq](https://github.com/eclab/seq) | Java | Modular, hierarchical MIDI sequencer from the author of Edisyn. | 71 | Apache-2.0 |
 | [Renoise tools](https://github.com/renoise/xrnx) | Lua | Official Renoise Lua tools and API docs, including MIDI utilities. | 63 | MIT |
 | [Strudel](https://github.com/tidalcycles/strudel) 🗄️ | JavaScript | Tidal patterns in the browser, with Web MIDI output. Development continues on Codeberg. | 3.0k | AGPL-3.0 |
 | [Tidal](https://github.com/tidalcycles/Tidal) 🗄️ | Haskell | Live-coding pattern language that can drive MIDI devices. Development continues on Codeberg. | 2.8k | GPL-3.0 |
-| [Open Stage Control](https://github.com/jean-emmanuel/open-stage-control) 🗄️ | JavaScript | Customizable control surfaces for MIDI and OSC, in the browser. Development continues on Framagit. | 7 | n/a |
+| [Open Stage Control](https://github.com/jean-emmanuel/open-stage-control) 🗄️ | JavaScript | Customizable control surfaces for MIDI and OSC, in the browser. The GitHub repo is now only a pointer; development continues on Framagit. | 7 | n/a |
 
 [↑ back to contents](#contents)
 
@@ -422,6 +434,7 @@ Command-line tools, monitors, filters, routers, and visualizers.
 
 | Project | Language | Description | ⭐ | License |
 |---|---|---|--:|---|
+| [Piano Trainer](https://github.com/ZaneH/piano-trainer) | TypeScript / Rust | Tauri desktop app for practicing piano scales and chords with a MIDI keyboard or the computer keyboard. | 2.2k | MIT |
 | [Neothesia](https://github.com/PolyMeilex/Neothesia) | Rust | Flashy Synthesia-like piano visualizer and learning tool. | 1.6k | GPL-3.0 |
 | [MIDIVisualizer](https://github.com/kosua20/MIDIVisualizer) | C++ | Small MIDI piano-roll visualizer, ready for video export. | 1.3k | MIT |
 | [VGMTrans](https://github.com/vgmtrans/vgmtrans) | C++ | Converts sequenced video-game music formats into MIDI files with matching SF2 or DLS instrument banks. | 1.3k | Zlib |
@@ -429,11 +442,14 @@ Command-line tools, monitors, filters, routers, and visualizers.
 | [SendMIDI](https://github.com/gbevin/SendMIDI) | C++ | Command-line tool to send MIDI messages to any MIDI output. | 852 | GPL-3.0 |
 | [MIDIApps](https://github.com/krevis/MIDIApps) | Objective-C | Source for MIDI Monitor and SysEx Librarian on macOS. | 823 | BSD-3-Clause |
 | [MIDI2LR](https://github.com/rsjaffe/MIDI2LR) | C++ | Control Adobe Lightroom Classic from MIDI controllers. | 775 | GPL-3.0 |
+| [Beat Link Trigger](https://github.com/Deep-Symmetry/beat-link-trigger) | Clojure | Sends MIDI (and OSC) events from Pioneer CDJ playback and beat information to DAWs, lighting, and video software. | 720 | EPL-2.0 |
 | [MIDIMonster](https://github.com/cbdevnet/midimonster) | C | Translates between MIDI, OSC, ArtNet, sACN, and more. | 606 | BSD-2-Clause |
 | [PianoBooster](https://github.com/pianobooster/PianoBooster) | C++ | Interactive piano learning that plays along with MIDI files. | 584 | Other |
 | [MidiEditor](https://github.com/markusschwenk/midieditor) | C++ | Free MIDI file editor for recording, editing, and playback. | 565 | GPL-3.0 |
 | [midis2jam2](https://github.com/wyskoj/midis2jam2) | Kotlin | 3D MIDI file visualizer, a remaster of MIDIJam. | 433 | GPL-3.0 |
 | [ReceiveMIDI](https://github.com/gbevin/ReceiveMIDI) | C++ | Command-line tool to monitor and log incoming MIDI. | 379 | GPL-3.0 |
+| [Linthesia](https://github.com/linthesia/linthesia) | C++ | Synthesia-style falling-notes game for Linux that plays .mid files and scores what you play on a MIDI keyboard. | 351 | GPL-2.0 |
+| [Ideal Piano](https://github.com/Rainbow-Dreamer/Ideal-Piano) | Python | Piano app that names the chords played on a MIDI or computer keyboard in real time and plays back MIDI files. | 272 | LGPL-2.1 |
 | [alsa-utils](https://github.com/alsa-project/alsa-utils) | C | ALSA command-line tools including aconnect, aseqdump, and amidi. | 252 | GPL-2.0 |
 | [obs-midi-mg](https://github.com/nhielost/obs-midi-mg) | C++ | OBS Studio plugin that binds MIDI messages to OBS actions and sends MIDI feedback. | 230 | GPL-2.0 |
 | [Openthesia](https://github.com/ImAxel0/Openthesia) | C# | Falling-notes MIDI visualizer and piano practice tool for Windows. | 224 | GPL-3.0 |
@@ -445,6 +461,7 @@ Command-line tools, monitors, filters, routers, and visualizers.
 | [MidiConverters](https://github.com/ValleyBell/MidiConverters) | C | Collection of command-line tools that convert video-game music sequence formats into MIDI files. | 146 | GPL-2.0 |
 | [DigiShow](https://github.com/robinz-labs/digishow) | C++ | Show-control app that maps signals between MIDI, DMX, OSC, Art-Net, Modbus, and Arduino devices. | 144 | Apache-2.0 |
 | [midi2vjoy](https://github.com/c0redumb/midi2vjoy) | Python | Maps MIDI controller input to vJoy virtual joystick axes and buttons on Windows. | 130 | BSD-2-Clause |
+| [SampleScanner](https://github.com/psobot/SampleScanner) | Python | Command-line auto-sampler that plays a hardware MIDI instrument note by note and records it into an SFZ instrument. | 126 | MIT |
 | [Pigiron](https://github.com/plewto/Pigiron) | Go | MIDI routing utility controlled over OSC. | 98 | MIT |
 | [IEMidi](https://github.com/Interactive-Echoes/IEMidi) | C++ | Cross-platform editor for building MIDI mappings for arbitrary controllers. | 91 | Other |
 | [MVMNT](https://github.com/Maokus/MVMNT) | TypeScript | Music visualization app and framework that renders animated scenes from MIDI files. | 90 | AGPL-3.0 |
@@ -487,7 +504,7 @@ Patch editors, SysEx librarians, and SoundFont/bank editors for hardware and sof
 | [pod-ui](https://github.com/arteme/pod-ui) | Rust | GTK editor for Line 6 POD family devices that edits and transfers programs over MIDI and SysEx. | 64 | GPL-3.0 |
 | [Zoom Explorer](https://github.com/thammer/zoom-explorer) | TypeScript | Web MIDI tool and documented SysEx protocol for editing patches on Zoom MS Plus effect pedals. | 63 | MIT |
 | [SpessaFont](https://github.com/spessasus/SpessaFont) | TypeScript | Browser-based SoundFont (SF2) and DLS editor built on SpessaSynth. | 59 | Apache-2.0 |
-| [BS2-Web](https://github.com/francoisgeorgy/BS2-Web) | JavaScript | Browser-based Web MIDI editor for Novation Bass Station II patches and controls. | 50 | GPL-3.0 |
+| [BS2-Web](https://github.com/francoisgeorgy/BS2-Web) | JavaScript | Browser-based Web MIDI editor for Novation Bass Station II patches and controls. No longer maintained. | 50 | GPL-3.0 |
 | [DEx (Deluge Extensions)](https://github.com/silicakes/deluge-extensions) | TypeScript | Web MIDI companion for the Synthstrom Deluge that mirrors its displays and manages files over SysEx. | 50 | MIT |
 | [Matriarch Editor](https://github.com/mreid/matriarch-editor) | JavaScript | Web MIDI SysEx editor for the global settings of the Moog Matriarch. | 49 | CC0-1.0 |
 
@@ -560,6 +577,7 @@ Symbolic-music models, tokenizers, datasets tooling, and transcription.
 | [Transkun](https://github.com/Yujia-Yan/Transkun) | Python | Piano transcription with pedal and velocity, audio to MIDI. | 459 | MIT |
 | [midi-model](https://github.com/SkyTNT/midi-model) | Python | Transformer for MIDI event generation with a tokenizer and web UI. | 378 | Apache-2.0 |
 | [LakhNES](https://github.com/chrisdonahue/LakhNES) | Python | Multi-instrument music generation pre-trained on Lakh MIDI. | 357 | n/a |
+| [GAME](https://github.com/openvpi/GAME) | Python | Singing-voice-to-MIDI transcription model, successor to SOME, with adjustable note boundaries. | 286 | MIT |
 | [Compound Word Transformer](https://github.com/YatingMusic/compound-word-transformer) | Python | Full-song symbolic music generation using compound-word tokens. | 280 | GPL-3.0 |
 | [MusicTransformer-Pytorch](https://github.com/gwinndr/MusicTransformer-Pytorch) | Python | PyTorch reimplementation of Music Transformer. | 262 | MIT |
 | [YourMT3](https://github.com/mimbres/YourMT3) | Python | Multi-instrument, multi-track music transcription model that outputs MIDI from audio. | 248 | GPL-3.0 |
@@ -625,6 +643,7 @@ Universal MIDI Packet, MIDI-CI, and MIDI 2.0 platform support.
 | [cmidi2](https://github.com/atsushieno/cmidi2) | C | Header-only MIDI 2.0 UMP and MIDI-CI library in C. | 68 | MIT |
 | [ni-midi2](https://github.com/midi2-dev/ni-midi2) | C++ | Native Instruments' MIDI 2.0 foundation library (UMP, MIDI-CI, SysEx). | 58 | MIT |
 | [bl-midi2-rs](https://github.com/midi2-dev/bl-midi2-rs) | Rust | Strongly typed MIDI 2.0 (UMP) message library for Rust, no_std friendly. | 53 | Other |
+| [MIDI2USB Converter](https://github.com/collet-instruments/MIDI2USB-Converter) | C | STM32 firmware and open hardware for a TRS-MIDI-to-USB converter that supports USB MIDI 1.0 and USB MIDI 2.0 with UMP. | 35 | MIT |
 | [uapmd](https://github.com/atsushieno/uapmd) | C++ | Plugin hosting library (VST3/AU/LV2/CLAP) with MIDI 2.0 UMP support. | 34 | MIT |
 | [tusb_ump](https://github.com/midi2-dev/tusb_ump) | C | TinyUSB class driver for USB MIDI 2.0 (UMP) devices. | 29 | MIT |
 | [midi2 (portable core)](https://github.com/sauloverissimo/midi2) | C | Portable C infrastructure for building MIDI 2.0 devices and hosts. | 18 | MIT |
@@ -637,7 +656,7 @@ Universal MIDI Packet, MIDI-CI, and MIDI 2.0 platform support.
 
 Open the filtered catalog on the website:
 
-[C++](https://midi.community/libraries/?lang=C%2B%2B) (135) · [Python](https://midi.community/libraries/?lang=Python) (91) · [C](https://midi.community/libraries/?lang=C) (55) · [JavaScript](https://midi.community/libraries/?lang=JavaScript) (39) · [TypeScript](https://midi.community/libraries/?lang=TypeScript) (26) · [Java](https://midi.community/libraries/?lang=Java) (19) · [Rust](https://midi.community/libraries/?lang=Rust) (19) · [C#](https://midi.community/libraries/?lang=C%23) (14) · [Go](https://midi.community/libraries/?lang=Go) (12) · [Swift](https://midi.community/libraries/?lang=Swift) (8) · [Lua](https://midi.community/libraries/?lang=Lua) (6) · [Haskell](https://midi.community/libraries/?lang=Haskell) (4) · [Ruby](https://midi.community/libraries/?lang=Ruby) (4) · [Elixir](https://midi.community/libraries/?lang=Elixir) (3) · [Kotlin](https://midi.community/libraries/?lang=Kotlin) (3)
+[C++](https://midi.community/libraries/?lang=C%2B%2B) (141) · [Python](https://midi.community/libraries/?lang=Python) (96) · [C](https://midi.community/libraries/?lang=C) (59) · [JavaScript](https://midi.community/libraries/?lang=JavaScript) (40) · [TypeScript](https://midi.community/libraries/?lang=TypeScript) (26) · [Java](https://midi.community/libraries/?lang=Java) (19) · [Rust](https://midi.community/libraries/?lang=Rust) (19) · [C#](https://midi.community/libraries/?lang=C%23) (14) · [Go](https://midi.community/libraries/?lang=Go) (12) · [Swift](https://midi.community/libraries/?lang=Swift) (8) · [Lua](https://midi.community/libraries/?lang=Lua) (6) · [Haskell](https://midi.community/libraries/?lang=Haskell) (4) · [Ruby](https://midi.community/libraries/?lang=Ruby) (4) · [Elixir](https://midi.community/libraries/?lang=Elixir) (3) · [Kotlin](https://midi.community/libraries/?lang=Kotlin) (3)
 
 [↑ back to contents](#contents)
 

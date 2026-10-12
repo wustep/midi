@@ -1,0 +1,173 @@
+---
+/**
+ * Universal MIDI Packet layouts (M2-104-UM), bit-exact.
+ *   variant="word"   the first 32-bit word (MT + group + rest) and packet size by MT
+ *   variant="midi2"  MIDI 2.0 Note On, MT 0x4, 64 bits: 0x40903C00 0xFFFF0000
+ *   variant="midi1"  MIDI 1.0 Note On in UMP, MT 0x2, 32 bits: 0x20903C64
+ */
+import Diagram from '../Diagram.astro';
+
+interface Props {
+  variant: 'word' | 'midi2' | 'midi1';
+}
+const { variant } = Astro.props;
+const id = `dg-ump-${variant}`;
+
+/** [hi bit, width in bits, value, name, box class, value class] */
+type F = [number, number, string, string, string, string];
+const X0 = 96; // x of bit 31
+const BIT = 18; // units per bit
+const fx = (hi: number) => X0 + (31 - hi) * BIT;
+const range = (hi: number, bits: number) => (bits === 1 ? `${hi}` : `${hi}–${hi - bits + 1}`);
+const bitsLabel = (bits: number) => (bits === 1 ? '1 bit' : `${bits} bits`);
+
+const midi2W1: F[] = [
+  [31, 4, '4', 'MT', 'box-m', 'c-m'],
+  [27, 4, '0', 'group', 'box-n', ''],
+  [23, 4, '9', 'status', 'box-s', 'c-s'],
+  [19, 4, '0', 'channel', 'box-s', 'c-s'],
+  [15, 1, '0', 'r', 'box-b', 'mu'],
+  [14, 7, '3C', 'note (60)', 'box-d', 'c-d'],
+  [7, 8, '00', 'attribute type', 'box-b', ''],
+];
+const midi2W2: F[] = [
+  [31, 16, 'FFFF', 'velocity', 'box-d', 'c-d'],
+  [15, 16, '0000', 'attribute data', 'box-b', ''],
+];
+const midi1W1: F[] = [
+  [31, 4, '2', 'MT', 'box-m', 'c-m'],
+  [27, 4, '0', 'group', 'box-n', ''],
+  [23, 4, '9', 'status', 'box-s', 'c-s'],
+  [19, 4, '0', 'channel', 'box-s', 'c-s'],
+  [15, 1, '0', 'r', 'box-b', 'mu'],
+  [14, 7, '3C', 'note (60)', 'box-d', 'c-d'],
+  [7, 1, '0', 'r', 'box-b', 'mu'],
+  [6, 7, '64', 'velocity (100)', 'box-d', 'c-d'],
+];
+const genericW1: F[] = [
+  [31, 4, 'MT', 'type', 'box-m', 'c-m'],
+  [27, 4, 'group', '0–15', 'box-n', ''],
+  [23, 24, 'rest of the message', 'layout depends on MT', 'box-b', ''],
+];
+
+const words: { label: string; hex?: string; fields: F[] }[] =
+  variant === 'midi2'
+    ? [
+        { label: 'Word 1', hex: '40903C00', fields: midi2W1 },
+        { label: 'Word 2', hex: 'FFFF0000', fields: midi2W2 },
+      ]
+    : variant === 'midi1'
+      ? [{ label: 'Word 1', hex: '20903C64', fields: midi1W1 }]
+      : [{ label: 'Word 1', fields: genericW1 }];
+
+const ROW = 92;
+const sizes = [
+  { bits: '32 bits', n: 1, mts: 'MT 0x0, 0x1, 0x2, 0x6, 0x7' },
+  { bits: '64 bits', n: 2, mts: 'MT 0x3, 0x4, 0x8–0xA' },
+  { bits: '96 bits', n: 3, mts: 'MT 0xB, 0xC' },
+  { bits: '128 bits', n: 4, mts: 'MT 0x5, 0xD, 0xE, 0xF' },
+];
+const height = variant === 'word' ? 252 : words.length * ROW;
+
+const meta = {
+  word: {
+    caption:
+      'Every UMP starts with a 32-bit word whose top 4 bits are the Message Type. The MT alone tells a receiver how many words the packet has.',
+    title: 'Layout of the first UMP word and packet sizes by Message Type',
+    desc: 'The first 32-bit word of every Universal MIDI Packet: bits 31 to 28 are the Message Type (MT), bits 27 to 24 are the group (0 to 15), and bits 23 to 0 are the rest of the message, laid out according to the MT. Utility (MT 0x0) and UMP Stream (MT 0xF) messages have no group. The MT sets the packet size: 32 bits (one word) for MT 0x0, 0x1, 0x2, 0x6 and 0x7; 64 bits (two words) for MT 0x3, 0x4 and 0x8 to 0xA; 96 bits (three words) for MT 0xB and 0xC; 128 bits (four words) for MT 0x5, 0xD, 0xE and 0xF.',
+  },
+  midi2: {
+    caption:
+      'MIDI 2.0 Note On, 0x40903C00 0xFFFF0000: group 0 (group 1), channel 0 (channel 1), note 60, velocity 0xFFFF, no attribute. r = reserved, sent as 0.',
+    title: 'Bit layout of a 64-bit MIDI 2.0 Note On packet',
+    desc: 'Two 32-bit words. Word 1, 0x40903C00: bits 31 to 28 Message Type 4 (MIDI 2.0 Channel Voice); bits 27 to 24 group 0; bits 23 to 20 status 9 (Note On); bits 19 to 16 channel 0; bit 15 reserved, 0; bits 14 to 8 note number 0x3C (60); bits 7 to 0 attribute type 0x00 (none). Word 2, 0xFFFF0000: bits 31 to 16 velocity 0xFFFF (16 bits); bits 15 to 0 attribute data 0x0000 (16 bits).',
+  },
+  midi1: {
+    caption:
+      'MIDI 1.0 Note On in UMP, 0x20903C64: the bytes 90 3C 64 behind an MT and group nibble. r = reserved, sent as 0.',
+    title: 'Bit layout of a 32-bit MIDI 1.0 Note On in UMP',
+    desc: 'One 32-bit word, 0x20903C64: bits 31 to 28 Message Type 2 (MIDI 1.0 Channel Voice); bits 27 to 24 group 0; bits 23 to 20 status 9 (Note On); bits 19 to 16 channel 0; bit 15 reserved, 0; bits 14 to 8 note number 0x3C (60); bit 7 reserved, 0; bits 6 to 0 velocity 0x64 (100).',
+  },
+}[variant];
+---
+
+<Diagram caption={meta.caption} minWidth={635}>
+  <svg viewBox={`0 0 692 ${height}`} role="img" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>{meta.title}</title>
+    <desc id={`${id}-d`}>{meta.desc}</desc>
+    {
+      words.map((w, k) => {
+        const y = k * ROW;
+        return (
+          <g>
+            <text x="20" y={y + 46} class="disp i2">
+              {w.label}
+            </text>
+            {w.hex && (
+              <text x="20" y={y + 64} class="mono sm mu">
+                {w.hex}
+              </text>
+            )}
+            {w.fields.map(([hi, bits, value, name, box, valueCls]) => {
+              const x = fx(hi);
+              const width = bits * BIT;
+              const cx = x + width / 2;
+              return (
+                <g>
+                  <text x={cx} y={y + 12} class="mono sm mu mid">
+                    {range(hi, bits)}
+                  </text>
+                  <rect x={x} y={y + 20} width={width} height="58" class={box} />
+                  <text x={cx} y={y + 42} class:list={['b', 'mid', variant === 'word' ? 'md' : 'mono lg', valueCls]}>
+                    {value}
+                  </text>
+                  <text x={cx} y={y + 59} class="sm i2 mid">
+                    {name}
+                  </text>
+                  {variant !== 'word' && (
+                    <text x={cx} y={y + 72} class="sm mu mid">
+                      {bits === 1 ? '1' : bitsLabel(bits)}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </g>
+        );
+      })
+    }
+    {
+      variant === 'word' && (
+        <g>
+          <text x={X0} y="100" class="sm mu">
+            Utility (MT 0x0) and UMP Stream (MT 0xF) messages have no group.
+          </text>
+          <text x="20" y="132" class="disp i2">
+            Size
+          </text>
+          {sizes.map((s, k) => {
+            const y = 146 + k * 26;
+            return (
+              <g>
+                <text x="20" y={y + 15} class="mono sm i2">
+                  {s.bits}
+                </text>
+                {Array.from({ length: s.n }, (_, i) => (
+                  <g>
+                    <rect x={X0 + i * 94} y={y} width="90" height="20" rx="3" class={i === 0 ? 'box-m' : 'box-n'} />
+                    <text x={X0 + i * 94 + 45} y={y + 14} class="sm mid">
+                      word {i + 1}
+                    </text>
+                  </g>
+                ))}
+                <text x={X0 + 4 * 94 + 12} y={y + 15} class="mono sm i2">
+                  {s.mts}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      )
+    }
+  </svg>
+</Diagram>

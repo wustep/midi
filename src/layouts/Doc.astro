@@ -134,6 +134,18 @@ const related = relatedForDoc(slug);
   </div>
 </Base>
 
+<script>
+  // Hover anchors on section headings, so any section can be linked.
+  for (const h of document.querySelectorAll<HTMLElement>('.prose :is(h2, h3)[id]')) {
+    const a = document.createElement('a');
+    a.className = 'anchor';
+    a.href = `#${h.id}`;
+    a.textContent = '#';
+    a.setAttribute('aria-label', `Link to “${h.textContent?.trim()}”`);
+    h.prepend(a);
+  }
+</script>
+
 <style>
   .doc-header .related {
     margin: var(--s-3) 0 var(--s-5);
@@ -222,12 +234,51 @@ const related = relatedForDoc(slug);
   .prose :global(> ol) {
     max-width: var(--measure);
   }
+  /* Vertical rhythm on the spacing scale: big breaks before sections, tight heading-to-text gaps. */
   .prose :global(h2) {
-    padding-top: 1.25rem;
+    margin: var(--s-7) 0 var(--s-3);
+    padding-top: var(--s-5);
     border-top: 1px solid var(--line);
+    scroll-margin-top: 5rem;
+  }
+  .prose :global(h3) {
+    margin: var(--s-6) 0 var(--s-2);
+    scroll-margin-top: 5rem;
+  }
+  .prose :global(h2 + h3) {
+    margin-top: var(--s-4);
+  }
+  .prose :global(p),
+  .prose :global(li) {
+    line-height: 1.65;
   }
   .prose :global(li) {
     margin-bottom: 0.3em;
+  }
+  .prose :global(:is(h2, h3)[id]) {
+    position: relative;
+  }
+  .prose :global(.anchor) {
+    position: absolute;
+    left: -1.1em;
+    padding-right: 0.3em;
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 120ms;
+  }
+  .prose :global(h2) :global(.anchor) {
+    top: var(--s-5);
+  }
+  .prose :global(:is(h2, h3):hover .anchor),
+  .prose :global(.anchor:focus-visible) {
+    opacity: 1;
+  }
+  @media (max-width: 900px) {
+    .prose :global(.anchor) {
+      display: none;
+    }
   }
   .pager {
     display: grid;

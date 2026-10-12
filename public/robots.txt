@@ -1,4 +1,5 @@
 User-agent: *
+Disallow: /og-cards/
 Allow: /
 
 Sitemap: https://midi.community/sitemap-index.xml

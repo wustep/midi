@@ -1,22 +1,167 @@
 ---
 import Base from '../layouts/Base.astro';
+
+const places = [
+  { href: '/docs/', label: 'Docs', note: 'How MIDI works' },
+  { href: '/reader/', label: 'MIDI Reader', note: 'Open a .mid file' },
+  { href: '/tools/', label: 'Tools', note: '12 browser tools' },
+  { href: '/libraries/', label: 'Libraries', note: 'Verified open-source code' },
+];
 ---
 
-<Base title="Not found">
-  <div class="nf">
-    <p class="eyebrow">404</p>
-    <h1>Note Off.</h1>
-    <p class="lede">
-      This page doesn't exist, or it got a <code>B0 7B 00</code> (All Notes Off) before we could play it.
-    </p>
-    <p><a class="btn btn-primary" href="/">Back to the guide</a> <a class="btn" href="/docs/">Docs</a></p>
+<Base title="Not found" description="This page doesn't exist.">
+  <div class="page nf">
+    <div class="nf-grid">
+      <div>
+        <p class="eyebrow">404 · Note Off not found</p>
+        <h1>Stuck note.</h1>
+        <p class="lede">
+          This page got a Note On and never a Note Off: it doesn't exist, or it moved. Send an All Notes Off, then
+          pick somewhere else to go.
+        </p>
+        <p class="nf-path"><code data-path></code></p>
+        <div class="nf-actions">
+          <button type="button" class="btn btn-primary" data-panic>Panic: All Notes Off</button>
+          <a class="btn" href="/search/" data-open-search>Search the site</a>
+        </div>
+      </div>
+      <figure class="nf-stream" aria-hidden="true">
+        <ol data-stream>
+          <li class="held"><span class="b b-s">90</span> <span class="b b-d">34</span> <span class="b b-d">04</span><span class="m">Note On E3 · still sounding…</span></li>
+        </ol>
+      </figure>
+    </div>
+    <ul class="card-grid nf-places">
+      {
+        places.map((p) => (
+          <li>
+            <a class="card" href={p.href}>
+              <span class="card-title">{p.label}</span>
+              <span class="card-text">{p.note}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </Base>
 
+<script>
+  const path = document.querySelector<HTMLElement>('[data-path]');
+  if (path) path.textContent = location.pathname;
+  const btn = document.querySelector<HTMLButtonElement>('[data-panic]')!;
+  const stream = document.querySelector<HTMLElement>('[data-stream]')!;
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    stream.querySelector('.held')?.classList.remove('held');
+    // CC 123 (All Notes Off) on every channel, like a real panic button.
+    let ch = 0;
+    const timer = setInterval(() => {
+      const li = document.createElement('li');
+      const s = (0xb0 | ch).toString(16).toUpperCase();
+      li.innerHTML = `<span class="b b-s">${s}</span> <span class="b b-d">7B</span> <span class="b b-d">00</span><span class="m">All Notes Off · channel ${ch + 1}</span>`;
+      stream.append(li);
+      stream.scrollTop = stream.scrollHeight;
+      if (++ch === 16) {
+        clearInterval(timer);
+        const done = document.createElement('li');
+        done.className = 'done';
+        done.textContent = 'Silence. Where to next?';
+        stream.append(done);
+        stream.scrollTop = stream.scrollHeight;
+        btn.textContent = 'All quiet';
+        document.querySelector<HTMLAnchorElement>('.nf-places a')?.focus();
+      }
+    }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 45);
+  });
+</script>
+
 <style>
   .nf {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 6rem var(--gutter) 2rem;
+    --page-top: var(--s-8);
+  }
+  .nf-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--s-7);
+    align-items: center;
+  }
+  .nf h1 {
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-stretch: 125%;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    margin: 0 0 var(--s-4);
+  }
+  .nf-path code {
+    font-size: var(--t-sm);
+  }
+  .nf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin-top: var(--s-5);
+  }
+  .nf-stream {
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    padding: var(--s-4);
+  }
+  .nf-stream ol {
+    min-height: 11rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 15rem;
+    overflow: auto;
+    font-size: var(--t-sm);
+  }
+  .nf-stream :global(li) {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 0.2rem 0;
+    animation: fade-up 160ms ease-out;
+  }
+  .nf-stream :global(.m) {
+    margin-left: var(--s-2);
+    color: var(--ink-2);
+  }
+  .nf-stream .held .m::after {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: 0.4rem;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1s ease-in-out infinite;
+  }
+  .nf-stream :global(.done) {
+    font-weight: 700;
+    color: var(--data);
+    padding-top: var(--s-2);
+  }
+  @keyframes pulse {
+    50% {
+      opacity: 0.25;
+    }
+  }
+  .nf-places {
+    margin-top: var(--s-7);
+    --card-min: 200px;
+  }
+  @media (max-width: 760px) {
+    .nf {
+      --page-top: var(--s-6);
+    }
+    .nf-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s-5);
+    }
   }
 </style>

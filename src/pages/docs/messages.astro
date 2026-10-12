@@ -2,6 +2,8 @@
 import Doc from '../../layouts/Doc.astro';
 import Callout from '../../components/Callout.astro';
 import MessageDecoder from '../../components/MessageDecoder.astro';
+import MessageBytesDiagram from '../../components/diagrams/MessageBytesDiagram.astro';
+import RunningStatusDiagram from '../../components/diagrams/RunningStatusDiagram.astro';
 ---
 
 <Doc
@@ -37,7 +39,7 @@ import MessageDecoder from '../../components/MessageDecoder.astro';
           <td><code>1sss nnnn</code></td>
           <td><code>0x80</code>–<code>0xFF</code></td>
           <td>
-            For channel messages, the high nibble <code>sss</code> is the message type and the low nibble <code>nnnn</code> is the
+            For channel messages, the high nibble <code>1sss</code> (the status flag plus three type bits) is the message type and the low nibble <code>nnnn</code> is the
             channel.
           </td>
         </tr>
@@ -50,6 +52,7 @@ import MessageDecoder from '../../components/MessageDecoder.astro';
       </tbody>
     </table>
   </div>
+  <MessageBytesDiagram />
   <p>
     Because the two ranges never overlap, a receiver can always resynchronize: whenever it sees a byte with the high bit
     set, a new message starts.
@@ -259,6 +262,7 @@ import MessageDecoder from '../../components/MessageDecoder.astro';
     send only the data bytes. The receiver remembers the last channel status (the <em>running status</em>) and applies it
     to any data bytes that arrive without one. On a 5-pin DIN cable this cuts note traffic by up to a third.
   </p>
+  <RunningStatusDiagram />
   <ul>
     <li>Only <strong>channel</strong> messages (<code>0x80</code>–<code>0xEF</code>) set the running status.</li>
     <li>

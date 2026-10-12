@@ -1,0 +1,515 @@
+---
+/**
+ * The home page hero: a live MIDI byte stream. Play the keys (or a MIDI keyboard) and watch each
+ * message's bytes and bits. Until someone plays, a quiet demo phrase streams by (not with reduced motion).
+ */
+const LOW = 48;
+const HIGH = 72;
+const keys = Array.from({ length: HIGH - LOW + 1 }, (_, i) => LOW + i);
+const isBlack = (n: number) => [1, 3, 6, 8, 10].includes(n % 12);
+const whites = keys.filter((k) => !isBlack(k));
+const names = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
+---
+
+<figure class="hs" data-hs aria-labelledby="hs-cap">
+  <div class="hs-bytes" aria-hidden="true">
+    <div class="hs-byte status" data-b="0">
+      <span class="hexv">90</span>
+      <span class="bin"><b>1001</b><i>0000</i></span>
+      <span class="lbl" data-l="0">Status<br /><small>Note On · channel 1</small></span>
+    </div>
+    <div class="hs-byte data" data-b="1">
+      <span class="hexv">3C</span>
+      <span class="bin"><b>0</b>0111100</span>
+      <span class="lbl" data-l="1">Data 1<br /><small>note 60 · C4</small></span>
+    </div>
+    <div class="hs-byte data" data-b="2">
+      <span class="hexv">64</span>
+      <span class="bin"><b>0</b>1100100</span>
+      <span class="lbl" data-l="2">Data 2<br /><small>velocity 100</small></span>
+    </div>
+  </div>
+
+  <div class="hs-play">
+    <div class="hs-keys" data-keys role="group" aria-label="Playable keys, C3 to C5. Use the arrow keys to move and Enter to play.">
+      {
+        keys.map((n) => {
+          const wi = whites.filter((x) => x < n).length;
+          const w = 100 / whites.length;
+          const left = isBlack(n) ? wi * w - w * 0.3 : wi * w;
+          return (
+            <button
+              type="button"
+              class:list={['k', isBlack(n) ? 'kb' : 'kw']}
+              data-note={n}
+              style={`left:${left}%;width:${isBlack(n) ? w * 0.6 : w}%`}
+              aria-label={nn(n)}
+              tabindex={n === 60 ? 0 : -1}
+            >
+              {n === 60 && <span class="mc" aria-hidden="true">C4</span>}
+            </button>
+          );
+        })
+      }
+    </div>
+    <label class="hs-bend" title="Pitch bend: drag, it springs back">
+      <span class="visually-hidden">Pitch bend</span>
+      <input type="range" min="0" max="16383" value="8192" step="1" data-bend aria-label="Pitch bend" />
+    </label>
+  </div>
+
+  <ol class="hs-log" data-log aria-hidden="true"></ol>
+  <p class="visually-hidden" aria-live="polite" data-live></p>
+
+  <figcaption id="hs-cap">
+    <span>Play the keys, drag the bend strip, or <button type="button" class="linkish" data-midi>use your MIDI keyboard</button>.</span>
+    <span class="hs-sub" data-sub>A Note On is three bytes, 960 µs on a 5-pin DIN cable. <a href="/docs/messages/">How messages work →</a></span>
+  </figcaption>
+</figure>
+
+<script>
+  import { decodeMessage, hex, noteName } from '../lib/midi';
+  import { Sampler, type Instrument } from '../lib/sampler';
+  import { midiAccess } from '../lib/webmidi';
+  import samples from '../../data/samples.json';
+
+  const piano = (samples as Instrument[]).find((i) => i.id === 'salamander-grand-piano')!;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-hs]')) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const log = $('[data-log]');
+    const live = $('[data-live]');
+    const bend = $<HTMLInputElement>('[data-bend]');
+    let ctx: AudioContext | undefined;
+    let sampler: Sampler | undefined;
+    let interacted = false;
+    let t0 = performance.now();
+
+    const audio = () => {
+      if (!ctx) {
+        ctx = new AudioContext();
+        sampler = new Sampler(ctx);
+        sampler.inst = piano;
+        sampler.load(piano).catch(() => {});
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return sampler!;
+    };
+
+    const bits = (b: number) => b.toString(2).padStart(8, '0');
+    function show(bytes: number[], fromUser: boolean) {
+      const d = decodeMessage(bytes);
+      const s = bytes[0];
+      const cells = root.querySelectorAll<HTMLElement>('[data-b]');
+      cells.forEach((cell, i) => {
+        const b = bytes[i];
+        cell.classList.toggle('empty', b === undefined);
+        cell.querySelector('.hexv')!.textContent = b === undefined ? '—' : hex(b);
+        const bin = cell.querySelector('.bin')!;
+        if (b === undefined) bin.innerHTML = '&nbsp;';
+        else if (i === 0 && s < 0xf0) bin.innerHTML = `<b>${bits(b).slice(0, 4)}</b><i>${bits(b).slice(4)}</i>`;
+        else bin.innerHTML = `<b>${bits(b)[0]}</b>${bits(b).slice(1)}`;
+        cell.classList.remove('flash');
+        if (!reduced) {
+          void cell.offsetWidth;
+          cell.classList.add('flash');
+        }
+      });
+      const type = s & 0xf0;
+      const ch = (s & 0x0f) + 1;
+      const l = [
+        `Status<br><small>${d.name} · channel ${ch}</small>`,
+        type === 0xe0 ? `Data 1<br><small>bend LSB ${bytes[1]}</small>` : type === 0xb0 ? `Data 1<br><small>CC ${bytes[1]}</small>` : `Data 1<br><small>note ${bytes[1]} · ${noteName(bytes[1])}</small>`,
+        bytes[2] === undefined ? 'Data 2<br><small>none</small>' : type === 0xe0 ? `Data 2<br><small>bend MSB ${bytes[2]}</small>` : type === 0xb0 ? `Data 2<br><small>value ${bytes[2]}</small>` : `Data 2<br><small>velocity ${bytes[2]}</small>`,
+      ];
+      l.forEach((html, i) => (root.querySelector(`[data-l="${i}"]`)!.innerHTML = html));
+      const t = ((performance.now() - t0) / 1000).toFixed(3);
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="t">${t}</span><span class="by">${bytes.map((b, i) => `<span class="b ${i === 0 ? 'b-s' : 'b-d'}">${hex(b)}</span>`).join(' ')}</span><span class="m">${d.summary}</span>`;
+      log.prepend(li);
+      while (log.children.length > 5) log.lastElementChild!.remove();
+      if (fromUser) live.textContent = d.summary;
+    }
+
+    /* ---------- Playing ---------- */
+    const held = new Map<number, number>();
+    function noteOn(n: number, v: number) {
+      interacted = true;
+      stopDemo();
+      root.querySelector(`[data-note="${n}"]`)?.classList.add('on');
+      show([0x90, n, v], true);
+      audio().noteOn(n, v);
+    }
+    function noteOff(n: number) {
+      root.querySelector(`[data-note="${n}"]`)?.classList.remove('on');
+      show([0x80, n, 64], true);
+      sampler?.noteOff(n);
+    }
+    const velAt = (el: HTMLElement, y: number) => {
+      const r = el.getBoundingClientRect();
+      return Math.max(30, Math.min(127, Math.round(40 + ((y - r.top) / r.height) * 87)));
+    };
+    const keysEl = $('[data-keys]');
+    const pointers = new Map<number, number>();
+    keysEl.addEventListener('pointerdown', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-note]');
+      if (!el) return;
+      e.preventDefault();
+      keysEl.setPointerCapture(e.pointerId);
+      const n = Number(el.dataset.note);
+      pointers.set(e.pointerId, n);
+      noteOn(n, velAt(el, e.clientY));
+    });
+    keysEl.addEventListener('pointermove', (e) => {
+      const prev = pointers.get(e.pointerId);
+      if (prev === undefined) return;
+      const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-note]');
+      const n = el && keysEl.contains(el) ? Number(el.dataset.note) : undefined;
+      if (n === undefined || n === prev) return;
+      noteOff(prev);
+      pointers.set(e.pointerId, n);
+      noteOn(n, velAt(el!, e.clientY));
+    });
+    const end = (e: PointerEvent) => {
+      const n = pointers.get(e.pointerId);
+      if (n === undefined) return;
+      pointers.delete(e.pointerId);
+      noteOff(n);
+    };
+    keysEl.addEventListener('pointerup', end);
+    keysEl.addEventListener('pointercancel', end);
+    keysEl.addEventListener('keydown', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-note]');
+      if (!el) return;
+      // Roving focus: one tab stop for the whole keyboard, arrows move between keys.
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const next = keysEl.querySelector<HTMLElement>(`[data-note="${Number(el.dataset.note) + (e.key === 'ArrowRight' ? 1 : -1)}"]`);
+        if (next) {
+          el.tabIndex = -1;
+          next.tabIndex = 0;
+          next.focus();
+        }
+        return;
+      }
+      if ((e.key !== 'Enter' && e.key !== ' ') || e.repeat) return;
+      e.preventDefault();
+      const n = Number(el.dataset.note);
+      noteOn(n, 96);
+      setTimeout(() => noteOff(n), 350);
+    });
+
+    // Pitch bend strip springs back to center on release.
+    let lastBend = 8192;
+    const sendBend = () => {
+      const v = Number(bend.value);
+      if (Math.abs(v - lastBend) < 64 && v !== 8192) return;
+      lastBend = v;
+      interacted = true;
+      stopDemo();
+      show([0xe0, v & 0x7f, v >> 7], true);
+    };
+    bend.addEventListener('input', sendBend);
+    const spring = () => {
+      if (bend.value === '8192') return;
+      bend.value = '8192';
+      lastBend = -1;
+      sendBend();
+    };
+    bend.addEventListener('pointerup', spring);
+    bend.addEventListener('keyup', spring);
+    bend.addEventListener('blur', spring);
+
+    /* ---------- MIDI keyboard ---------- */
+    $('[data-midi]').addEventListener('click', async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      try {
+        const access = await midiAccess();
+        const wire = () => {
+          for (const input of access.inputs.values()) {
+            input.onmidimessage = (ev) => {
+              const d = ev.data;
+              if (!d || d[0] >= 0xf0) return;
+              const t = d[0] & 0xf0;
+              if (t === 0x90 && d[2] > 0) noteOn(d[1], d[2]);
+              else if (t === 0x80 || (t === 0x90 && d[2] === 0)) noteOff(d[1]);
+              else {
+                interacted = true;
+                stopDemo();
+                show(Array.from(d), true);
+              }
+            };
+          }
+          const n = access.inputs.size;
+          $('[data-sub]').textContent = n ? `Listening to ${[...access.inputs.values()].map((i) => i.name).join(', ')}.` : 'No MIDI inputs found yet. Plug one in.';
+        };
+        access.addEventListener('statechange', wire);
+        wire();
+        btn.replaceWith(document.createTextNode('your MIDI keyboard'));
+      } catch (err) {
+        $('[data-sub]').textContent = (err as Error).message;
+      }
+    });
+
+    /* ---------- Idle demo ---------- */
+    // A short phrase: notes, a sustain pedal, a little pitch bend. Visual only (no sound).
+    const phrase: number[][] = [
+      [0x90, 60, 100], [0x80, 60, 64], [0x90, 64, 92], [0xb0, 64, 127], [0x80, 64, 64], [0x90, 67, 96],
+      [0xe0, 0, 0x50], [0xe0, 0, 0x40], [0x80, 67, 64], [0x90, 72, 110], [0xb0, 64, 0], [0x80, 72, 64],
+    ];
+    let step = 0;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    let visible = true;
+    function tick() {
+      if (interacted || !visible || document.hidden) return;
+      const m = phrase[step++ % phrase.length];
+      const t = m[0] & 0xf0;
+      if (t === 0x90) root.querySelector(`[data-note="${m[1]}"]`)?.classList.add('ghost');
+      if (t === 0x80) root.querySelector(`[data-note="${m[1]}"]`)?.classList.remove('ghost');
+      show(m, false);
+    }
+    function stopDemo() {
+      if (timer) clearInterval(timer);
+      timer = undefined;
+      root.querySelectorAll('.ghost').forEach((k) => k.classList.remove('ghost'));
+      $('[data-sub]').classList.add('played');
+    }
+    if (!reduced) {
+      new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(root);
+      timer = setInterval(tick, 900);
+      t0 = performance.now();
+    } else {
+      show([0x90, 60, 100], false);
+    }
+  }
+</script>
+
+<style>
+  .hs {
+    margin: 0;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 16px;
+    padding: clamp(1rem, 2.5vw, 1.75rem);
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: var(--s-4);
+  }
+  .hs-bytes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+  }
+  .hs-byte {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: center;
+    text-align: center;
+  }
+  .hexv {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+    line-height: 1;
+    width: 100%;
+    padding: 0.8rem 0;
+    border-radius: 12px;
+    transition: background-color 200ms, color 200ms;
+  }
+  .status .hexv {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .data .hexv {
+    background: var(--data-soft);
+    color: var(--data);
+  }
+  .empty .hexv {
+    background: var(--surface-2);
+    color: var(--muted);
+  }
+  .flash .hexv {
+    animation: hs-pop 260ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  }
+  @keyframes hs-pop {
+    from {
+      transform: scale(0.94);
+      filter: brightness(1.15);
+    }
+  }
+  .bin {
+    font-family: var(--font-mono);
+    font-size: clamp(0.7rem, 1.3vw, 0.86rem);
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+  .bin :global(b) {
+    color: var(--accent);
+  }
+  .status .bin :global(i) {
+    font-style: normal;
+    color: var(--data);
+    font-weight: 700;
+  }
+  .lbl {
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: var(--t-sm);
+    line-height: 1.3;
+  }
+  .lbl :global(small) {
+    font-family: var(--font-text);
+    font-weight: 400;
+    font-size: var(--t-xs);
+    color: var(--muted);
+  }
+  .hs-play {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.25rem;
+    gap: var(--s-2);
+  }
+  .hs-keys {
+    position: relative;
+    height: clamp(88px, 11vw, 120px);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .k {
+    position: absolute;
+    top: 0;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 0 0 6px 6px;
+    cursor: pointer;
+    transition: background-color 80ms, transform 80ms;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .kw {
+    height: 100%;
+    background: var(--key-w);
+    z-index: 1;
+  }
+  .kb {
+    height: 60%;
+    background: var(--key-b);
+    border-color: var(--key-b);
+    z-index: 2;
+  }
+  .kw:hover {
+    background: var(--key-w-hover);
+  }
+  .kw.on,
+  .kw.ghost {
+    background: var(--accent-soft);
+    box-shadow: inset 0 -5px 0 var(--accent);
+  }
+  .kb.on,
+  .kb.ghost {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .k.on {
+    transform: translateY(1px);
+  }
+  .mc {
+    position: absolute;
+    bottom: 0.3rem;
+    left: 0;
+    right: 0;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--key-label);
+    pointer-events: none;
+  }
+  .hs-bend {
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+  }
+  .hs-bend input {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    width: 1.5rem;
+    height: 90%;
+    accent-color: var(--accent);
+    margin: 0;
+  }
+  .hs-log {
+    list-style: none;
+    margin: 0;
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-size: var(--t-sm);
+    min-height: 8.6rem;
+    overflow: hidden;
+  }
+  .hs-log :global(li) {
+    display: grid;
+    grid-template-columns: 3.4rem auto minmax(0, 1fr);
+    gap: var(--s-3);
+    align-items: center;
+    padding: 0.15rem 0;
+    white-space: nowrap;
+  }
+  .hs-log :global(li:first-child) {
+    animation: hs-in 220ms ease-out;
+  }
+  .hs-log :global(li:not(:first-child) .m) {
+    color: var(--muted);
+  }
+  @keyframes hs-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  .hs-log :global(.t) {
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    color: var(--muted);
+  }
+  .hs-log :global(.m) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ink-2);
+  }
+  figcaption {
+    display: grid;
+    gap: var(--s-1);
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+    padding-top: var(--s-3);
+    border-top: 1px solid var(--line);
+  }
+  .hs-sub {
+    color: var(--muted);
+  }
+  :global(.linkish) {
+    font: inherit;
+    border: 0;
+    background: none;
+    padding: 0;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  @media (max-width: 520px) {
+    .hs-log :global(li) {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .hs-log :global(.t) {
+      display: none;
+    }
+  }
+</style>

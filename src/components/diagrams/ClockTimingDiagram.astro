@@ -1,0 +1,80 @@
+---
+/**
+ * MIDI Clock over one quarter note at 120 BPM: Start (FA), 24 Timing Clocks (F8) of 20.83 ms,
+ * Song Position Pointer counting 16ths (1 MIDI beat = 6 clocks), then Stop (FC).
+ */
+import Diagram from '../Diagram.astro';
+
+const id = 'dg-clock';
+const X0 = 80; // first F8, song position 0
+const STEP = 22.5; // units per clock; 24 clocks span 540 units
+const BPM = 120;
+const usPerQuarter = 60_000_000 / BPM; // 500,000
+const msPerClock = (usPerQuarter / 24 / 1000).toFixed(2); // "20.83"
+const msPerSixteenth = (usPerQuarter / 4 / 1000).toFixed(0); // "125"
+const ticks = Array.from({ length: 25 }, (_, i) => ({ x: X0 + i * STEP, long: i % 6 === 0 }));
+const beats = [0, 1, 2, 3, 4].map((n) => ({ n, x: X0 + n * 6 * STEP }));
+---
+
+<Diagram
+  caption={`MIDI Clock at ${BPM} BPM: 24 F8 clocks per quarter note, one every ${msPerClock} ms. Song Position Pointer counts MIDI beats of 6 clocks (16th notes).`}
+  minWidth={642}
+>
+  <svg viewBox="0 0 700 222" role="img" aria-labelledby={`${id}-t ${id}-d`}>
+    <title id={`${id}-t`}>MIDI Clock timing over one quarter note at 120 BPM</title>
+    <desc id={`${id}-d`}>
+      A timeline. Start (FA) is sent first; the first Timing Clock (F8) after it is song position 0. One quarter note
+      lasts 500 milliseconds at 120 BPM and contains 24 F8 clocks, so a clock arrives every 20.83 milliseconds. Every
+      sixth clock begins a new MIDI beat, a 16th note of 125 milliseconds, and the Song Position Pointer counts these: 0,
+      1, 2, 3 within the quarter note and 4 at the start of the next one. Stop (FC) ends playback and keeps the position.
+    </desc>
+
+    <text x="350" y="28" class="mid i2">
+      1 quarter note = 24 Timing Clocks (<tspan class="mono b c-s">F8</tspan>) = 500 ms at {BPM} BPM
+    </text>
+    <path d={`M${X0} 46 V40 H${X0 + 24 * STEP} V46`} class="ln-mu" />
+
+    <!-- one clock interval -->
+    <path d={`M${X0} 58 v8 M${X0} 62 H${X0 + STEP} M${X0 + STEP} 58 v8`} class="ln-mu" />
+    <text x={X0 + STEP + 8} y="66" class="sm i2">{msPerClock} ms per clock (500 ÷ 24)</text>
+
+    <line x1="20" y1="104" x2="684" y2="104" class="ln" />
+    {ticks.map((t) => <line x1={t.x} y1={t.long ? 74 : 88} x2={t.x} y2="104" class="tick" />)}
+
+    <!-- Start / Stop -->
+    <text x="44" y="70" class="sm b mid">Start</text>
+    <rect x="26" y="78" width="36" height="22" rx="4" class="box-s" />
+    <text x="44" y="94" class="mono b c-s mid">FA</text>
+    <text x="658" y="70" class="sm b mid">Stop</text>
+    <rect x="640" y="78" width="36" height="22" rx="4" class="box-s" />
+    <text x="658" y="94" class="mono b c-s mid">FC</text>
+
+    <!-- Song position in MIDI beats -->
+    <text x="24" y="125" class="disp c-d">SPP</text>
+    {
+      beats.map((b) => (
+        <text x={b.x} y="125" class="mono b md c-d mid">
+          {b.n}
+        </text>
+      ))
+    }
+    {
+      beats.slice(0, 4).map((b) => (
+        <g>
+          <path d={`M${b.x + 6} 134 v6 H${b.x + 6 * STEP - 6} v-6`} class="ln-mu" />
+          <text x={b.x + 3 * STEP} y="157" class="sm mu mid">
+            6 clocks
+          </text>
+        </g>
+      ))
+    }
+
+    <text x="24" y="188" class="i2">
+      Song Position Pointer (<tspan class="mono b c-s">F2</tspan> <tspan class="mono b c-d">ll mm</tspan>) counts MIDI
+      beats: 1 beat = a 16th note = 6 clocks.
+    </text>
+    <text x="24" y="208" class="i2">
+      At {BPM} BPM a 16th lasts {msPerSixteenth} ms. The first F8 after Start is song position 0.
+    </text>
+  </svg>
+</Diagram>

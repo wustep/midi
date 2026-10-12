@@ -1,6 +1,7 @@
 ---
 import Doc from '../../layouts/Doc.astro';
 import Callout from '../../components/Callout.astro';
+import UmpPacketDiagram from '../../components/diagrams/UmpPacketDiagram.astro';
 
 const mtRows = [
   ['0x0', '32', 'Utility', 'NOOP, JR Clock, JR Timestamp, Delta Clockstamp Ticks Per Quarter Note (DCTPQ), Delta Clockstamp. No group.'],
@@ -49,28 +50,6 @@ const streamRows = [
   ['0x020', 'Start of Clip', 'Marks the start of a sequence (e.g. in a MIDI Clip File)'],
   ['0x021', 'End of Clip', 'Marks the end of a sequence'],
 ];
-
-/** Bit fields for the worked MIDI 2.0 Note On diagram: [label, bits, value hex, class] */
-const noteOnW1 = [
-  ['MT', 4, '4', 'mt'],
-  ['Group', 4, '0', 'grp'],
-  ['Status', 4, '9', 'st'],
-  ['Channel', 4, '0', 'st'],
-  ['Note', 8, '3C', 'dat'],
-  ['Attr type', 8, '00', 'attr'],
-];
-const noteOnW2 = [
-  ['Velocity (16-bit)', 16, 'FFFF', 'dat'],
-  ['Attribute data', 16, '0000', 'attr'],
-];
-const midi1W1 = [
-  ['MT', 4, '2', 'mt'],
-  ['Group', 4, '0', 'grp'],
-  ['Status', 4, '9', 'st'],
-  ['Channel', 4, '0', 'st'],
-  ['Note', 8, '3C', 'dat'],
-  ['Velocity', 8, '64', 'dat'],
-];
 ---
 
 <Doc
@@ -114,6 +93,7 @@ const midi1W1 = [
     separate MIDI 1.0 cable with its own 16 channels. Utility (0x0) and UMP Stream (0xF) messages have no group;
     they address the whole Endpoint.
   </p>
+  <UmpPacketDiagram variant="word" />
 
   <h3 id="message-types">Message types</h3>
   <div class="table-wrap">
@@ -137,32 +117,7 @@ const midi1W1 = [
 
   <h3 id="worked-midi2">MIDI 2.0 Protocol Note On (MT 0x4, 64 bits)</h3>
   <p><code>0x40903C00 0xFFFF0000</code></p>
-  <figure class="bitfield" aria-label="Bit layout of a MIDI 2.0 Note On packet">
-    <div class="word">
-      <span class="word-label">Word 1</span>
-      <div class="fields">
-        {noteOnW1.map(([label, bits, value, cls]) => (
-          <div class:list={['field', cls]} style={`flex-grow:${bits}`}>
-            <span class="v">{value}</span>
-            <span class="l">{label}</span>
-            <span class="w">{bits}b</span>
-          </div>
-        ))}
-      </div>
-    </div>
-    <div class="word">
-      <span class="word-label">Word 2</span>
-      <div class="fields">
-        {noteOnW2.map(([label, bits, value, cls]) => (
-          <div class:list={['field', cls]} style={`flex-grow:${bits}`}>
-            <span class="v">{value}</span>
-            <span class="l">{label}</span>
-            <span class="w">{bits}b</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </figure>
+  <UmpPacketDiagram variant="midi2" />
   <ul>
     <li><strong>MT = 4</strong>: MIDI 2.0 Channel Voice, so the packet is 64 bits.</li>
     <li><strong>Group = 0</strong>, <strong>status = 9</strong> (Note On), <strong>channel = 0</strong> (channel 1).</li>
@@ -173,20 +128,7 @@ const midi1W1 = [
 
   <h3 id="worked-midi1">The same note as MIDI 1.0 in UMP (MT 0x2, 32 bits)</h3>
   <p><code>0x20903C64</code>, which is the classic <span class="b b-s">90</span> <span class="b b-d">3C</span> <span class="b b-d">64</span> (velocity 100) with a one-byte MT and group prefix.</p>
-  <figure class="bitfield" aria-label="Bit layout of a MIDI 1.0 Note On in UMP">
-    <div class="word">
-      <span class="word-label">Word 1</span>
-      <div class="fields">
-        {midi1W1.map(([label, bits, value, cls]) => (
-          <div class:list={['field', cls]} style={`flex-grow:${bits}`}>
-            <span class="v">{value}</span>
-            <span class="l">{label}</span>
-            <span class="w">{bits}b</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  </figure>
+  <UmpPacketDiagram variant="midi1" />
 
   <h2 id="channel-voice">MIDI 2.0 Channel Voice messages</h2>
   <p>
@@ -336,98 +278,5 @@ function scaleUp(srcVal, srcBits, dstBits) {'{'}
 <style>
   .reserved td {
     color: var(--muted);
-  }
-  .bitfield {
-    margin: 1rem 0 1.5rem;
-    display: grid;
-    gap: 0.5rem;
-  }
-  .word {
-    display: grid;
-    grid-template-columns: 4.5rem 1fr;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-  .word-label {
-    font-family: var(--font-display);
-    font-stretch: 112%;
-    font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    align-self: center;
-  }
-  .fields {
-    display: flex;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    min-width: 0;
-  }
-  .field {
-    flex-basis: 0;
-    min-width: 0;
-    padding: 0.4rem 0.35rem;
-    text-align: center;
-    border-right: 1px solid var(--line-strong);
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-  }
-  .field:last-child {
-    border-right: 0;
-  }
-  .field .v {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 1rem;
-  }
-  .field .l {
-    font-size: 0.72rem;
-    line-height: 1.2;
-    color: var(--ink-2);
-    overflow-wrap: anywhere;
-  }
-  .field .w {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    color: var(--muted);
-  }
-  .mt {
-    background: var(--meta-soft);
-  }
-  .mt .v {
-    color: var(--meta);
-  }
-  .grp {
-    background: var(--surface-2);
-  }
-  .st {
-    background: var(--accent-soft);
-  }
-  .st .v {
-    color: var(--accent);
-  }
-  .dat {
-    background: var(--data-soft);
-  }
-  .dat .v {
-    color: var(--data);
-  }
-  .attr {
-    background: var(--surface);
-  }
-  @media (max-width: 560px) {
-    .word {
-      grid-template-columns: 1fr;
-      gap: 0.25rem;
-    }
-    .field .l {
-      font-size: 0.62rem;
-    }
-    .field .v {
-      font-size: 0.85rem;
-    }
   }
 </style>

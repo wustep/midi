@@ -7,7 +7,7 @@
 **A curated list of open-source MIDI libraries and tools, plus a byte-level guide to the protocol.**
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
-[![Libraries](https://img.shields.io/badge/libraries-479-a83508)](https://midi.community/libraries/)
+[![Libraries](https://img.shields.io/badge/libraries-477-a83508)](https://midi.community/libraries/)
 [![Verified](https://img.shields.io/badge/verified-2026--10--12-0b6b63)](scripts/verify-links.mjs)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-3d3a33)](LICENSE)
 [![Data: CC0](https://img.shields.io/badge/data%20%26%20docs-CC0-3d3a33)](LICENSE-CC0)
@@ -28,14 +28,14 @@ Every project below is checked against the GitHub API: it must exist and be publ
   - [Web MIDI & JavaScript](#web-midi--javascript) (31)
   - [Synthesis & SoundFonts](#synthesis--soundfonts) (51)
   - [Hardware & Firmware](#hardware--firmware) (61)
-  - [Network & Wireless](#network--wireless) (17)
+  - [Network & Wireless](#network--wireless) (16)
   - [DAWs, Sequencers & Live Tools](#daws-sequencers--live-tools) (76)
   - [Utilities, Routing & Visualization](#utilities-routing--visualization) (45)
   - [Synth Editors & Librarians](#synth-editors--librarians) (19)
   - [Notation & Music Theory](#notation--music-theory) (38)
   - [Machine Learning & Generative](#machine-learning--generative) (33)
   - [Datasets](#datasets) (20)
-  - [MIDI 2.0](#midi-20) (15)
+  - [MIDI 2.0](#midi-20) (14)
 - [Browse by language](#browse-by-language)
 - [Specifications](#specifications)
 - [Contributing](#contributing)
@@ -56,7 +56,7 @@ The catalog is one part of **[midi.community](https://midi.community)**, an open
 - 🔍 **[MIDI Reader](https://midi.community/reader/)**: open a `.mid` file and see every track, tempo change, controller and SysEx explained, with a piano roll, sampled playback, an annotated hex view, and export to edited .mid, CSV or JSON
 - 🧰 **[12 tools](https://midi.community/tools/)**: [Web MIDI monitor](https://midi.community/tools/monitor/), [message decoder](https://midi.community/tools/decoder/), [clock & latency tester](https://midi.community/tools/clock/), [SysEx builder](https://midi.community/tools/sysex/), [RPN & NRPN builder](https://midi.community/tools/rpn/), [MPE playground](https://midi.community/tools/mpe/), [CC map](https://midi.community/tools/cc/), [chords & scales](https://midi.community/tools/chords/), note table, tempo calculator and VLQ encoder
 - 🎹 **[Samples](https://midi.community/samples/)**: play 12 openly licensed instruments with a mouse, touch screen, computer keyboard or MIDI controller, plus 36 SoundFont, SFZ and multisample libraries with license notes
-- 💬 **[Community](https://midi.community/community/)**: 98 forums, subreddits, Discord servers and mailing lists, and [40 sources of MIDI files](https://midi.community/community/midi-files/) with license and copyright notes
+- 💬 **[Community](https://midi.community/community/)**: 98 forums, subreddits, Discord servers and mailing lists, and [41 sources of MIDI files](https://midi.community/community/midi-files/) with license and copyright notes
 - 📜 **[Glossary](https://midi.community/docs/glossary/)**, **[History of MIDI](https://midi.community/docs/history/)**, **[65 specs & references](https://midi.community/docs/resources/)**, and site-wide search (press <kbd>⌘K</kbd> or <kbd>/</kbd>)
 
 [↑ back to contents](#contents)
@@ -87,7 +87,7 @@ Dependable first choices by language. Everything else is in the full list below.
 
 ## Libraries and tools
 
-**479 projects** in 13 categories (16 archived), last verified 2026-10-12.
+**477 projects** in 13 categories (16 archived), last verified 2026-10-12.
 
 ### Parsing & Standard MIDI Files
 
@@ -370,7 +370,6 @@ RTP-MIDI (AppleMIDI), BLE-MIDI, and MIDI over IP.
 | [esp32-idf-blemidi](https://github.com/midibox/esp32-idf-blemidi) | C | BLE-MIDI server component for ESP32 projects built with ESP-IDF. | 52 | MIT |
 | [OSC2MIDI](https://github.com/ssj71/OSC2MIDI) | C | Configurable bidirectional bridge between OSC messages and JACK MIDI. | 51 | GPL-3.0 |
 | [ble-midi2usbhost](https://github.com/rppicomidi/ble-midi2usbhost) | C | Turns a Raspberry Pi Pico W into a BLE-MIDI adapter for class-compliant USB MIDI devices. | 47 | Other |
-| [BirdHouse](https://github.com/madskjeldgaard/Birdhouse) | C++ | OSC to MIDI bridge plugin (VST3, CLAP, standalone) that converts incoming OSC streams into MIDI events in a DAW. | 45 | Other |
 | [QmidiNet](https://github.com/rncbc/qmidinet) | C++ | MIDI network gateway over UDP/IP multicast (ipMIDI compatible). | 31 | GPL-2.0 |
 | [CircuitPython BLE MIDI](https://github.com/adafruit/Adafruit_CircuitPython_BLE_MIDI) | Python | BLE-MIDI service for CircuitPython. | 17 | MIT |
 
@@ -450,11 +449,11 @@ Sequencers, live-coding environments, plugin frameworks, and performance tools.
 | [cubase-mcu-midiremote](https://github.com/bjoluc/cubase-mcu-midiremote) | TypeScript | Cubase MIDI Remote scripts for Mackie Control (MCU) protocol controllers such as the X-Touch and iCON devices. | 87 | MIT |
 | [Anklang](https://github.com/tim-janik/anklang) | C++ | MIDI and audio synthesizer and composer with a piano-roll editor and ALSA and JACK MIDI drivers. | 83 | MPL-2.0 |
 | [Beat Pads](https://github.com/anzbert/beat_pads) | Dart | Flutter app that turns phones and tablets into USB or Bluetooth MIDI and MPE pad controllers. | 80 | GPL-3.0 |
-| [Pagan](https://github.com/quintinfsmith/pagan) | Kotlin | Music sequencer for Android. Development continues on Codeberg. | 75 | GPL-3.0 |
 | [Karya](https://github.com/elaforge/karya) | Haskell | Haskell music sequencer with a score language that renders to MIDI and other backends. | 73 | GPL-3.0 |
 | [Noteahead](https://github.com/juzzlin/Noteahead) | C++ | Pattern-based tracker-style MIDI sequencer for Linux that drives external MIDI hardware and built-in instruments. | 73 | GPL-3.0 |
 | [Seq](https://github.com/eclab/seq) | Java | Modular, hierarchical MIDI sequencer from the author of Edisyn. | 71 | Apache-2.0 |
 | [Renoise tools](https://github.com/renoise/xrnx) | Lua | Official Renoise Lua tools and API docs, including MIDI utilities. | 63 | MIT |
+| [Pagan](https://codeberg.org/quintinfsmith/pagan) | Kotlin | Android music sequencer that imports and exports MIDI files, plays SoundFonts, and drives external MIDI devices. | 4 | GPL-3.0 |
 | [Strudel](https://github.com/tidalcycles/strudel) 🗄️ | JavaScript | Tidal patterns in the browser, with Web MIDI output. Development continues on Codeberg. | 3.0k | AGPL-3.0 |
 | [Tidal](https://github.com/tidalcycles/Tidal) 🗄️ | Haskell | Live-coding pattern language that can drive MIDI devices. Development continues on Codeberg. | 2.8k | GPL-3.0 |
 | [Open Stage Control](https://github.com/jean-emmanuel/open-stage-control) 🗄️ | JavaScript | Customizable control surfaces for MIDI and OSC, in the browser. The GitHub repo is now only a pointer; development continues on Framagit. | 7 | n/a |
@@ -676,7 +675,6 @@ Universal MIDI Packet, MIDI-CI, and MIDI 2.0 platform support.
 | [cmidi2](https://github.com/atsushieno/cmidi2) | C | Header-only MIDI 2.0 UMP and MIDI-CI library in C. | 68 | MIT |
 | [ni-midi2](https://github.com/midi2-dev/ni-midi2) | C++ | Native Instruments' MIDI 2.0 foundation library (UMP, MIDI-CI, SysEx). | 58 | MIT |
 | [bl-midi2-rs](https://github.com/midi2-dev/bl-midi2-rs) | Rust | Strongly typed MIDI 2.0 (UMP) message library for Rust, no_std friendly. | 53 | Other |
-| [MIDI2USB Converter](https://github.com/collet-instruments/MIDI2USB-Converter) | C | STM32 firmware and open hardware for a TRS-MIDI-to-USB converter that supports USB MIDI 1.0 and USB MIDI 2.0 with UMP. | 35 | MIT |
 | [uapmd](https://github.com/atsushieno/uapmd) | C++ | Plugin hosting library (VST3/AU/LV2/CLAP) with MIDI 2.0 UMP support. | 34 | MIT |
 | [tusb_ump](https://github.com/midi2-dev/tusb_ump) | C | TinyUSB class driver for USB MIDI 2.0 (UMP) devices. | 29 | MIT |
 | [midi2 (portable core)](https://github.com/sauloverissimo/midi2) | C | Portable C infrastructure for building MIDI 2.0 devices and hosts. | 18 | MIT |
@@ -689,7 +687,7 @@ Universal MIDI Packet, MIDI-CI, and MIDI 2.0 platform support.
 
 Open the filtered catalog on the website:
 
-[C++](https://midi.community/libraries/?lang=C%2B%2B) (141) · [Python](https://midi.community/libraries/?lang=Python) (96) · [C](https://midi.community/libraries/?lang=C) (59) · [JavaScript](https://midi.community/libraries/?lang=JavaScript) (40) · [TypeScript](https://midi.community/libraries/?lang=TypeScript) (26) · [Java](https://midi.community/libraries/?lang=Java) (19) · [Rust](https://midi.community/libraries/?lang=Rust) (19) · [C#](https://midi.community/libraries/?lang=C%23) (14) · [Go](https://midi.community/libraries/?lang=Go) (12) · [Swift](https://midi.community/libraries/?lang=Swift) (8) · [Lua](https://midi.community/libraries/?lang=Lua) (6) · [Haskell](https://midi.community/libraries/?lang=Haskell) (4) · [Ruby](https://midi.community/libraries/?lang=Ruby) (4) · [Elixir](https://midi.community/libraries/?lang=Elixir) (3) · [Kotlin](https://midi.community/libraries/?lang=Kotlin) (3)
+[C++](https://midi.community/libraries/?lang=C%2B%2B) (140) · [Python](https://midi.community/libraries/?lang=Python) (96) · [C](https://midi.community/libraries/?lang=C) (58) · [JavaScript](https://midi.community/libraries/?lang=JavaScript) (40) · [TypeScript](https://midi.community/libraries/?lang=TypeScript) (26) · [Java](https://midi.community/libraries/?lang=Java) (19) · [Rust](https://midi.community/libraries/?lang=Rust) (19) · [C#](https://midi.community/libraries/?lang=C%23) (14) · [Go](https://midi.community/libraries/?lang=Go) (12) · [Swift](https://midi.community/libraries/?lang=Swift) (8) · [Lua](https://midi.community/libraries/?lang=Lua) (6) · [Haskell](https://midi.community/libraries/?lang=Haskell) (4) · [Ruby](https://midi.community/libraries/?lang=Ruby) (4) · [Elixir](https://midi.community/libraries/?lang=Elixir) (3) · [Kotlin](https://midi.community/libraries/?lang=Kotlin) (3)
 
 [↑ back to contents](#contents)
 

@@ -6,17 +6,16 @@
  * - Redirects are followed manually with a browser user agent and a cookie jar.
  * - Final 200 passes. A final 3xx without Location, or a 401 reached through a redirect
  *   (a login wall), is a warning.
- * - 403/429/503 from hosts in BOT_BLOCKING_HOSTS is a warning: those hosts serve the page fine in a
- *   real browser but challenge automated requests.
+ * - A bot-challenge page (Debian's "I Challenge Thee", Cloudflare, Anubis; see lib/http.mjs) is
+ *   reported as unverified, never as a pass, even when it answers 200. So is 403/418/429/503 from a
+ *   host in BOT_BLOCKING_HOSTS: those hosts serve the page fine in a browser but refuse scripts.
  * - Discord invites are checked through Discord's public invite API rather than the HTML page.
  * - Anything else fails (exit 1), as does any shape error.
  *
  * Usage: node scripts/verify-resources.mjs
  */
 import { readFile } from 'node:fs/promises';
-
-const UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
+import { UA, get } from './lib/http.mjs';
 
 /** Hosts that answer automated requests with 403/429/503 challenges but work in a browser. */
 const BOT_BLOCKING_HOSTS = [
@@ -33,6 +32,7 @@ const BOT_BLOCKING_HOSTS = [
   'mixxx.discourse.group', // "Checking your browser" challenge for scripted requests
   'musescore.org', // Cloudflare challenge
   'www.cpdl.org', // Cloudflare challenge
+  'www.piano-midi.de', // 418 for scripted requests
 ];
 
 /** Hosts that are reachable but routinely take longer than the default timeout to respond. */
@@ -121,38 +121,6 @@ for (const [file, spec] of Object.entries(FILES)) {
 }
 
 // ---------- URL checks ----------
-/** fetch() with manual redirects and a cookie jar (some hosts redirect-loop until a cookie is set). */
-async function get(url) {
-  const cookies = new Map();
-  let redirected = false;
-  for (let hops = 0; hops < 10; hops++) {
-    const res = await fetch(url, {
-      redirect: 'manual',
-      headers: {
-        'user-agent': UA,
-        accept: 'text/html,application/xhtml+xml,*/*;q=0.8',
-        'accept-language': 'en-US,en;q=0.9',
-        ...(cookies.size ? { cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join('; ') } : {}),
-      },
-      signal: AbortSignal.timeout(SLOW_HOSTS.includes(new URL(url).host) ? 60_000 : 20_000),
-    });
-    await res.body?.cancel();
-    for (const c of res.headers.getSetCookie?.() ?? []) {
-      const [pair] = c.split(';');
-      const eq = pair.indexOf('=');
-      if (eq > 0) cookies.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
-    }
-    const location = res.headers.get('location');
-    if (res.status >= 300 && res.status < 400 && location) {
-      url = new URL(location, url).href;
-      redirected = true;
-      continue;
-    }
-    return { status: res.status, finalUrl: url, redirected };
-  }
-  throw new Error('too many redirects');
-}
-
 const DISCORD_INVITE = /^https?:\/\/(?:www\.)?(?:discord\.gg|discord(?:app)?\.com\/invite)\/([A-Za-z0-9-]+)\/?$/;
 
 async function getDiscord(code) {
@@ -177,8 +145,10 @@ async function check(url) {
   const attempts = SLOW_HOSTS.includes(new URL(url).host) ? 3 : 2;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      const res = discord ? await getDiscord(discord[1]) : await get(url);
-      if (res.status === 200 || attempt === attempts) return res;
+      const res = discord
+        ? await getDiscord(discord[1])
+        : await get(url, { timeout: SLOW_HOSTS.includes(new URL(url).host) ? 60_000 : 20_000 });
+      if ((res.status === 200 && !res.challenge) || attempt === attempts) return res;
     } catch (err) {
       if (attempt === attempts) return { status: 0, error: err.cause?.code ?? err.message };
     }
@@ -209,21 +179,22 @@ await Promise.all(
 const summary = {};
 let failures = 0;
 let warnings = 0;
+let unverified = 0;
 for (const file of Object.keys(data)) {
   console.log(`\n${file}`);
-  const s = (summary[file] = { urls: 0, ok: 0, warn: 0, fail: 0 });
+  const s = (summary[file] = { urls: 0, ok: 0, unverified: 0, warn: 0, fail: 0 });
   for (const j of jobs.filter((x) => x.file === file)) {
     s.urls++;
     const host = new URL(j.url).host;
     const label = j.field === 'url' ? '' : ` [${j.field}]`;
     const moved =
       j.finalUrl && j.finalUrl.replace(/\/$/, '') !== j.url.replace(/\/$/, '') ? ` (redirects to ${j.finalUrl})` : '';
-    if (j.status === 200) {
+    if (j.challenge || ([403, 418, 429, 503].includes(j.status) && BOT_BLOCKING_HOSTS.includes(host))) {
+      s.unverified++;
+      console.warn(`  ? ${j.status} ${j.url}${label} (unverified: ${j.challenge ?? 'host blocks automated requests'}; check in a browser)`);
+    } else if (j.status === 200) {
       s.ok++;
       console.log(`  ✓ 200 ${j.url}${label}${j.guild ? ` (Discord: ${j.guild})` : moved}`);
-    } else if ([403, 429, 503].includes(j.status) && BOT_BLOCKING_HOSTS.includes(host)) {
-      s.warn++;
-      console.warn(`  ! ${j.status} ${j.url}${label} (host blocks automated requests; check manually)`);
     } else if (j.status >= 300 && j.status < 400) {
       s.warn++;
       console.warn(`  ! ${j.status} ${j.url}${label} (redirect without Location${moved}; check manually)`);
@@ -237,15 +208,16 @@ for (const file of Object.keys(data)) {
   }
   failures += s.fail;
   warnings += s.warn;
+  unverified += s.unverified;
 }
 
 console.log('\nSummary');
 for (const [file, s] of Object.entries(summary)) {
-  console.log(`  ${file.padEnd(16)} ${data[file].length} entries · ${s.urls} URLs · ${s.ok} ok · ${s.warn} warnings · ${s.fail} failed`);
+  console.log(`  ${file.padEnd(16)} ${data[file].length} entries · ${s.urls} URLs · ${s.ok} ok · ${s.unverified} unverified · ${s.warn} warnings · ${s.fail} failed`);
 }
 if (shapeErrors.length) {
   console.error(`\nShape errors (${shapeErrors.length}):`);
   for (const e of shapeErrors) console.error(`  ✗ ${e}`);
 }
-console.log(`\n${jobs.length} URLs · ${failures} failed · ${warnings} warnings · ${shapeErrors.length} shape errors`);
+console.log(`\n${jobs.length} URLs · ${failures} failed · ${unverified} unverified · ${warnings} warnings · ${shapeErrors.length} shape errors`);
 process.exit(failures || shapeErrors.length ? 1 : 0);

@@ -8,6 +8,7 @@ import { tools } from '../lib/tools';
 import { terms, termSlug } from '../lib/glossary';
 import { CCS } from '../lib/cc';
 import type { Entry } from '../lib/search';
+import { repoUrl, repoLabel } from '../lib/repo';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import community from '../../data/community.json';
@@ -68,7 +69,7 @@ export const GET: APIRoute = () => {
 
   const catTitle = Object.fromEntries(categories.map((c) => [c.id, c.title]));
   for (const l of libraries) {
-    out.push({ t: l.name, u: `https://github.com/${l.repo}`, k: 'Library', d: clip(l.description), x: `${l.repo} ${l.language} ${catTitle[l.category] ?? ''}` });
+    out.push({ t: l.name, u: repoUrl(l), k: 'Library', d: clip(l.description), x: `${repoLabel(l)} ${l.language} ${catTitle[l.category] ?? ''}` });
   }
   for (const c of community) out.push({ t: c.title, u: c.url, k: 'Community', d: clip(c.description), x: `${c.group} ${((c as { tags?: string[] }).tags ?? []).join(' ')}` });
   for (const f of midiFiles) out.push({ t: f.title, u: f.url, k: 'MIDI files', d: clip(f.description), x: `${f.group} ${f.license}` });

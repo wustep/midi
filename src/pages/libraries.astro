@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import { docsForCategory, toolsForCategory } from '../lib/related';
+import { repoUrl, repoLabel } from '../lib/repo';
 import picks from '../../data/picks.json';
 
 type Lib = (typeof libraries)[number];
@@ -52,7 +53,7 @@ const context = Object.fromEntries(
                   const lib = libByRepo.get(p.repo.toLowerCase())!;
                   return (
                     <li>
-                      <a href={`https://github.com/${lib.repo}`}>{lib.name}</a> <span class="task">{p.task}</span>
+                      <a href={repoUrl(lib)}>{lib.name}</a> <span class="task">{p.task}</span>
                       <p>{p.why}</p>
                     </li>
                   );
@@ -115,11 +116,11 @@ const context = Object.fromEntries(
             data-pushed={l.pushedAt}
             data-name={l.name.toLowerCase()}
             data-archived={String(l.archived)}
-            data-search={`${l.name} ${l.repo} ${l.description} ${l.language} ${catTitle[l.category]}`.toLowerCase()}
+            data-search={`${l.name} ${repoLabel(l)} ${l.description} ${l.language} ${catTitle[l.category]}`.toLowerCase()}
           >
             <div class="card-top">
               <h2 class="card-title">
-                <a href={`https://github.com/${l.repo}`}>{l.name}</a>
+                <a href={repoUrl(l)}>{l.name}</a>
               </h2>
               <span class="stars" title={`${l.stars} stars`}>
                 <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
@@ -129,7 +130,7 @@ const context = Object.fromEntries(
                 {fmtStars(l.stars ?? 0)}
               </span>
             </div>
-            <p class="repo">{l.repo}</p>
+            <p class="repo">{repoLabel(l)}</p>
             <p class="desc">{l.description}</p>
             <div class="meta">
               {pickRepos.has(l.repo.toLowerCase()) && <span class="tag tag-pick">Starter pick</span>}

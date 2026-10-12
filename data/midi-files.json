@@ -41,10 +41,18 @@
     "title": "Choral Public Domain Library (CPDL)",
     "url": "https://www.cpdl.org/wiki/index.php/Main_Page",
     "description": "A volunteer library of free choral and vocal scores; contributors are asked to upload MIDI and MusicXML alongside the required PDF, so many editions include a MIDI file.",
-    "license": "CPDL License / CC",
-    "licenseNote": "Scores on the CPDL server fall under the CPDL License, a GPL-style license that allows copying, distributing, performing and recording (even for a fee) as long as modified versions keep the same license. CPDL also accepts Creative Commons licenses that allow cost-free use, and some listed editions link to third-party sites with their own terms, so check each edition.",
-    "commercialUse": "varies",
-    "size": "56,000+ works"
+    "license": "Not verified",
+    "licenseNote": "CPDL blocks scripted requests, so its license could not be verified automatically. Editions can carry different licenses (the site describes its own CPDL License and Creative Commons options), so read the license named on each edition's page before reusing a file.",
+    "commercialUse": "unclear"
+  },
+  {
+    "group": "Public-domain & free archives",
+    "title": "Classical Piano Midi Page (piano-midi.de)",
+    "url": "http://www.piano-midi.de/",
+    "description": "Bernd Krueger's hand-sequenced MIDI files of classical piano works, organized by composer.",
+    "license": "Not verified",
+    "licenseNote": "The site refuses scripted requests, so its license could not be verified automatically. The files are the sequencer's own performances of public-domain works, which can carry their own copyright; check the site's copyright page before reusing them.",
+    "commercialUse": "unclear"
   },
   {
     "group": "Public-domain & free archives",

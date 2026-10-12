@@ -4008,12 +4008,13 @@
   {
     "name": "Pagan",
     "repo": "quintinfsmith/pagan",
+    "host": "codeberg",
     "language": "Kotlin",
     "category": "daw",
-    "description": "Music sequencer for Android. Development continues on Codeberg.",
+    "description": "Android music sequencer that imports and exports MIDI files, plays SoundFonts, and drives external MIDI devices.",
     "license": "GPL-3.0",
-    "stars": 75,
-    "pushedAt": "2026-07-26",
+    "stars": 4,
+    "pushedAt": "2026-10-11",
     "archived": false,
     "homepage": "https://burnsomni.net/manual/pagan",
     "verifiedAt": "2026-10-12"
@@ -5645,18 +5646,6 @@
     "verifiedAt": "2026-10-12"
   },
   {
-    "name": "BirdHouse",
-    "repo": "madskjeldgaard/Birdhouse",
-    "language": "C++",
-    "category": "network",
-    "description": "OSC to MIDI bridge plugin (VST3, CLAP, standalone) that converts incoming OSC streams into MIDI events in a DAW.",
-    "license": "Other",
-    "stars": 45,
-    "pushedAt": "2026-05-01",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
     "name": "web-synth",
     "repo": "Ameobea/web-synth",
     "language": "TypeScript",
@@ -5950,18 +5939,6 @@
     "license": "MIT",
     "stars": 126,
     "pushedAt": "2022-10-10",
-    "archived": false,
-    "verifiedAt": "2026-10-12"
-  },
-  {
-    "name": "MIDI2USB Converter",
-    "repo": "collet-instruments/MIDI2USB-Converter",
-    "language": "C",
-    "category": "midi2",
-    "description": "STM32 firmware and open hardware for a TRS-MIDI-to-USB converter that supports USB MIDI 1.0 and USB MIDI 2.0 with UMP.",
-    "license": "MIT",
-    "stars": 35,
-    "pushedAt": "2026-03-02",
     "archived": false,
     "verifiedAt": "2026-10-12"
   }

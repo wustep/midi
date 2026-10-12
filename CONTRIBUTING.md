@@ -31,6 +31,7 @@ Edit `data/libraries.json` and add an object to the array:
 ```
 
 - `repo` is the GitHub `owner/name`. **Never invent or guess a repo.** Copy it from the project page.
+- `host` is only for projects that left GitHub: set `"host": "codeberg"` and `repo` to the Codeberg `owner/name`. The verifier reads Codeberg's API for stars and last push, and keeps the curated `license` (Codeberg doesn't report an SPDX id). Add other forges to [`src/lib/repo.ts`](src/lib/repo.ts) and `scripts/verify-links.mjs` together.
 - `category` must be one of the ids in [`data/categories.json`](data/categories.json).
 - `language` is the primary language or ecosystem a user would consume it from (e.g. `C++ / Python` for bindings-first projects).
 - `description` is one sentence, neutral in tone, no marketing superlatives, ending with a period. Say what it does for MIDI specifically.
@@ -48,7 +49,7 @@ Commit `data/libraries.json` **and** the regenerated `README.md`. Never edit `RE
 
 ### Inclusion criteria
 
-- Open source, hosted on GitHub, publicly accessible.
+- Open source, hosted on GitHub (or Codeberg, see `host`), publicly accessible.
 - MIDI is a core feature, not an incidental one (a general audio framework qualifies if its MIDI support is substantial and documented).
 - Useful to others: documented, installable or buildable, and not a homework-sized experiment.
 - Archived projects may stay if they remain widely used or historically important; they're flagged in the UI and README.
@@ -61,9 +62,9 @@ Commit `data/libraries.json` **and** the regenerated `README.md`. Never edit `RE
 
 - [`data/resources.json`](data/resources.json): official specs and references (Specs & Resources page).
 - [`data/community.json`](data/community.json): forums, subreddits, Discord servers and mailing lists. Discord entries **must** include a `source`: the official project page where the invite is published.
-- [`data/midi-files.json`](data/midi-files.json): MIDI archives and datasets. Every entry needs a `license`, a `licenseNote` taken from the source itself, and `commercialUse` (`yes`, `no`, `varies` or `unclear`). Don't guess; use `unclear`.
+- [`data/midi-files.json`](data/midi-files.json): MIDI archives and datasets. Every entry needs a `license`, a `licenseNote` taken from the source itself, and `commercialUse` (`yes`, `no`, `varies` or `unclear`). Don't guess; use `unclear`. If a site blocks scripted checks and you can't confirm its terms from the source, set `license` to `Not verified`, say so in `licenseNote`, and tell readers where to check. Sources left out on purpose are named with the reason under the list on [`/community/midi-files/`](src/pages/community/midi-files.astro).
 
-Run `npm run verify:resources` to check every URL (redirects followed; hosts known to block bots are reported as warnings to check by hand) and the shape of all three files. **Never invent a URL.**
+Run `npm run verify:resources` to check every URL and the shape of all three files. **Never invent a URL.** Redirects are followed, and anything that can't be confirmed is reported as **unverified** rather than passing: bot-challenge pages (Debian's "I Challenge Thee", Cloudflare, Anubis), even when they answer 200, and refusals from hosts in `BOT_BLOCKING_HOSTS`. Check those in a browser. Detection lives in [`scripts/lib/http.mjs`](scripts/lib/http.mjs), shared with `verify:samples`.
 
 ## Samples
 
@@ -77,7 +78,7 @@ Run `npm run verify:resources` to check every URL (redirects followed; hosts kno
 
 ## Automation
 
-A weekly GitHub Action ([\`.github/workflows/verify.yml\`](.github/workflows/verify.yml)) re-verifies every library, regenerates the README, runs the tests and the external-link checks, and opens a pull request with any metadata changes. Review removals and renames before merging; a 403 from a site that blocks bots is reported as a warning, not a failure.
+A weekly GitHub Action ([\`.github/workflows/verify.yml\`](.github/workflows/verify.yml)) re-verifies every library, regenerates the README, runs the tests and the external-link checks, and opens a pull request with any metadata changes. Review removals and renames before merging; a bot challenge or a 403 from a site that blocks bots is reported as unverified, not as a failure or a pass.
 
 ## README screenshots
 
@@ -85,7 +86,8 @@ The images in \`.github/readme/\` are screenshots of the live site (home, Reader
 
 ## Social images and fonts
 
-- **Social cards:** one 1200×630 card per section lives in `public/og/<section>.png`, rendered from [`src/pages/og-cards/[section].astro`](src/pages/og-cards/%5Bsection%5D.astro). To update them, run `npm run dev`, open `/og-cards/<section>/` at 1200×630 and screenshot it to the PNG. The template pages are disallowed in `robots.txt`; the images are not.
+- **Social cards:** one 1200×630 PNG per section, `/og/<section>.png`, rendered at build time by [`src/pages/og/[section].png.ts`](src/pages/og/%5Bsection%5D.png.ts) with [satori](https://github.com/vercel/satori) and [resvg](https://github.com/thx/resvg-js). The layout and copy live in [`src/lib/og-card.ts`](src/lib/og-card.ts); every number on a card is counted from the data files and registries, so cards update themselves. Preview them in `dist/og/` after `npm run build`, or at `/og/home.png` under `npm run dev`.
+- **Card fonts:** satori needs static TTF/OTF, so [`src/og/fonts/`](src/og/fonts/) holds instances of the site fonts cut from the `@fontsource-variable` files with fontTools, subset to Latin plus typographic punctuation: Archivo at wdth 125/wght 900, wdth 120/wght 700 and wdth 100/wght 500; Atkinson Hyperlegible Next 400; Atkinson Hyperlegible Mono 400 and 700 (`fonttools varLib.instancer <file> wdth=125 wght=900`, then `pyftsubset`). OFL license texts sit next to them.
 - **Display font:** `public/fonts/archivo-display.woff2` is Archivo instanced to weights 400–900 and widths 100–125% and subset to Latin, punctuation, arrows and ♯♭ with fontTools (`fonttools varLib.instancer` then `pyftsubset … --flavor=woff2`). Use only those ranges in CSS. License: `public/fonts/Archivo-OFL.txt`.
 
 ## Tools and tests

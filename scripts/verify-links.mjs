@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Verifies every entry in data/libraries.json against the GitHub API (via the `gh` CLI)
- * and writes the results back into the data file.
+ * Verifies every entry in data/libraries.json against its forge's API and writes the results back
+ * into the data file: GitHub through the `gh` CLI, Codeberg (entries with "host": "codeberg") through
+ * its public Forgejo API.
  *
  *   - 404 (repo does not exist / is private)  -> entry removed
  *   - renamed / transferred repo              -> `repo` updated to the canonical owner/name
@@ -22,7 +23,37 @@ const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const concurrency = Number(args.find((a) => a.startsWith('--concurrency='))?.split('=')[1] ?? 8);
 
-async function fetchRepo(repo) {
+/** Codeberg runs Forgejo; map its repo JSON onto the GitHub fields used below. */
+async function fetchCodeberg(repo) {
+  const api = `https://codeberg.org/api/v1/repos/${repo}`;
+  try {
+    const res = await fetch(api, { signal: AbortSignal.timeout(20_000) });
+    if (res.status === 404) return { ok: false, notFound: true };
+    if (!res.ok) return { ok: false, error: `Codeberg API HTTP ${res.status}` };
+    const d = await res.json();
+    // Forgejo's updated_at moves on any change; the newest commit on the default branch is the real "last push".
+    const commits = await fetch(`${api}/commits?sha=${d.default_branch}&limit=1&stat=false&verification=false&files=false`, {
+      signal: AbortSignal.timeout(20_000),
+    }).then((r) => (r.ok ? r.json() : []));
+    return {
+      ok: true,
+      data: {
+        full_name: d.full_name,
+        private: d.private,
+        archived: d.archived,
+        stargazers_count: d.stars_count,
+        pushed_at: commits[0]?.commit?.committer?.date ?? d.updated_at,
+        homepage: d.website,
+        license: undefined, // Forgejo doesn't report an SPDX id here; keep the curated one.
+      },
+    };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
+
+async function fetchRepo(repo, host) {
+  if (host === 'codeberg') return fetchCodeberg(repo);
   try {
     const { stdout } = await run('gh', ['api', `repos/${repo}`], { maxBuffer: 10 * 1024 * 1024 });
     return { ok: true, data: JSON.parse(stdout) };
@@ -58,7 +89,7 @@ console.log(`Verifying ${entries.length} repositories with concurrency ${concurr
 
 let done = 0;
 const results = await pool(entries, concurrency, async (entry) => {
-  const res = await fetchRepo(entry.repo);
+  const res = await fetchRepo(entry.repo, entry.host);
   done++;
   if (done % 25 === 0) console.log(`  ${done}/${entries.length}`);
   return res;
@@ -82,12 +113,13 @@ entries.forEach((entry, i) => {
   kept.push({
     name: entry.name,
     repo: d.full_name,
+    ...(entry.host ? { host: entry.host } : {}),
     language: entry.language,
     category: entry.category,
     description: entry.description,
-    license: normalizeLicense(d.license),
+    license: d.license === undefined ? entry.license : normalizeLicense(d.license),
     stars: d.stargazers_count,
-    pushedAt: d.pushed_at?.slice(0, 10) ?? null,
+    pushedAt: d.pushed_at ? new Date(d.pushed_at).toISOString().slice(0, 10) : null,
     archived: Boolean(d.archived),
     ...(d.homepage ? { homepage: d.homepage } : {}),
     verifiedAt: today,

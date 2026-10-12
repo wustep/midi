@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Generates README.md from data/libraries.json + data/categories.json. */
 import { readFile, writeFile } from 'node:fs/promises';
+import { repoUrl } from '../src/lib/repo.ts';
 
 const root = new URL('../', import.meta.url);
 const libs = JSON.parse(await readFile(new URL('data/libraries.json', root), 'utf8'));
@@ -92,7 +93,7 @@ Dependable first choices by language. Everything else is in the full list below.
 
 | Language | Library | For | Why |
 |---|---|---|---|
-${picks.flatMap((g) => g.picks.map((p, i) => { const l = byRepo.get(p.repo.toLowerCase()); return `| ${i === 0 ? g.language : ''} | [${esc(l.name)}](https://github.com/${l.repo}) | ${esc(p.task)} | ${esc(p.why)} |`; })).join('\n')}
+${picks.flatMap((g) => g.picks.map((p, i) => { const l = byRepo.get(p.repo.toLowerCase()); return `| ${i === 0 ? g.language : ''} | [${esc(l.name)}](${repoUrl(l)}) | ${esc(p.task)} | ${esc(p.why)} |`; })).join('\n')}
 
 [↑ back to contents](#contents)
 
@@ -109,7 +110,7 @@ for (const c of cats) {
   if (!items.length) continue;
   md += `### ${c.title}\n\n${c.blurb}\n\n| Project | Language | Description | ⭐ | License |\n|---|---|---|--:|---|\n`;
   for (const l of items) {
-    md += `| [${esc(l.name)}](https://github.com/${l.repo})${l.archived ? ' 🗄️' : ''} | ${esc(l.language)} | ${esc(l.description)} | ${fmtStars(l.stars ?? 0)} | ${l.license ?? 'n/a'} |\n`;
+    md += `| [${esc(l.name)}](${repoUrl(l)})${l.archived ? ' 🗄️' : ''} | ${esc(l.language)} | ${esc(l.description)} | ${fmtStars(l.stars ?? 0)} | ${l.license ?? 'n/a'} |\n`;
   }
   md += `\n[↑ back to contents](#contents)\n\n`;
 }

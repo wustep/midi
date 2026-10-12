@@ -11,5 +11,5 @@ export default defineConfig({
   build: { format: 'directory', inlineStylesheets: 'always' },
   // The Web MIDI monitor moved under /tools/ in round 7.
   redirects: { '/try': '/tools/monitor/' },
-  integrations: [sitemap({ filter: (page) => !page.includes('/404') && !page.includes('/og-cards/') })],
+  integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
 });

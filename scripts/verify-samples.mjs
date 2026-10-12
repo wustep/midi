@@ -2,7 +2,8 @@
 /**
  * Verifies the Samples section data:
  *  1. Every URL in data/sample-sources.json (url, licenseUrl) and data/samples.json (sourceUrl, licenseUrl)
- *     answers 200 (redirects followed, browser user agent). A 403/429 from hosts known to block bots is a warning.
+ *     answers 200 (redirects followed, browser user agent). A bot-challenge page (Debian's servers answer 200
+ *     with one) or a 403/429 from a host known to block bots is reported as unverified, not as a pass.
  *  2. Every data/samples.json entry has its audio files on disk under public/sounds/<id>/<note>.mp3,
  *     their total size matches `bytes`, a LICENSE.txt is present, and the license is redistributable.
  *     Looped instruments (loop: true) need encoderDelay plus loops/pcmSamples for every note, with
@@ -12,9 +13,8 @@
  * Usage: node scripts/verify-samples.mjs [--offline]   (--offline skips the network checks)
  */
 import { readFile, stat } from 'node:fs/promises';
+import { get } from './lib/http.mjs';
 
-const UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 const BOT_BLOCKING_HOSTS = ['sourceforge.net', 'packages.debian.org', 'freesound.org', 'www.pianobook.co.uk'];
 /** Licenses that allow us to redistribute (self-host) modified sample files. No NC / ND / custom terms. */
 const REDISTRIBUTABLE = /^(CC0-1\.0|CC-BY-(3\.0|4\.0)|CC-BY-SA-(3\.0|4\.0)|MIT|Unlicense|Public Domain)$/;
@@ -26,6 +26,7 @@ const offline = process.argv.includes('--offline');
 
 let failures = 0;
 let warnings = 0;
+let unverified = 0;
 const fail = (msg) => (failures++, console.error(`  ✗ ${msg}`));
 const warn = (msg) => (warnings++, console.warn(`  ! ${msg}`));
 
@@ -142,40 +143,11 @@ console.log(`  total self-hosted audio: ${(totalBytes / 1024).toFixed(0)} KB`);
 if (totalBytes > 3.5 * 1024 * 1024) warn('self-hosted audio exceeds the 3.5 MB budget');
 
 /* ---------- 3. URLs ---------- */
-/** fetch() with manual redirects and a cookie jar (some hosts redirect-loop until a cookie is set). */
-async function get(url) {
-  const cookies = new Map();
-  for (let hops = 0; hops < 10; hops++) {
-    const res = await fetch(url, {
-      redirect: 'manual',
-      headers: {
-        'user-agent': UA,
-        accept: 'text/html,application/xhtml+xml,*/*;q=0.8',
-        ...(cookies.size ? { cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join('; ') } : {}),
-      },
-      signal: AbortSignal.timeout(20_000),
-    });
-    await res.body?.cancel();
-    for (const c of res.headers.getSetCookie?.() ?? []) {
-      const [pair] = c.split(';');
-      const eq = pair.indexOf('=');
-      if (eq > 0) cookies.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
-    }
-    const location = res.headers.get('location');
-    if (res.status >= 300 && res.status < 400 && location) {
-      url = new URL(location, url).href;
-      continue;
-    }
-    return { status: res.status, finalUrl: url };
-  }
-  throw new Error('too many redirects');
-}
-
 async function check(url) {
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const res = await get(url);
-      if (res.status === 200 || attempt === 2) return res;
+      if ((res.status === 200 && !res.challenge) || attempt === 2) return res;
     } catch (err) {
       if (attempt === 2) return { status: 0, error: err.cause?.code ?? err.message };
     }
@@ -201,18 +173,19 @@ if (!offline) {
       }
     }),
   );
-  for (const { url, status, finalUrl, error } of results) {
+  for (const { url, status, finalUrl, error, challenge } of results) {
     const host = new URL(url).host;
-    if (status === 200) {
+    if (challenge || ((status === 403 || status === 429) && BOT_BLOCKING_HOSTS.includes(host))) {
+      unverified++;
+      console.warn(`  ? ${status} ${url} (unverified: ${challenge ?? 'host blocks automated requests'}; check in a browser)`);
+    } else if (status === 200) {
       const moved = finalUrl && finalUrl.replace(/\/$/, '') !== url.replace(/\/$/, '') ? ` (redirects to ${finalUrl})` : '';
       console.log(`  ✓ 200 ${url}${moved}`);
-    } else if ((status === 403 || status === 429) && BOT_BLOCKING_HOSTS.includes(host)) {
-      warn(`${status} ${url} (host blocks automated requests; check manually)`);
     } else {
       fail(`${status || error} ${url} — used by ${urls.get(url).join(', ')}`);
     }
   }
 }
 
-console.log(`\n${failures} failure(s), ${warnings} warning(s).`);
+console.log(`\n${failures} failure(s), ${unverified} unverified, ${warnings} warning(s).`);
 process.exit(failures ? 1 : 0);

@@ -819,7 +819,7 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
           </p>
         )}
         <div class="tabs" data-tabs>
-          <div class="tablist" role="tablist" aria-label={`${r.title}: language`} hidden>
+          <div class="tablist seg" role="tablist" aria-label={`${r.title}: language`} hidden>
             {r.snippets.map((s, k) => (
               <button
                 type="button"
@@ -841,7 +841,7 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
                 <span class="code-lang">
                   {LANG[s.lang]} · <a href={`/libraries/?q=${encodeURIComponent(s.libQuery)}`}>{s.lib}</a>
                 </span>
-                <button type="button" class="copy" data-copy>Copy</button>
+                <button type="button" class="btn btn-sm" data-copy>Copy</button>
               </div>
               <pre><code set:text={s.code} /></pre>
               {s.note && <p class="snippet-note">{s.note}</p>}
@@ -852,10 +852,10 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
     ))
   }
 
-  <p class="sr-status visually-hidden" aria-live="polite" id="copy-status"></p>
 </Doc>
 
 <script>
+  import { bindCopy } from '../../lib/copy';
   // Tabs: progressive enhancement. Without JS every panel is shown stacked.
   // Picking a language switches every recipe that has it, and is remembered per browser.
   const KEY = 'cookbook-lang';
@@ -917,78 +917,48 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
   } catch {}
 
   // Copy buttons.
-  const status = document.querySelector<HTMLElement>('#copy-status');
   for (const btn of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
-    btn.addEventListener('click', async () => {
-      const code = btn.closest('.panel')?.querySelector('code')?.textContent ?? '';
-      try {
-        await navigator.clipboard.writeText(code);
-        btn.textContent = 'Copied';
-        if (status) status.textContent = 'Copied to clipboard';
-      } catch {
-        btn.textContent = 'Copy failed';
-        if (status) status.textContent = 'Copy failed';
-      }
-      setTimeout(() => (btn.textContent = 'Copy'), 1600);
-    });
+    bindCopy(btn, () => btn.closest('.panel')?.querySelector('code')?.textContent ?? '');
   }
 </script>
 
 <style>
   .recipe-index ol {
     columns: 2;
-    column-gap: 2rem;
-    padding-left: 1.4rem;
+    column-gap: var(--s-6);
+    padding-left: var(--s-5);
   }
   .recipe-index li {
     break-inside: avoid;
   }
   .see {
-    font-size: 0.9rem;
+    font-size: var(--t-md);
     color: var(--muted);
   }
   .tabs {
-    margin: 1rem 0 2rem;
+    margin: var(--s-4) 0 var(--s-6);
   }
+  /* Language picker: the shared segmented control (.seg), with a second line naming the library. */
   .tablist {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 0.75rem;
+    margin-bottom: var(--s-3);
   }
   .tablist[hidden] {
     display: none;
   }
-  [role='tab'] {
-    border: 1px solid transparent;
-    border-bottom: 0;
-    background: transparent;
-    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-    padding: 0.45rem 0.85rem;
-    min-height: 2.5rem;
-    cursor: pointer;
-    font-weight: 700;
-    color: var(--ink-2);
-    margin-bottom: -1px;
-  }
-  [role='tab']:hover {
-    background: var(--surface-2);
-  }
-  [role='tab'][aria-selected='true'] {
-    background: var(--surface);
-    border-color: var(--line);
-    color: var(--ink);
-    box-shadow: inset 0 2px 0 var(--accent);
+  .tablist [role='tab'] {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--s-1) var(--s-3);
+    line-height: 1.25;
   }
   .tab-lib {
     display: block;
-    font-weight: 400;
-    font-size: 0.72rem;
+    font-weight: var(--w-regular);
+    font-size: var(--t-xs);
     color: var(--muted);
   }
   .panel {
-    margin-bottom: 1rem;
+    margin-bottom: var(--s-4);
   }
   .panel[hidden] {
     display: none;
@@ -997,38 +967,25 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.35rem;
+    gap: var(--s-4);
+    margin-bottom: var(--s-1);
   }
   .code-lang {
     font-family: var(--font-display);
     font-stretch: 112%;
-    font-size: 0.75rem;
+    font-size: var(--t-xs);
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tr-label);
     text-transform: uppercase;
     color: var(--muted);
-  }
-  .copy {
-    border: 1px solid var(--line-strong);
-    background: var(--surface);
-    border-radius: var(--radius-sm);
-    padding: 0.2rem 0.65rem;
-    min-height: 2rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .copy:hover {
-    background: var(--surface-2);
   }
   .panel pre {
     margin: 0;
   }
   .snippet-note {
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     color: var(--muted);
-    margin-top: 0.5rem;
+    margin-top: var(--s-2);
   }
   @media (max-width: 600px) {
     .recipe-index ol {

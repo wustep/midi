@@ -133,12 +133,12 @@ const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
   .notes-controls {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
+    gap: var(--s-4);
   }
   .n-result {
     min-height: 1.6em;
     font-weight: 600;
-    margin: 0.75rem 0 0;
+    margin: var(--s-3) 0 0;
   }
   .notes-scroll {
     max-height: 26rem;
@@ -151,8 +151,8 @@ const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
     z-index: 1;
   }
   .notes-scroll td {
-    padding-top: 0.3rem;
-    padding-bottom: 0.3rem;
+    padding-top: var(--s-1);
+    padding-bottom: var(--s-1);
   }
   .is-c td {
     border-bottom-color: var(--line-strong);
@@ -171,22 +171,37 @@ const notes = Array.from({ length: 128 }, (_, n) => n).reverse();
   }
   .drum {
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: var(--t-md);
   }
   .play {
     border: 1px solid var(--control);
     background: transparent;
-    border-radius: 999px;
+    border-radius: var(--r-pill);
     width: 1.9rem;
     height: 1.9rem;
-    font-size: 0.7rem;
+    font-size: var(--t-2xs);
     cursor: pointer;
     color: var(--ink-2);
   }
-  .play:hover {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
+  .play {
+    position: relative;
+    transition: background-color var(--d-fast) ease, color var(--d-fast) ease, transform var(--d-press) var(--ease-out);
+  }
+  .play:active {
+    transform: scale(0.92);
+  }
+  /* Small in a dense table, but the touch target is 44px. */
+  .play::after {
+    content: '';
+    position: absolute;
+    inset: calc((var(--h-touch) - 1.9rem) / -2);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .play:hover {
+      background: var(--accent);
+      color: var(--on-accent);
+      border-color: var(--accent);
+    }
   }
   @media (max-width: 640px) {
     .notes-controls {

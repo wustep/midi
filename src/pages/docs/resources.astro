@@ -79,14 +79,14 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
   .res-toc {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    margin: 1.5rem 0 0.5rem;
+    gap: var(--s-2);
+    margin: var(--s-5) 0 var(--s-2);
   }
   .res-toc a {
     border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.85rem;
+    border-radius: var(--r-pill);
+    padding: var(--s-1) var(--s-3);
+    font-size: var(--t-md);
     color: var(--ink-2);
     text-decoration: none;
   }

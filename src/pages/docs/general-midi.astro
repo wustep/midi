@@ -187,27 +187,27 @@ B9 00 78   B9 20 00   C9 00     ch 10: rhythm bank, program 1 → Standard kit</
   .gm-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
-    gap: 1rem;
-    margin: 1.25rem 0 2rem;
+    gap: var(--s-4);
+    margin: var(--s-4) 0 var(--s-6);
   }
   .gm-family {
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--r-md);
     background: var(--surface);
-    padding: 0.75rem 0.9rem 0.6rem;
+    padding: var(--s-3) var(--s-4) var(--s-2);
   }
   .gm-family h3 {
-    margin: 0 0 0.5rem;
-    font-size: 0.95rem;
+    margin: 0 0 var(--s-2);
+    font-size: var(--t-ui);
     display: flex;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: var(--s-2);
     border: 0;
     padding: 0;
   }
   .gm-family h3 span {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: var(--t-xs);
     font-weight: 400;
     color: var(--muted);
   }
@@ -215,13 +215,13 @@ B9 00 78   B9 20 00   C9 00     ch 10: rhythm bank, program 1 → Standard kit</
     list-style: none;
     margin: 0;
     padding: 0;
-    font-size: 0.88rem;
+    font-size: var(--t-md);
   }
   .gm-family li {
     display: grid;
     grid-template-columns: 2.2rem 1fr auto;
-    gap: 0.4rem;
-    padding: 0.12rem 0;
+    gap: var(--s-2);
+    padding: var(--s-0) 0;
     margin: 0;
     border-top: 1px dashed var(--line);
   }
@@ -236,6 +236,6 @@ B9 00 78   B9 20 00   C9 00     ch 10: rhythm bank, program 1 → Standard kit</
   .hx {
     background: none !important;
     color: var(--data);
-    font-size: 0.8rem;
+    font-size: var(--t-sm);
   }
 </style>

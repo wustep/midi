@@ -53,31 +53,23 @@ import Base from '../../layouts/Base.astro';
   .search-page {
     max-width: 760px;
     margin: 0 auto;
-    padding: 3rem var(--gutter) 0;
+    padding: var(--s-7) var(--gutter) 0;
   }
   .sp-form {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--s-2);
   }
   .sp-status {
     color: var(--muted);
-    font-size: 0.9rem;
-    margin-top: 0.75rem;
-  }
-  kbd {
-    font-family: var(--font-mono);
-    font-size: 0.8em;
-    border: 1px solid var(--line-strong);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    padding: 0 0.3em;
+    font-size: var(--t-md);
+    margin-top: var(--s-3);
   }
   [data-results] :global(h2) {
-    font-size: 0.8rem;
+    font-size: var(--t-sm);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tr-label);
     color: var(--muted);
-    margin: 2rem 0 0.5rem;
+    margin: var(--s-6) 0 var(--s-2);
   }
   [data-results] :global(ul) {
     list-style: none;
@@ -85,15 +77,15 @@ import Base from '../../layouts/Base.astro';
     margin: 0;
   }
   [data-results] :global(li) {
-    padding: 0.55rem 0;
+    padding: var(--s-2) 0;
     border-top: 1px solid var(--line);
   }
   [data-results] :global(li a) {
     font-weight: 600;
   }
   [data-results] :global(li p) {
-    margin: 0.15rem 0 0;
-    font-size: 0.9rem;
+    margin: var(--s-0) 0 0;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
 </style>

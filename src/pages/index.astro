@@ -181,7 +181,7 @@ const topCats = [...categories]
     padding: clamp(3rem, 8vw, 6.5rem) var(--gutter) clamp(2.5rem, 5vw, 4rem);
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: 3rem;
+    gap: var(--s-7);
     align-items: center;
   }
   /* Three fixed lines that never wrap, so the headline is the same height in the fallback font and in
@@ -191,26 +191,26 @@ const topCats = [...categories]
     white-space: nowrap;
   }
   .hero h1 {
-    font-size: clamp(2.6rem, 7vw, 5.4rem);
+    font-size: var(--t-display);
     line-height: 0.98;
     font-stretch: 125%;
-    font-weight: 900;
-    letter-spacing: -0.035em;
-    margin-bottom: 1.5rem;
+    font-weight: var(--w-black);
+    letter-spacing: -0.035em; /* a notch tighter than --tr-display at weight 900 */
+    margin-bottom: var(--s-5);
   }
   .hl {
     color: var(--accent);
   }
   .newbie {
     margin: var(--s-4) 0 0;
-    font-size: var(--t-sm);
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   .cta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1.75rem;
+    gap: var(--s-2);
+    margin-top: var(--s-5);
   }
   .qr {
     position: sticky;
@@ -221,7 +221,7 @@ const topCats = [...categories]
   }
   .qr caption {
     text-align: left;
-    padding: 0.7rem 0.8rem 0.5rem;
+    padding: var(--s-3) var(--s-3) var(--s-2);
     font-family: var(--font-display);
     font-stretch: 112%;
     font-weight: 700;
@@ -230,7 +230,7 @@ const topCats = [...categories]
     color: var(--muted);
   }
   .qr-note {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--muted);
   }
 
@@ -239,7 +239,7 @@ const topCats = [...categories]
     --page-top: 0;
   }
   .band {
-    padding: var(--s-7) 0 var(--s-2);
+    padding: var(--s-7) 0;
     border-top: 1px solid var(--line);
   }
   .band-head {
@@ -283,7 +283,7 @@ const topCats = [...categories]
     font-size: var(--t-xs);
   }
   .demo code {
-    background: var(--bg);
+    background: var(--surface-sunken);
     border: 1px solid var(--line);
   }
   .demo .out {
@@ -304,11 +304,12 @@ const topCats = [...categories]
   }
   .more {
     border-top: 0;
-    padding-top: var(--s-5);
+    padding-top: 0;
   }
+  /* Secondary destinations: flat on the page (no raise) so they sit below the main bands. */
   .more-cards .card {
-    background: var(--bg);
-    border-style: dashed;
+    background: transparent;
+    box-shadow: none;
   }
   @media (max-width: 900px) {
     .hero,

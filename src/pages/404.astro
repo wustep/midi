@@ -87,15 +87,15 @@ const places = [
     align-items: center;
   }
   .nf h1 {
-    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-size: var(--t-display);
     font-stretch: 125%;
-    font-weight: 900;
-    letter-spacing: -0.03em;
+    font-weight: var(--w-black);
+    letter-spacing: var(--tr-display);
     line-height: 0.95;
     margin: 0 0 var(--s-4);
   }
   .nf-path code {
-    font-size: var(--t-sm);
+    font-size: var(--t-md);
   }
   .nf-actions {
     display: flex;
@@ -106,9 +106,9 @@ const places = [
   .nf-stream {
     margin: 0;
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: var(--r-lg);
     background: var(--surface);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-2);
     padding: var(--s-4);
   }
   .nf-stream ol {
@@ -118,14 +118,14 @@ const places = [
     padding: 0;
     max-height: 15rem;
     overflow: auto;
-    font-size: var(--t-sm);
+    font-size: var(--t-md);
   }
   .nf-stream :global(li) {
     display: flex;
     align-items: center;
     gap: var(--s-2);
-    padding: 0.2rem 0;
-    animation: fade-up 160ms ease-out;
+    padding: var(--s-1) 0;
+    animation: fade-up var(--d-base) var(--ease-out);
   }
   .nf-stream :global(.m) {
     margin-left: var(--s-2);
@@ -136,7 +136,7 @@ const places = [
     display: inline-block;
     width: 0.5rem;
     height: 0.5rem;
-    margin-left: 0.4rem;
+    margin-left: var(--s-2);
     border-radius: 50%;
     background: var(--accent);
     animation: pulse 1s ease-in-out infinite;

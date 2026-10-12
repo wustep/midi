@@ -70,22 +70,22 @@ const Heading = `h${level}`;
   .tempo-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1rem;
+    gap: var(--s-4);
   }
   .tempo-grid input {
     font-family: var(--font-mono);
-    font-size: 1.05rem;
+    font-size: var(--t-base);
   }
   .tempo-out {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 0.75rem 1.5rem;
-    margin: 1.1rem 0 0;
+    gap: var(--s-3) var(--s-5);
+    margin: var(--s-4) 0 0;
   }
   .tempo-out :global(dt) {
-    font-size: 0.75rem;
+    font-size: var(--t-xs);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tr-label);
     color: var(--muted);
   }
   .tempo-out :global(dd) {

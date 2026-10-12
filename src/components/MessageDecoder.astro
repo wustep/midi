@@ -108,68 +108,84 @@ const presets = [
 <style>
   .decoder-input {
     font-family: var(--font-mono);
-    font-size: 1.05rem;
+    font-size: var(--t-base);
     letter-spacing: 0.04em;
   }
   .hint {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--muted);
-    margin: 0.45rem 0 0.75rem;
+    margin: var(--s-2) 0 var(--s-3);
   }
   .presets {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-bottom: 1rem;
+    gap: var(--s-2);
+    margin-bottom: var(--s-4);
   }
+  /* Decoded messages: a ruled readout inside the panel, not boxes inside a box. A short bar in the
+     message's byte-role color (status, real-time/common, SysEx) marks each row. */
   .decoder-out {
     display: grid;
-    gap: 0.6rem;
+    border-top: 1px solid var(--line);
   }
   .decoder-out :global(.msg) {
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--accent);
-    border-radius: var(--radius-sm);
-    padding: 0.65rem 0.85rem;
-    background: var(--bg);
+    position: relative;
+    padding: var(--s-4) 0 var(--s-4) var(--s-4);
+    border-bottom: 1px solid var(--line);
+    --role: var(--accent);
+  }
+  .decoder-out :global(.msg:last-child) {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .decoder-out :global(.msg)::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: var(--s-4);
+    width: 3px;
+    height: 1.6rem;
+    border-radius: var(--r-pill);
+    background: var(--role);
   }
   .decoder-out :global(.kind-realtime),
   .decoder-out :global(.kind-common) {
-    border-left-color: var(--data);
+    --role: var(--data);
   }
   .decoder-out :global(.kind-sysex) {
-    border-left-color: var(--meta);
+    --role: var(--meta);
   }
   .decoder-out :global(.msg-top) {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 0.4rem 1rem;
+    gap: var(--s-2) var(--s-4);
   }
   .decoder-out :global(.msg-bytes) {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem;
+    gap: var(--s-1);
   }
   .decoder-out :global(.ch),
   .decoder-out :global(.rs) {
-    font-size: 0.78rem;
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    padding: 0 0.45rem;
-    margin-left: 0.25rem;
-    color: var(--muted);
+    font-size: var(--t-xs);
+    font-weight: var(--w-bold);
+    border-radius: var(--r-xs);
+    padding: 0 var(--s-2);
+    margin-left: var(--s-1);
+    background: var(--surface-2);
+    color: var(--ink-2);
   }
   .decoder-out :global(.bits) {
     font-family: var(--font-mono);
-    margin-top: 0.5rem;
+    margin-top: var(--s-2);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.25rem;
-    font-size: 0.95rem;
-    letter-spacing: 0.12em;
+    gap: var(--s-1);
+    font-size: var(--t-ui);
+    letter-spacing: var(--tr-eyebrow);
   }
   .decoder-out :global(.bits-hi) {
     color: var(--accent);
@@ -182,21 +198,21 @@ const presets = [
   .decoder-out :global(.bits-legend) {
     letter-spacing: 0;
     font-family: var(--font-text);
-    font-size: 0.8rem;
+    font-size: var(--t-sm);
     color: var(--muted);
-    margin-left: 0.5rem;
+    margin-left: var(--s-2);
   }
   .decoder-out :global(dl) {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0.35rem 1.25rem;
-    margin: 0.6rem 0 0;
-    font-size: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(8.5rem, 100%), 1fr));
+    gap: var(--s-2) var(--s-4);
+    margin: var(--s-2) 0 0;
+    font-size: var(--t-md);
   }
   .decoder-out :global(dt) {
-    font-size: 0.75rem;
+    font-size: var(--t-xs);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tr-label);
     color: var(--muted);
   }
   .decoder-out :global(dd) {
@@ -205,8 +221,8 @@ const presets = [
   .decoder-out :global(.err) {
     color: var(--accent);
     font-weight: 600;
-    margin: 0.4rem 0 0;
-    font-size: 0.9rem;
+    margin: var(--s-2) 0 0;
+    font-size: var(--t-md);
   }
   .decoder-out :global(.muted) {
     color: var(--muted);

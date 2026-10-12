@@ -1,0 +1,798 @@
+---
+/**
+ * The design system, live: every token and primitive rendered from the same CSS the site uses
+ * (src/styles/tokens.css and global.css). Written up in docs/DESIGN.md.
+ */
+import Base from '../layouts/Base.astro';
+import Callout from '../components/Callout.astro';
+
+const surfaces = [
+  ['--surface-sunken', 'Sunken', 'Inputs, code, readouts'],
+  ['--bg', 'Page', 'The paper everything sits on'],
+  ['--surface', 'Raised', 'Cards, panels, tables'],
+  ['--surface-raised', 'Floating', 'Dialogs, selected segments'],
+  ['--surface-2', 'Fill', 'Hover fills, quiet badges'],
+];
+const inks = [
+  ['--ink', 'Ink', 'Headings and body'],
+  ['--ink-2', 'Ink 2', 'Secondary text'],
+  ['--muted', 'Muted', 'Meta, hints (4.5:1 on paper)'],
+  ['--control', 'Control', 'Field borders (3:1)'],
+  ['--line-strong', 'Line strong', 'Raised edges'],
+  ['--line', 'Line', 'Hairlines and dividers'],
+];
+const roles = [
+  ['--accent', '--accent-soft', 'Status', 'Status bytes, links, the active section', '90'],
+  ['--data', '--data-soft', 'Data', 'Data bytes, success', '3C'],
+  ['--meta', '--meta-soft', 'Meta', 'Meta events, SysEx', 'FF'],
+  ['--warn', '--warn-soft', 'Warn', 'Cautions, unverified', '!'],
+];
+const extras = [
+  ['--focus', 'Focus', 'Keyboard focus only'],
+  ['--sky', 'Sky', 'Chart series'],
+  ['--olive', 'Olive', 'Chart series'],
+];
+const sizes = [
+  ['--t-display', 'Display', 'Home hero only', 'The field guide'],
+  ['--t-3xl', '3XL', 'Page titles (h1)', 'Message decoder'],
+  ['--t-2xl', '2XL', 'Section titles (h2)', 'Running status'],
+  ['--t-xl', 'XL', 'Large numbers', 'Pitch bend ±2 semitones'],
+  ['--t-lg', 'LG', 'Lede, h3', 'A Note On is three bytes.'],
+  ['--t-base', 'Base', 'Body text', 'Status bytes have the top bit set; data bytes never do.'],
+  ['--t-ui', 'UI', 'Buttons, nav, inputs', 'Open a MIDI file'],
+  ['--t-md', 'MD', 'Card text, tables', 'Header and track chunks, delta times, meta events.'],
+  ['--t-sm', 'SM', 'Hints, dense UI', 'Paste or type bytes, e.g. B0 07 64'],
+  ['--t-xs', 'XS', 'Captions, badges, labels', 'COMMERCIAL USE OK'],
+  ['--t-2xs', '2XS', 'Axis and key labels', 'C4  C#4  D4'],
+];
+const space = ['--s-0', '--s-1', '--s-2', '--s-3', '--s-4', '--s-5', '--s-6', '--s-7', '--s-8', '--s-9'];
+const radii = [
+  ['--r-2xs', 'Keys, tiny marks'],
+  ['--r-xs', 'Byte chips, badges, kbd'],
+  ['--r-sm', 'Buttons, inputs, segments'],
+  ['--r-md', 'Cards, tables, code'],
+  ['--r-lg', 'Panels, dialogs'],
+  ['--r-pill', 'Chips, search'],
+];
+const elevations = [
+  ['sunken', 'Sunken', '--shadow-inset', 'A well you type or read into.'],
+  ['page', 'Page', 'none', 'Flat paper.'],
+  ['raised', 'Raised', '--shadow-1', 'Resting cards and buttons.'],
+  ['panel', 'Panel', '--shadow-2', 'Tools; cards on hover.'],
+  ['floating', 'Floating', '--shadow-3', 'Search palette, dialogs.'],
+];
+const curves = [
+  ['--ease-out', 'Ease out', '0.23, 1, 0.32, 1', 'Anything entering or responding to input.'],
+  ['--ease-in-out', 'Ease in-out', '0.77, 0, 0.175, 1', 'Something already on screen moving to a new place.'],
+  ['--ease-drawer', 'Drawer', '0.32, 0.72, 0, 1', 'Menus and sheets sliding open.'],
+];
+const durations = [
+  ['--d-press', '100ms', 'Press feedback (scale 0.97)'],
+  ['--d-exit', '120ms', 'Exits: faster than entrances'],
+  ['--d-fast', '140ms', 'Hover and color changes'],
+  ['--d-base', '200ms', 'Popovers, toggles, chevrons'],
+  ['--d-slow', '280ms', 'Dialogs, menus, theme change'],
+];
+const curvePath = (v: string) => {
+  const [x1, y1, x2, y2] = v.split(',').map(Number);
+  return `M0 100 C${x1 * 100} ${100 - y1 * 100} ${x2 * 100} ${100 - y2 * 100} 100 0`;
+};
+---
+
+<Base title="Design system" description="The MIDI Field Guide's design tokens and components: color, type, spacing, radii, elevation, motion and focus, rendered live.">
+  <div class="page ds">
+    <header class="page-head">
+      <p class="eyebrow">Design system</p>
+      <h1>Paper, ink and three byte colors</h1>
+      <p class="lede">
+        Every color, size and curve on this site comes from one set of tokens. This page renders them with the same CSS
+        the site uses, so it is always current. Switch the theme in the header to see both.
+      </p>
+    </header>
+
+    <nav class="ds-toc" aria-label="On this page">
+      {['Principles', 'Color', 'Type', 'Space', 'Radii', 'Elevation', 'Motion', 'Focus', 'Components'].map((s) => <a href={`#${s.toLowerCase()}`}>{s}</a>)}
+    </nav>
+
+    <section aria-labelledby="principles">
+      <h2 id="principles">Principles</h2>
+      <ol class="principles">
+        <li><strong>Color means a byte role.</strong> Ember is a status byte, teal is data, violet is meta. Decoration never borrows them.</li>
+        <li><strong>Paper and ink.</strong> Warm, printed-reference neutrals. Depth comes from three surface levels, not from heavy shadows.</li>
+        <li><strong>Quiet until touched.</strong> Links and controls rest calm, answer on hover with a fine pointer, and always answer on press.</li>
+        <li><strong>Fast, honest motion.</strong> Under 300 ms, custom ease-out curves, nothing on keyboard shortcuts, no movement with reduced motion.</li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="color">
+      <h2 id="color">Color</h2>
+      <p class="ds-note">Semantic tokens point at a primitive palette in <code>tokens.css</code>. Components only use semantic names; dark mode swaps the mapping.</p>
+
+      <h3>Byte roles</h3>
+      <ul class="roles">
+        {
+          roles.map(([fg, bg, name, use, sample]) => (
+            <li class="role">
+              <span class="role-chip" style={`color: var(${fg}); background: var(${bg})`}>{sample}</span>
+              <div>
+                <p class="sw-name">{name}</p>
+                <p class="sw-use">{use}</p>
+                <p class="sw-token"><code>{fg}</code> <span data-value={fg} /></p>
+                <p class="sw-token"><code>{bg}</code> <span data-value={bg} /></p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+
+      <h3>Surfaces</h3>
+      <ul class="swatches">
+        {
+          surfaces.map(([t, name, use]) => (
+            <li>
+              <span class="sw" style={`background: var(${t})`} />
+              <p class="sw-name">{name}</p>
+              <p class="sw-use">{use}</p>
+              <p class="sw-token"><code>{t}</code> <span data-value={t} /></p>
+            </li>
+          ))
+        }
+      </ul>
+
+      <h3>Ink and lines</h3>
+      <ul class="swatches">
+        {
+          [...inks, ...extras].map(([t, name, use]) => (
+            <li>
+              <span class="sw" style={`background: var(${t})`} />
+              <p class="sw-name">{name}</p>
+              <p class="sw-use">{use}</p>
+              <p class="sw-token"><code>{t}</code> <span data-value={t} /></p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="type">
+      <h2 id="type">Type</h2>
+      <p class="ds-note">
+        <strong>Archivo</strong> (expanded widths) for display, <strong>Atkinson Hyperlegible Next</strong> for text, and
+        <strong>Atkinson Hyperlegible Mono</strong> for bytes, all variable. Sizes are in rem so they follow the reader's
+        text size. Tracking tightens as type grows (<code>--tr-display</code> −0.03em) and opens on uppercase labels
+        (<code>--tr-label</code> 0.08em); leading tightens from 1.6 on body to 1.0 on display.
+      </p>
+      <ul class="type-scale">
+        {
+          sizes.map(([t, name, use, sample], i) => (
+            <li>
+              <div class="ts-meta">
+                <code>{t}</code>
+                <span class="sw-use">{use}</span>
+                <span class="sw-token" data-value={t} data-px />
+              </div>
+              <p class:list={['ts-sample', i < 3 && 'ts-display', i === 9 && 'ts-label']} style={`font-size: var(${t})`}>
+                {sample}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="mono-sample"><span class="b b-s">90</span> <span class="b b-d">3C</span> <span class="b b-d">64</span> Bytes are mono, bold, tabular, with a 0 that can't be mistaken for O.</p>
+    </section>
+
+    <section aria-labelledby="space">
+      <h2 id="space">Space</h2>
+      <p class="ds-note">A 4px base. Layouts snap to these steps; one-off values are a bug.</p>
+      <ul class="space">
+        {
+          space.map((t) => (
+            <li>
+              <code>{t}</code>
+              <span class="bar" style={`width: var(${t})`} />
+              <span class="sw-token" data-value={t} data-px />
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="radii">
+      <h2 id="radii">Radii</h2>
+      <p class="ds-note">Nested corners step down one size per level, so inner and outer curves stay concentric.</p>
+      <ul class="radii">
+        {
+          radii.map(([t, use]) => (
+            <li>
+              <span class="rbox" style={`border-radius: var(${t})`} />
+              <code>{t}</code>
+              <span class="sw-use">{use}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="elevation">
+      <h2 id="elevation">Elevation</h2>
+      <p class="ds-note">Five levels. Shadows are short, warm and lit from above, with a highlight on the top edge; dark mode deepens them.</p>
+      <ul class="elev">
+        {
+          elevations.map(([k, name, t, use]) => (
+            <li>
+              <span class={`ebox e-${k}`} />
+              <p class="sw-name">{name}</p>
+              <p class="sw-use">{use}</p>
+              <code>{t}</code>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section aria-labelledby="motion">
+      <h2 id="motion">Motion</h2>
+      <p class="ds-note">
+        Custom curves, because the CSS keywords are too weak, and never <code>ease-in</code> for UI. Press the buttons:
+        each dot uses its curve at <code>--d-slow</code>, and you can reverse it mid-flight because these are transitions,
+        not keyframes.
+      </p>
+      <ul class="curves">
+        {
+          curves.map(([t, name, v, use]) => (
+            <li>
+              <svg viewBox="-6 -6 112 112" aria-hidden="true" class="curve">
+                <path d="M0 100 L100 0" class="curve-diag" />
+                <path d={curvePath(v)} class="curve-line" />
+              </svg>
+              <div>
+                <p class="sw-name">{name}</p>
+                <p class="sw-use">{use}</p>
+                <p class="sw-token"><code>{t}</code> cubic-bezier({v})</p>
+                <div class="track" style={`--curve: var(${t})`}>
+                  <span class="dot" />
+                </div>
+                <button type="button" class="btn btn-sm" data-play aria-pressed="false">Play</button>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Token</th><th>Value</th><th>Use</th></tr></thead>
+          <tbody>
+            {durations.map(([t, v, use]) => <tr><td><code>{t}</code></td><td>{v}</td><td>{use}</td></tr>)}
+          </tbody>
+        </table>
+      </div>
+      <Callout title="Rules of thumb">
+        <ul>
+          <li>Don't animate what people trigger from the keyboard dozens of times (the search palette opens instantly on ⌘K).</li>
+          <li>Hover effects only on devices with a fine pointer: <code>@media (hover: hover) and (pointer: fine)</code>.</li>
+          <li>Things leave the way they came, and faster than they arrived: the same <code>--ease-out</code> at <code>--d-exit</code>.</li>
+          <li>With reduced motion, movement goes and color and opacity changes stay.</li>
+        </ul>
+      </Callout>
+    </section>
+
+    <section aria-labelledby="focus">
+      <h2 id="focus">Focus</h2>
+      <p class="ds-note">
+        One ring for everything: <code>--focus-width</code> (2px, 3px with increased contrast) of <code>--focus</code>,
+        offset <code>--focus-offset</code> from the edge, following the element's own radius. Text fields swap their
+        border for the focus color and add a soft halo. Press <kbd>Tab</kbd> through the components below.
+      </p>
+    </section>
+
+    <section aria-labelledby="components">
+      <h2 id="components">Components</h2>
+
+      <div class="demo">
+        <h3>Buttons</h3>
+        <p class="ds-note">Heights <code>--h-sm</code> 32, <code>--h-md</code> 40, <code>--h-lg</code> 48; 44px minimum on touch screens. One primary per view.</p>
+        <div class="row">
+          <button type="button" class="btn btn-primary">Read the docs</button>
+          <button type="button" class="btn">Open a MIDI file</button>
+          <button type="button" class="btn btn-ghost">Clear</button>
+          <button type="button" class="btn" disabled>Disabled</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-sm">Small</button>
+          <button type="button" class="btn">Medium</button>
+          <button type="button" class="btn btn-lg">Large</button>
+          <button type="button" class="icon-btn" aria-label="Icon button">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="demo">
+        <h3>Chips and segmented controls</h3>
+        <p class="ds-note">Chips filter (any number on). A segmented control picks one of a few.</p>
+        <div class="row" data-chips>
+          <button type="button" class="chip" aria-pressed="true">All <span class="n">98</span></button>
+          <button type="button" class="chip" aria-pressed="false">Beginner-friendly <span class="n">21</span></button>
+          <button type="button" class="chip" aria-pressed="false">Developers <span class="n">34</span></button>
+        </div>
+        <div class="row">
+          <div class="seg" role="group" aria-label="Number format" data-seg>
+            <button type="button" aria-pressed="true">Hex</button>
+            <button type="button" aria-pressed="false">Decimal</button>
+            <button type="button" aria-pressed="false">Binary</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo">
+        <h3>Fields</h3>
+        <p class="ds-note">Inputs are sunken wells, so they never read as cards.</p>
+        <div class="fields">
+          <label>
+            <span class="field-label">Hex bytes</span>
+            <input type="text" value="90 3C 64" spellcheck="false" />
+          </label>
+          <label>
+            <span class="field-label">Channel</span>
+            <select><option>1</option><option>10 (drums)</option></select>
+          </label>
+          <label>
+            <span class="field-label">Velocity</span>
+            <input type="number" value="100" min="1" max="127" />
+          </label>
+          <label>
+            <span class="field-label">Search</span>
+            <input type="search" placeholder="rust, soundfont, mpe…" />
+          </label>
+        </div>
+        <div class="row">
+          <label class="check"><input type="checkbox" checked /> Running status</label>
+          <label class="check"><input type="checkbox" /> Show real-time bytes</label>
+          <label class="check range"><span>Pitch bend</span> <input type="range" min="-8192" max="8191" value="0" /></label>
+        </div>
+      </div>
+
+      <div class="demo">
+        <h3>Marks</h3>
+        <div class="row">
+          <span class="b b-s">B0</span><span class="b b-d">07</span><span class="b b-d">64</span><span class="b b-m">F0</span>
+          <span class="badge good">Commercial use OK</span>
+          <span class="badge warn">Commercial use unclear</span>
+          <span class="badge bad">Non-commercial</span>
+          <span class="badge meta">Share-alike</span>
+          <span class="badge">Archived</span>
+          <span><kbd>⌘</kbd> <kbd>K</kbd></span>
+        </div>
+      </div>
+
+      <div class="demo">
+        <h3>Callouts</h3>
+        <Callout><p>A Note On with velocity 0 is a Note Off.</p></Callout>
+        <Callout type="warn"><p>Free to use is not free to share.</p></Callout>
+        <Callout type="note"><p>Running status lets a sender skip a status byte that repeats.</p></Callout>
+      </div>
+
+      <div class="demo">
+        <h3>Cards and tables</h3>
+        <ul class="card-grid">
+          <li>
+            <a class="card" href="/docs/messages/">
+              <span class="card-kicker">Docs</span>
+              <span class="card-title">Messages</span>
+              <span class="card-text">Status and data bytes, channel voice and mode messages, running status.</span>
+            </a>
+          </li>
+          <li>
+            <a class="card" href="/tools/decoder/">
+              <span class="card-kicker">Tool</span>
+              <span class="card-title">Message decoder</span>
+              <span class="card-text">Paste raw bytes and see each message decoded.</span>
+            </a>
+          </li>
+        </ul>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Status</th><th>Message</th><th>Data</th></tr></thead>
+            <tbody>
+              <tr><td><span class="b b-s">8n</span></td><td>Note Off</td><td>note, velocity</td></tr>
+              <tr><td><span class="b b-s">9n</span></td><td>Note On</td><td>note, velocity</td></tr>
+              <tr><td><span class="b b-s">Bn</span></td><td>Control Change</td><td>controller, value</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="demo widget">
+        <div class="widget-head"><p class="widget-title">Panel</p><span class="widget-tag">.widget</span></div>
+        <p class="ds-note">Interactive tools sit on a panel: <code>--surface</code>, <code>--r-lg</code>, <code>--shadow-2</code>.</p>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<script>
+  // Show each token's resolved value, and refresh when the theme changes.
+  const root = document.documentElement;
+  const fmt = (el: HTMLElement) => {
+    const name = el.dataset.value!;
+    let v = getComputedStyle(root).getPropertyValue(name).trim();
+    if ('px' in el.dataset) {
+      // Resolve rem/clamp to pixels with a probe element.
+      const probe = document.createElement('div');
+      probe.style.cssText = `position:absolute;visibility:hidden;width:var(${name})`;
+      document.body.append(probe);
+      v = `${Math.round(probe.getBoundingClientRect().width * 10) / 10}px`;
+      probe.remove();
+    } else if (v.startsWith('var(')) {
+      v = getComputedStyle(root).getPropertyValue(v.slice(4, -1)).trim();
+    }
+    el.textContent = v;
+  };
+  const refresh = () => document.querySelectorAll<HTMLElement>('[data-value]').forEach(fmt);
+  refresh();
+  new MutationObserver(refresh).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refresh);
+  addEventListener('resize', refresh);
+
+  // Motion demos: toggling a class runs (or reverses) a transition.
+  document.querySelectorAll<HTMLButtonElement>('[data-play]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const on = b.getAttribute('aria-pressed') !== 'true';
+      b.setAttribute('aria-pressed', String(on));
+      b.textContent = on ? 'Reverse' : 'Play';
+      b.previousElementSibling?.classList.toggle('on', on);
+    }),
+  );
+  // Demo chips and segmented control.
+  document.querySelectorAll<HTMLElement>('[data-chips] .chip').forEach((c) =>
+    c.addEventListener('click', () => c.setAttribute('aria-pressed', String(c.getAttribute('aria-pressed') !== 'true'))),
+  );
+  document.querySelectorAll<HTMLElement>('[data-seg]').forEach((g) =>
+    g.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('button');
+      if (!btn) return;
+      g.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
+    }),
+  );
+</script>
+
+<style>
+  .ds section {
+    padding-top: var(--s-2);
+  }
+  .ds h2 {
+    margin-top: var(--s-8);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--line);
+  }
+  .ds h3 {
+    margin: var(--s-6) 0 var(--s-3);
+  }
+  .ds-note code {
+    white-space: nowrap;
+  }
+  .ds-note {
+    max-width: 68ch;
+    color: var(--ink-2);
+    font-size: var(--t-ui);
+  }
+  .ds-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-1) var(--s-4);
+    font-size: var(--t-ui);
+    font-weight: var(--w-semibold);
+  }
+  .ds-toc a {
+    color: var(--ink-2);
+    text-decoration-color: var(--line-strong);
+  }
+  .principles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: var(--s-3);
+    padding: 0;
+    list-style: none;
+    counter-reset: p;
+  }
+  .principles li {
+    counter-increment: p;
+    padding: var(--s-4);
+    border-top: 2px solid var(--ink);
+    font-size: var(--t-ui);
+    color: var(--ink-2);
+  }
+  .principles li::before {
+    content: counter(p, decimal-leading-zero);
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    color: var(--accent);
+    margin-bottom: var(--s-2);
+  }
+  .principles strong {
+    display: block;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-stretch: 112%;
+    margin-bottom: var(--s-1);
+  }
+
+  .sw-name {
+    margin: 0;
+    font-weight: var(--w-bold);
+  }
+  .sw-use {
+    margin: 0;
+    font-size: var(--t-md);
+    color: var(--muted);
+  }
+  .sw-token {
+    margin: var(--s-0) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+  .sw-token code {
+    background: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .roles {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    gap: var(--s-4);
+  }
+  .role {
+    display: flex;
+    gap: var(--s-3);
+    align-items: center;
+  }
+  .role-chip {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 4.5rem;
+    height: 3.5rem;
+    border-radius: var(--r-md);
+    font-family: var(--font-mono);
+    font-weight: var(--w-bold);
+    font-size: var(--t-xl);
+  }
+
+  .swatches {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr));
+    gap: var(--s-5) var(--s-4);
+  }
+  .sw {
+    display: block;
+    height: 4rem;
+    margin-bottom: var(--s-2);
+    border-radius: var(--r-md);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+  .type-scale {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .type-scale li {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    gap: var(--s-4);
+    align-items: baseline;
+    padding: var(--s-3) 0;
+    border-top: 1px solid var(--line);
+  }
+  .ts-meta {
+    display: grid;
+    gap: var(--s-0);
+  }
+  .ts-meta code {
+    font-size: var(--t-sm);
+    background: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .ts-sample {
+    margin: 0;
+    line-height: var(--lh-snug);
+    overflow-wrap: anywhere;
+  }
+  .ts-display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 125%;
+    letter-spacing: var(--tr-display);
+    line-height: var(--lh-display);
+  }
+  .ts-label {
+    font-weight: var(--w-bold);
+    letter-spacing: var(--tr-label);
+  }
+  .mono-sample {
+    margin-top: var(--s-4);
+    color: var(--ink-2);
+  }
+
+  .space {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--s-2);
+  }
+  .space li {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr) 4rem;
+    gap: var(--s-3);
+    align-items: center;
+  }
+  .space code {
+    background: none;
+    box-shadow: none;
+  }
+  .bar {
+    display: block;
+    height: 0.75rem;
+    min-width: 2px;
+    border-radius: var(--r-2xs);
+    background: var(--data);
+  }
+
+  .radii,
+  .elev {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+    gap: var(--s-5) var(--s-4);
+  }
+  .radii li,
+  .elev li {
+    display: grid;
+    gap: var(--s-1);
+    align-content: start;
+  }
+  .rbox {
+    display: block;
+    height: 4.5rem;
+    background: var(--surface);
+    border: 2px solid var(--line-strong);
+    margin-bottom: var(--s-2);
+  }
+  .ebox {
+    display: block;
+    height: 5rem;
+    border-radius: var(--r-md);
+    margin-bottom: var(--s-3);
+  }
+  .e-sunken {
+    background: var(--surface-sunken);
+    box-shadow: inset 0 0 0 1px var(--line), var(--shadow-inset);
+  }
+  .e-page {
+    background: var(--bg);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .e-raised {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+  }
+  .e-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+  }
+  .e-floating {
+    background: var(--surface-raised);
+    border: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-3);
+  }
+  .elev code {
+    font-size: var(--t-xs);
+    background: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .curves {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+    gap: var(--s-5) var(--s-6);
+  }
+  .curves li {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--s-4);
+    align-items: start;
+  }
+  .curve {
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--surface-sunken);
+    border-radius: var(--r-md);
+    box-shadow: inset 0 0 0 1px var(--line);
+    overflow: visible;
+  }
+  .curve-diag {
+    fill: none;
+    stroke: var(--line-strong);
+    stroke-dasharray: 3 4;
+  }
+  .curve-line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .track {
+    position: relative;
+    height: 1.5rem;
+    margin: var(--s-3) 0;
+    border-radius: var(--r-pill);
+    background: var(--surface-sunken);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .dot {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(1.5rem - 6px);
+    height: calc(1.5rem - 6px);
+    border-radius: 50%;
+    background: var(--accent);
+    transition: left var(--d-slow) var(--curve);
+  }
+  .track.on .dot {
+    left: calc(100% - 1.5rem + 3px);
+  }
+
+  .demo {
+    margin-top: var(--s-6);
+  }
+  .demo h3 {
+    margin-top: 0;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-3);
+    margin: var(--s-3) 0;
+  }
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+    gap: var(--s-4);
+  }
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-size: var(--t-ui);
+    cursor: pointer;
+  }
+  .range input {
+    width: 10rem;
+  }
+  @media (max-width: 640px) {
+    .type-scale li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s-1);
+    }
+    .curves li {
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+    }
+  }
+</style>

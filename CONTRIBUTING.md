@@ -72,7 +72,8 @@ Run `npm run verify:resources` to check every URL and the shape of all three fil
 
 ## Site structure
 
-- **Page shells:** every page uses the shared `.page` shell and `.page-head` header (eyebrow = section name), with cards from `.card-grid`/`.card` and directory lists from `.link-rows` in [`src/styles/global.css`](src/styles/global.css). Use the spacing (`--s-*`) and type (`--t-*`) tokens rather than new values.
+- **Design system:** read [`docs/DESIGN.md`](docs/DESIGN.md) (live at [/design/](https://midi.community/design/)). Tokens live in [`src/styles/tokens.css`](src/styles/tokens.css) and the shared primitives in [`src/styles/global.css`](src/styles/global.css). Components use semantic tokens only (`--s-*`, `--t-*`, `--r-*`, `--surface*`, `--ease-*`, `--d-*`); a raw color, size or duration in a component is a bug.
+- **Page shells:** every page uses the shared `.page` shell and `.page-head` header (eyebrow = section name), with cards from `.card-grid`/`.card`, tools on a `.widget` panel and directory lists from `.link-rows`.
 - **Cross-links:** how docs, tools and library categories relate lives in one place, [`src/lib/related.ts`](src/lib/related.ts). Docs pages show "Try it / Code" links from it, tool pages show Background and Libraries links, and the catalog shows "Read first" for a category. Add relations there, not as hand-written callouts.
 - **Search:** the ⌘K palette and `/search/` use an index built at build time by [`src/pages/search.json.ts`](src/pages/search.json.ts) from the docs headings, tools, glossary, CC table and every data file. New data shows up automatically.
 

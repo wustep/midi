@@ -59,15 +59,15 @@ const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props
 
 <style>
   .diagram {
-    margin: 1.5rem 0 1.75rem;
+    margin: var(--s-5) 0 var(--s-5);
   }
   .diagram-scroll {
     position: relative;
     overflow-x: auto;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--r-md);
     background: var(--surface);
-    padding: 0.85rem 0.75rem;
+    padding: var(--s-3) var(--s-3);
   }
   .diagram-scroll.more-right {
     mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
@@ -88,9 +88,9 @@ const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props
     overflow: visible;
   }
   figcaption {
-    margin-top: 0.55rem;
+    margin-top: var(--s-2);
     max-width: var(--measure);
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     line-height: 1.45;
     color: var(--muted);
   }
@@ -98,7 +98,7 @@ const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props
   /* ---------- Shared SVG vocabulary (all colors are theme tokens) ---------- */
   .diagram :global(svg text) {
     font-family: var(--font-text);
-    font-size: 13px;
+    font-size: var(--t-sm);
     fill: var(--ink);
   }
   .diagram :global(svg .mono) {
@@ -108,21 +108,21 @@ const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props
     font-family: var(--font-display);
     font-weight: 700;
     font-stretch: 112%;
-    font-size: 12px;
-    letter-spacing: 0.06em;
+    font-size: var(--t-xs);
+    letter-spacing: var(--tr-label);
     text-transform: uppercase;
   }
   .diagram :global(svg .sm) {
-    font-size: 12px;
+    font-size: var(--t-xs);
   }
   .diagram :global(svg .md) {
-    font-size: 14px;
+    font-size: var(--t-md);
   }
   .diagram :global(svg .lg) {
-    font-size: 16px;
+    font-size: var(--t-base);
   }
   .diagram :global(svg .xl) {
-    font-size: 18px;
+    font-size: var(--t-base);
   }
   .diagram :global(svg .b) {
     font-weight: 700;

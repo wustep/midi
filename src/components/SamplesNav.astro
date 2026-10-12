@@ -6,41 +6,7 @@ interface Props {
 const { page } = Astro.props;
 ---
 
-<nav class="sub-nav" aria-label="Samples">
+<nav class="subnav" aria-label="Samples">
   <a href="/samples/" aria-current={page === 'play' ? 'page' : undefined}>Play instruments</a>
-  <a href="/samples/sources/" aria-current={page === 'sources' ? 'page' : undefined}>Sound libraries <span>{sources.length}</span></a>
+  <a href="/samples/sources/" aria-current={page === 'sources' ? 'page' : undefined}>Sound libraries <span class="n">{sources.length}</span></a>
 </nav>
-
-<style>
-  .sub-nav {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--s-2);
-    margin: 0 0 var(--s-5);
-  }
-  .sub-nav a {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--s-1);
-    min-height: 2.5rem;
-    padding: 0 var(--s-4);
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    color: var(--ink-2);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: var(--t-sm);
-  }
-  .sub-nav a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .sub-nav a[aria-current='page'] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--bg);
-  }
-  .sub-nav span {
-    font-weight: 400;
-  }
-</style>

@@ -153,10 +153,10 @@ const related = relatedForDoc(slug);
   .doc-shell {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 2.5rem var(--gutter) 0;
+    padding: var(--s-6) var(--gutter) 0;
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
-    gap: 3.5rem;
+    gap: var(--s-7);
   }
   .doc-sidebar {
     position: relative;
@@ -166,28 +166,28 @@ const related = relatedForDoc(slug);
     top: 5rem;
     max-height: calc(100vh - 6rem);
     overflow-y: auto;
-    padding-bottom: 2rem;
-    font-size: 0.94rem;
+    padding-bottom: var(--s-6);
+    font-size: var(--t-ui);
   }
   .nav-index {
     display: block;
     font-weight: 700;
     color: var(--ink);
     text-decoration: none;
-    margin-bottom: 1rem;
+    margin-bottom: var(--s-4);
   }
   .nav-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: var(--s-4);
   }
   .nav-group-title {
     font-family: var(--font-display);
     font-stretch: 118%;
     font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
+    font-size: var(--t-xs);
+    letter-spacing: var(--tr-label);
     text-transform: uppercase;
     color: var(--muted);
-    margin: 0 0 0.35rem;
+    margin: 0 0 var(--s-1);
   }
   .nav-group ul {
     list-style: none;
@@ -197,7 +197,7 @@ const related = relatedForDoc(slug);
   }
   .nav-group a {
     display: block;
-    padding: 0.22rem 0 0.22rem 0.85rem;
+    padding: var(--s-1) 0 var(--s-1) var(--s-3);
     margin-left: -1px;
     border-left: 2px solid transparent;
     color: var(--ink-2);
@@ -221,10 +221,10 @@ const related = relatedForDoc(slug);
   }
   .doc-specs {
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: var(--t-md);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
+    gap: var(--s-1);
   }
   .prose {
     max-width: 100%;
@@ -239,11 +239,11 @@ const related = relatedForDoc(slug);
     margin: var(--s-7) 0 var(--s-3);
     padding-top: var(--s-5);
     border-top: 1px solid var(--line);
-    scroll-margin-top: 5rem;
+    scroll-margin-top: var(--s-8);
   }
   .prose :global(h3) {
     margin: var(--s-6) 0 var(--s-2);
-    scroll-margin-top: 5rem;
+    scroll-margin-top: var(--s-8);
   }
   .prose :global(h2 + h3) {
     margin-top: var(--s-4);
@@ -266,7 +266,7 @@ const related = relatedForDoc(slug);
     text-decoration: none;
     font-weight: 400;
     opacity: 0;
-    transition: opacity 120ms;
+    transition: opacity var(--d-fast) ease;
   }
   .prose :global(h2) :global(.anchor) {
     top: var(--s-5);
@@ -283,14 +283,14 @@ const related = relatedForDoc(slug);
   .pager {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 4rem;
+    gap: var(--s-4);
+    margin-top: var(--s-8);
   }
   .pager-link {
     display: block;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 0.9rem 1.1rem;
+    border-radius: var(--r-md);
+    padding: var(--s-4) var(--s-4);
     text-decoration: none;
     color: var(--ink);
     font-weight: 700;
@@ -304,7 +304,7 @@ const related = relatedForDoc(slug);
     display: block;
     font-family: var(--font-text);
     font-weight: 400;
-    font-size: 0.82rem;
+    font-size: var(--t-sm);
     color: var(--muted);
   }
   .pager-link.next {
@@ -312,15 +312,15 @@ const related = relatedForDoc(slug);
     grid-column: 2;
   }
   .edit-link {
-    margin-top: 1.5rem;
+    margin-top: var(--s-5);
     color: var(--muted);
-    font-size: 0.88rem;
+    font-size: var(--t-md);
   }
   @media (max-width: 900px) {
     .doc-shell {
       grid-template-columns: minmax(0, 1fr);
-      gap: 1rem;
-      padding-top: 1rem;
+      gap: var(--s-4);
+      padding-top: var(--s-4);
     }
     .doc-nav {
       display: none;
@@ -328,9 +328,9 @@ const related = relatedForDoc(slug);
     .doc-nav-mobile {
       display: block;
       border: 1px solid var(--line);
-      border-radius: var(--radius);
+      border-radius: var(--r-md);
       background: var(--surface);
-      padding: 0.6rem 0.9rem;
+      padding: var(--s-2) var(--s-4);
     }
     .doc-nav-mobile summary {
       cursor: pointer;
@@ -341,7 +341,7 @@ const related = relatedForDoc(slug);
       font-weight: 400;
     }
     .doc-nav-mobile nav {
-      padding-top: 0.9rem;
+      padding-top: var(--s-4);
     }
   }
 </style>

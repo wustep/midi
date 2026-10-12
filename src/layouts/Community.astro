@@ -16,7 +16,7 @@ const tabs = [
 
 <Base title={title} section="/community" description={description}>
   <div class="page community-page">
-    <nav class="sub-nav" aria-label="Community & resources">
+    <nav class="subnav" aria-label="Community & resources">
       <ul>
         {
           tabs.map((t) => (
@@ -37,43 +37,13 @@ const tabs = [
   .community-page {
     --page-top: var(--s-5);
   }
-  .sub-nav ul {
-    list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    padding: 0 0 1rem;
-    margin: 0 0 2rem;
-    border-bottom: 1px solid var(--line);
-  }
-  .sub-nav a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.5rem;
-    padding: 0.3rem 0.85rem;
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    color: var(--ink-2);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-  .sub-nav a:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .sub-nav a[aria-current='page'] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--bg);
-  }
   .community-page :global(.toc) {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    margin: 1.25rem 0 0.5rem;
+    gap: var(--s-2);
+    margin: var(--s-4) 0 var(--s-2);
   }
   .community-page :global(.toc a) {
-    font-size: 0.88rem;
+    font-size: var(--t-md);
   }
 </style>

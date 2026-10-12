@@ -88,7 +88,7 @@ const gid = (t: string) => `g-${t.replace(/\W+/g, '-').toLowerCase()}`;
     height: 100%;
     padding: var(--s-3) var(--s-4);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--r-md);
     background: var(--surface);
     color: var(--ink);
     text-decoration: none;
@@ -104,13 +104,13 @@ const gid = (t: string) => `g-${t.replace(/\W+/g, '-').toLowerCase()}`;
     height: 1.75rem;
     border-radius: 50%;
     background: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
     font-weight: 700;
-    font-size: var(--t-sm);
+    font-size: var(--t-md);
   }
   .path span:last-child {
     display: grid;
-    gap: 0.15rem;
+    gap: var(--s-0);
   }
   .path small {
     font-size: var(--t-xs);

@@ -43,8 +43,8 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
   <div class="rpn-out" aria-live="polite">
     <ol class="rpn-msgs" data-msgs></ol>
     <div class="rpn-formats">
-      <div><span>Hex</span><code data-fmt="hex"></code><button type="button" class="chip" data-copy="hex">Copy</button></div>
-      <div><span>C / JS</span><code data-fmt="c"></code><button type="button" class="chip" data-copy="c">Copy</button></div>
+      <div><span>Hex</span><code data-fmt="hex"></code><button type="button" class="btn btn-sm" data-copy="hex">Copy</button></div>
+      <div><span>C / JS</span><code data-fmt="c"></code><button type="button" class="btn btn-sm" data-copy="c">Copy</button></div>
     </div>
     <div class="rpn-send">
       <button type="button" class="btn" data-send>Send to a MIDI output…</button>
@@ -64,6 +64,7 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
   import { RPNS, findRpn, buildParam, flatten, encodeValue, describeValue, decodeParams, splitMessages, type RpnDef } from '../lib/rpn';
   import { parseHex, hexBytes, hex } from '../lib/midi';
   import { midiAccess, bindPortSelect } from '../lib/webmidi';
+  import { bindCopy } from '../lib/copy';
 
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
   const CC_LABEL: Record<number, string> = { 101: 'RPN MSB', 100: 'RPN LSB', 99: 'NRPN MSB', 98: 'NRPN LSB', 6: 'Data Entry MSB', 38: 'Data Entry LSB', 96: 'Data Increment', 97: 'Data Decrement' };
@@ -162,17 +163,7 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
       if ((e.target as HTMLElement).closest('.rpn-opts, [data-ch]')) render();
     });
 
-    root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
-      b.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText($(`[data-fmt="${b.dataset.copy}"]`).textContent ?? '');
-          b.textContent = 'Copied';
-        } catch {
-          b.textContent = 'Copy failed';
-        }
-        setTimeout(() => (b.textContent = 'Copy'), 1500);
-      }),
-    );
+    root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => bindCopy(b, () => $(`[data-fmt="${b.dataset.copy}"]`).textContent ?? ''));
 
     const sendStatus = $('[data-send-status]');
     $('[data-send]').addEventListener('click', async (e) => {
@@ -201,15 +192,12 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
 
 <style>
   .seg {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    margin-bottom: 0.9rem;
+    margin-bottom: var(--s-4);
   }
   .rpn-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: var(--s-3);
     align-items: end;
   }
   .rpn-grid :global(.span2),
@@ -223,9 +211,9 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
     font-family: var(--font-mono);
   }
   .rpn-detail {
-    font-size: 0.9rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
-    margin: 0.75rem 0;
+    margin: var(--s-3) 0;
   }
   .rpn-detail :global(.muted) {
     color: var(--muted);
@@ -236,14 +224,14 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
   .rpn-opts {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1.25rem;
-    margin: 0.75rem 0;
+    gap: var(--s-1) var(--s-4);
+    margin: var(--s-3) 0;
   }
   .rpn-check {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    font-size: 0.88rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     min-height: 2.5rem;
   }
   .rpn-check input {
@@ -252,38 +240,38 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
     accent-color: var(--accent);
   }
   .rpn-out {
-    padding: 0.9rem 1rem;
+    padding: var(--s-4) var(--s-4);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--bg);
+    border-radius: var(--r-md);
+    background: var(--surface-sunken);
   }
   .rpn-msgs {
     list-style: none;
     padding: 0;
-    margin: 0 0 0.75rem;
+    margin: 0 0 var(--s-3);
     display: grid;
-    gap: 0.3rem;
-    font-size: 0.9rem;
+    gap: var(--s-1);
+    font-size: var(--t-md);
   }
   .rpn-msgs :global(li span:last-child) {
     color: var(--ink-2);
-    margin-left: 0.4rem;
+    margin-left: var(--s-2);
   }
   .rpn-msgs :global(.rpn-result) {
     font-weight: 700;
     color: var(--data);
-    margin-top: 0.25rem;
+    margin-top: var(--s-1);
   }
   .rpn-formats {
     display: grid;
-    gap: 0.4rem;
+    gap: var(--s-2);
   }
   .rpn-formats div {
     display: grid;
     grid-template-columns: 4.5rem minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.6rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
   }
   .rpn-formats span {
     font-weight: 600;
@@ -296,14 +284,14 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 0.75rem;
-    margin-top: 0.9rem;
+    gap: var(--s-2) var(--s-3);
+    margin-top: var(--s-4);
   }
   .rpn-inline {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     font-weight: 600;
   }
   .rpn-inline select {
@@ -314,24 +302,24 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
     display: none;
   }
   .rpn-status {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   .rpn-h {
-    font-size: 1rem;
-    margin: 1.6rem 0 0.3rem;
+    font-size: var(--t-base);
+    margin: var(--s-5) 0 var(--s-1);
   }
   .rpn-hint {
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   textarea {
     font-family: var(--font-mono);
   }
   [data-decoded] :global(ul) {
-    padding-left: 1.1rem;
-    margin: 0.75rem 0 0;
-    font-size: 0.9rem;
+    padding-left: var(--s-4);
+    margin: var(--s-3) 0 0;
+    font-size: var(--t-md);
   }
   [data-decoded] :global(.warn) {
     color: var(--warn);

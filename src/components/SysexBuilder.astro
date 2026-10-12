@@ -82,9 +82,9 @@ const presets = [
     <ul class="sxb-legend" data-legend></ul>
     <div class="sxb-problems" data-problems></div>
     <div class="sxb-formats">
-      <div class="sxb-format"><span>Hex</span><code data-fmt="hex"></code><button type="button" class="chip" data-copy="hex">Copy</button></div>
-      <div class="sxb-format"><span>Decimal</span><code data-fmt="dec"></code><button type="button" class="chip" data-copy="dec">Copy</button></div>
-      <div class="sxb-format"><span>C / JS</span><code data-fmt="c"></code><button type="button" class="chip" data-copy="c">Copy</button></div>
+      <div class="sxb-format"><span>Hex</span><code data-fmt="hex"></code><button type="button" class="btn btn-sm" data-copy="hex">Copy</button></div>
+      <div class="sxb-format"><span>Decimal</span><code data-fmt="dec"></code><button type="button" class="btn btn-sm" data-copy="dec">Copy</button></div>
+      <div class="sxb-format"><span>C / JS</span><code data-fmt="c"></code><button type="button" class="btn btn-sm" data-copy="c">Copy</button></div>
     </div>
     <div class="sxb-send">
       <button type="button" class="btn" data-send>Send to a MIDI output…</button>
@@ -127,6 +127,7 @@ const presets = [
   import { buildSysex, parseBytes, to7bit, toNibbles, pack8to7, type ChecksumKind } from '../lib/sysex';
   import { hex, hexBytes } from '../lib/midi';
   import { midiAccess } from '../lib/webmidi';
+  import { bindCopy } from '../lib/copy';
 
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -210,18 +211,7 @@ const presets = [
     for (const el of [idIn, headerIn, dataIn]) el.addEventListener('input', render);
     for (const el of [cs, over]) el.addEventListener('change', render);
 
-    root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
-      b.addEventListener('click', async () => {
-        const text = $(`[data-fmt="${b.dataset.copy}"]`).textContent ?? '';
-        try {
-          await navigator.clipboard.writeText(text);
-          b.textContent = 'Copied';
-        } catch {
-          b.textContent = 'Copy failed';
-        }
-        setTimeout(() => (b.textContent = 'Copy'), 1500);
-      }),
-    );
+    root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => bindCopy(b, () => $(`[data-fmt="${b.dataset.copy}"]`).textContent ?? ''));
 
     /* ----- Sending ----- */
     const sendBtn = $<HTMLButtonElement>('[data-send]');
@@ -312,19 +302,19 @@ const presets = [
   .presets {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-bottom: 0.5rem;
+    gap: var(--s-2);
+    margin-bottom: var(--s-2);
   }
   .sxb-note {
     min-height: 1.4em;
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     color: var(--muted);
-    margin: 0 0 0.75rem;
+    margin: 0 0 var(--s-3);
   }
   .sxb-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.85rem 1rem;
+    gap: var(--s-3) var(--s-4);
   }
   .sxb-span {
     grid-column: 1 / -1;
@@ -337,19 +327,15 @@ const presets = [
     font-weight: 400;
     color: var(--muted);
   }
-  .seg {
-    display: flex;
-    gap: 0.4rem;
-  }
   .sxb-out {
-    margin-top: 1.1rem;
-    padding: 0.9rem 1rem;
+    margin-top: var(--s-4);
+    padding: var(--s-4) var(--s-4);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--bg);
+    border-radius: var(--r-md);
+    background: var(--surface-sunken);
   }
   .sxb-bytes {
-    font-size: 1.15rem;
+    font-size: var(--t-lg);
     line-height: 2;
     word-spacing: 0.1em;
   }
@@ -379,31 +365,31 @@ const presets = [
   .sxb-legend {
     list-style: none;
     padding: 0;
-    margin: 0.5rem 0 0;
+    margin: var(--s-2) 0 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    font-size: 0.82rem;
+    gap: var(--s-1) var(--s-4);
+    font-size: var(--t-sm);
     color: var(--ink-2);
   }
   .sxb-problems :global(ul) {
-    margin: 0.6rem 0 0;
-    padding-left: 1.2rem;
+    margin: var(--s-2) 0 0;
+    padding-left: var(--s-4);
     color: var(--accent);
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: var(--t-md);
   }
   .sxb-formats {
     display: grid;
-    gap: 0.4rem;
-    margin-top: 0.85rem;
+    gap: var(--s-2);
+    margin-top: var(--s-3);
   }
   .sxb-format {
     display: grid;
     grid-template-columns: 4.5rem minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.6rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
   }
   .sxb-format span {
     font-weight: 600;
@@ -411,46 +397,46 @@ const presets = [
   }
   .sxb-format code {
     overflow-wrap: anywhere;
-    font-size: 0.85rem;
+    font-size: var(--t-md);
   }
   .sxb-send {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 0.75rem;
-    margin-top: 0.9rem;
+    gap: var(--s-2) var(--s-3);
+    margin-top: var(--s-4);
   }
   .sxb-send select {
     width: auto;
     max-width: 16rem;
   }
   .sxb-send-status {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--muted);
   }
   .sxb-h {
-    font-size: 1rem;
-    margin: 1.6rem 0 0.3rem;
+    font-size: var(--t-base);
+    margin: var(--s-5) 0 var(--s-1);
   }
   .sxb-hint {
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     color: var(--muted);
-    margin-bottom: 0.6rem;
+    margin-bottom: var(--s-2);
   }
   .sxb-enc {
     display: grid;
     grid-template-columns: 1fr 1.6fr 0.6fr;
-    gap: 0.75rem;
+    gap: var(--s-3);
   }
   .sxb-enc-out {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.7rem;
+    gap: var(--s-3);
+    margin-top: var(--s-3);
   }
   .sxb-enc-out code {
-    font-size: 1rem;
+    font-size: var(--t-base);
   }
   @media (max-width: 560px) {
     .sxb-grid,

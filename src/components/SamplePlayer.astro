@@ -33,9 +33,9 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
   <div class="sp-bar">
     <p class="sp-status" role="status" aria-live="polite" data-status>Samples load when you pick an instrument or play a note.</p>
     <div class="sp-controls">
-      <button type="button" class="chip" data-oct="-1" aria-label="Octave down">Oct −</button>
+      <button type="button" class="btn btn-sm" data-oct="-1" aria-label="Octave down">Oct −</button>
       <span class="sp-oct" data-oct-label aria-live="polite">C3–C5</span>
-      <button type="button" class="chip" data-oct="1" aria-label="Octave up">Oct +</button>
+      <button type="button" class="btn btn-sm" data-oct="1" aria-label="Octave up">Oct +</button>
       <button type="button" class="chip" data-sustain aria-pressed="false">Sustain</button>
       <label class="sp-vel">
         <span>Velocity</span>
@@ -336,14 +336,14 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
   .sp-insts {
     border: 0;
     padding: 0;
-    margin: 0 0 1rem;
+    margin: 0 0 var(--s-4);
     /* Fieldsets default to min-width: min-content, which would let the instrument strip widen the page. */
     min-width: 0;
   }
   .sp-inst-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(150px, 45%), 1fr));
-    gap: 0.5rem;
+    gap: var(--s-2);
   }
   .sp-inst {
     position: relative;
@@ -358,12 +358,13 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
   }
   .sp-inst-body {
     display: grid;
-    gap: 0.1rem;
+    gap: var(--s-0);
     height: 100%;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
-    padding: 0.5rem 0.7rem;
-    background: var(--bg);
+    border-radius: var(--r-sm);
+    padding: var(--s-2) var(--s-3);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
   }
   .sp-inst input:checked + .sp-inst-body {
     border-color: var(--accent);
@@ -375,14 +376,14 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     outline-offset: 2px;
   }
   .sp-family {
-    font-size: 0.7rem;
+    font-size: var(--t-2xs);
     font-weight: 700;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tr-label);
     text-transform: uppercase;
     color: var(--muted);
   }
   .sp-meta {
-    font-size: 0.76rem;
+    font-size: var(--t-xs);
     color: var(--ink-2);
   }
   .sp-bar {
@@ -390,12 +391,12 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem 1rem;
-    margin-bottom: 0.75rem;
+    gap: var(--s-2) var(--s-4);
+    margin-bottom: var(--s-3);
   }
   .sp-status {
     margin: 0;
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
     min-height: 1.4em;
   }
@@ -403,19 +404,19 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.4rem 0.6rem;
+    gap: var(--s-2) var(--s-2);
   }
   .sp-oct {
     font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     min-width: 5.5rem;
     text-align: center;
   }
   .sp-vel {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     font-weight: 600;
     color: var(--ink-2);
   }
@@ -436,7 +437,7 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     position: absolute;
     top: 0;
     border: 1px solid var(--line-strong);
-    border-radius: 0 0 6px 6px;
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
     padding: 0;
     cursor: pointer;
     display: flex;
@@ -467,41 +468,42 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
   }
   .sp-keys :global(.lbl) {
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: var(--t-2xs);
     color: var(--key-label);
-    padding-bottom: 0.4rem;
+    padding-bottom: var(--s-2);
     pointer-events: none;
   }
   .sp-pads {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 0.5rem;
+    gap: var(--s-2);
   }
   .sp-pads :global(.pad) {
     display: grid;
-    gap: 0.2rem;
+    gap: var(--s-1);
     place-content: center;
     min-height: 5.5rem;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
-    background: var(--bg);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
     cursor: pointer;
     text-align: center;
     -webkit-tap-highlight-color: transparent;
   }
   .sp-pads :global(.pad span) {
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: var(--t-md);
   }
   .sp-pads :global(.pad small) {
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: var(--t-xs);
   }
   .sp-pads :global(.pad.on) {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
+    color: var(--on-accent);
   }
   .sp-pads :global(.pad.on small) {
     color: inherit;
@@ -511,36 +513,27 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem 1rem;
-    margin-top: 0.9rem;
+    gap: var(--s-2) var(--s-4);
+    margin-top: var(--s-4);
   }
   .sp-hint {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--muted);
-  }
-  .sp-hint :global(kbd) {
-    border: 1px solid var(--line-strong);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    padding: 0 0.3em;
-    font-size: 0.8em;
-    background: var(--bg);
-    color: var(--ink);
   }
   .sp-midi {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--s-2);
   }
   .sp-midi-status {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   .sp-attr {
-    margin: 0.75rem 0 0;
-    font-size: 0.82rem;
+    margin: var(--s-3) 0 0;
+    font-size: var(--t-sm);
     color: var(--muted);
   }
   .sp-rotate {
@@ -552,11 +545,12 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
       display: flex;
       overflow-x: auto;
       scroll-snap-type: x proximity;
-      gap: 0.4rem;
-      padding-bottom: 0.4rem;
-      margin: 0 calc(-1 * 1.2rem);
-      padding-inline: 1.2rem;
-      scrollbar-width: thin;
+      gap: var(--s-2);
+      padding-bottom: var(--s-2);
+      margin: 0 calc(-1 * var(--s-4));
+      padding-inline: var(--s-4);
+      scrollbar-width: none;
+      mask-image: linear-gradient(to right, #000 calc(100% - var(--s-6)), transparent);
     }
     .sp-inst {
       flex: 0 0 8.5rem;
@@ -566,16 +560,16 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
       height: 200px;
     }
     .sp-inst-body {
-      padding: 0.4rem 0.55rem;
+      padding: var(--s-2) var(--s-2);
     }
     .sp-family {
       display: none;
     }
     .sp-inst strong {
-      font-size: 0.92rem;
+      font-size: var(--t-ui);
     }
     .sp-meta {
-      font-size: 0.7rem;
+      font-size: var(--t-2xs);
     }
     .sp-vel input {
       width: 5.5rem;
@@ -584,9 +578,9 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
   @media (max-width: 520px) and (orientation: portrait) and (pointer: coarse) {
     .sp-rotate {
       display: block;
-      font-size: 0.82rem;
+      font-size: var(--t-sm);
       color: var(--muted);
-      margin: 0 0 0.4rem;
+      margin: 0 0 var(--s-2);
     }
   }
   @media (pointer: coarse) {

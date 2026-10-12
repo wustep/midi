@@ -71,17 +71,17 @@ const letterId = (l: string) => (l === '#' ? 'letter-0-9' : `letter-${l.toLowerC
   .az {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.3rem;
-    margin: 1.5rem 0;
+    gap: var(--s-1);
+    margin: var(--s-5) 0;
   }
   .az a {
     display: inline-grid;
     place-items: center;
     min-width: 2.2rem;
     height: 2.2rem;
-    padding: 0 0.4rem;
+    padding: 0 var(--s-2);
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
+    border-radius: var(--r-sm);
     font-family: var(--font-display);
     font-weight: 700;
     text-decoration: none;
@@ -94,13 +94,13 @@ const letterId = (l: string) => (l === '#' ? 'letter-0-9' : `letter-${l.toLowerC
   }
   .gl-filter {
     max-width: 28rem;
-    margin-bottom: 1rem;
+    margin-bottom: var(--s-4);
   }
   .gl-count {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--muted);
     min-height: 1.3em;
-    margin: 0.35rem 0 0;
+    margin: var(--s-1) 0 0;
   }
   .gl-letter[hidden],
   .gl-item[hidden] {
@@ -110,7 +110,7 @@ const letterId = (l: string) => (l === '#' ? 'letter-0-9' : `letter-${l.toLowerC
     margin: 0;
   }
   .gl-item {
-    padding: 0.75rem 0;
+    padding: var(--s-3) 0;
     border-bottom: 1px solid var(--line);
   }
   .gl-item:last-child {
@@ -120,8 +120,8 @@ const letterId = (l: string) => (l === '#' ? 'letter-0-9' : `letter-${l.toLowerC
     font-family: var(--font-display);
     font-stretch: 108%;
     font-weight: 700;
-    font-size: 1.02rem;
-    margin-bottom: 0.2rem;
+    font-size: var(--t-base);
+    margin-bottom: var(--s-1);
   }
   .gl-anchor {
     color: var(--ink);

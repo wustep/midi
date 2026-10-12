@@ -35,30 +35,55 @@ const render = (keys: string) => keys.split(' / ').map((alt) => alt.split('+').m
 
 <style>
   .shortcuts {
-    margin: -1rem 0 1.5rem;
-    font-size: 0.88rem;
+    margin: calc(-1 * var(--s-4)) 0 var(--s-5);
+    font-size: var(--t-md);
   }
   summary {
     cursor: pointer;
     color: var(--ink-2);
-    font-weight: 600;
-    min-height: 2.5rem;
+    font-weight: var(--w-semibold);
+    min-height: var(--h-md);
     display: inline-flex;
     align-items: center;
+    gap: var(--s-2);
+    list-style: none;
+    border-radius: var(--r-sm);
+    transition: color var(--d-fast) ease;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  /* Same chevron as fold groups: points right when closed, down when open. */
+  summary::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-1px) rotate(-45deg);
+    transition: transform var(--d-base) var(--ease-out);
+  }
+  .shortcuts[open] summary::before {
+    transform: translateY(-3px) rotate(45deg);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    summary:hover {
+      color: var(--ink);
+    }
   }
   dl {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 0.4rem 1.5rem;
-    margin: 0.25rem 0 0;
-    padding: 0.75rem 1rem;
+    gap: var(--s-2) var(--s-5);
+    margin: var(--s-1) 0 0;
+    padding: var(--s-3) var(--s-4);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--r-md);
     background: var(--surface);
   }
   dl div {
     display: flex;
-    gap: 0.75rem;
+    gap: var(--s-3);
     align-items: baseline;
   }
   dt {
@@ -71,19 +96,9 @@ const render = (keys: string) => keys.split(' / ').map((alt) => alt.split('+').m
     color: var(--ink-2);
   }
   .or {
-    margin: 0 0.3rem;
+    margin: 0 var(--s-1);
     color: var(--muted);
     font-size: 0.8em;
-  }
-  kbd {
-    font-family: var(--font-mono);
-    font-size: 0.8em;
-    border: 1px solid var(--line-strong);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    padding: 0.05em 0.4em;
-    background: var(--bg);
-    color: var(--ink);
   }
   @media (pointer: coarse) {
     .shortcuts {

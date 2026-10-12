@@ -315,47 +315,42 @@ const pitched = instruments.filter((i) => !i.drumMap);
 
 <style>
   .cs-mode {
-    margin-bottom: 0.9rem;
-  }
-  .seg {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
+    margin-bottom: var(--s-4);
   }
   .cs-controls {
     display: grid;
     grid-template-columns: 7rem 6rem minmax(0, 1fr) 10rem;
-    gap: 0.75rem;
+    gap: var(--s-3);
     align-items: end;
   }
   .cs-controls label[hidden] {
     display: none;
   }
   .cs-out {
-    margin-top: 1rem;
+    margin-top: var(--s-4);
   }
   .cs-symbol {
-    margin: 0 0 0.4rem;
+    margin: 0 0 var(--s-2);
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.25rem 0.75rem;
+    gap: var(--s-1) var(--s-3);
   }
   .cs-symbol :global(strong) {
     font-family: var(--font-display);
     font-stretch: 112%;
-    font-size: 1.9rem;
+    font-size: var(--t-2xl);
   }
   .cs-symbol :global(span) {
     color: var(--ink-2);
   }
   .cs-notes-wrap {
-    margin: 0.4rem 0 0.9rem;
+    margin: var(--s-2) 0 var(--s-4);
   }
   .cs-notes :global(th) {
-    font-size: 0.75rem;
+    font-size: var(--t-xs);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: var(--tr-label);
     color: var(--muted);
     width: 5.5rem;
     background: var(--surface-2);
@@ -368,18 +363,18 @@ const pitched = instruments.filter((i) => !i.drumMap);
   .cs-keys {
     position: relative;
     height: 120px;
-    margin-bottom: 0.6rem;
+    margin-bottom: var(--s-2);
   }
   .cs-keys :global(.key) {
     position: absolute;
     top: 0;
     border: 1px solid var(--line-strong);
-    border-radius: 0 0 5px 5px;
+    border-radius: 0 0 var(--r-xs) var(--r-xs);
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 0.3rem;
-    font-size: 0.68rem;
+    padding-bottom: var(--s-1);
+    font-size: var(--t-2xs);
   }
   .cs-keys :global(.white) {
     height: 100%;
@@ -392,7 +387,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
     background: var(--key-b);
     border-color: var(--key-b);
     z-index: 2;
-    color: #fff;
+    color: var(--key-w);
   }
   .cs-keys :global(.white.on) {
     background: var(--accent-soft);
@@ -413,7 +408,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
     color: var(--key-label);
   }
   .cs-bytes {
-    font-size: 0.82rem;
+    font-size: var(--t-sm);
     color: var(--ink-2);
   }
   .cs-bytes :global(code) {
@@ -423,15 +418,15 @@ const pitched = instruments.filter((i) => !i.drumMap);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 0.75rem;
-    padding-top: 0.75rem;
+    gap: var(--s-2) var(--s-3);
+    padding-top: var(--s-3);
     border-top: 1px solid var(--line);
   }
   .cs-inline {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     font-weight: 600;
     color: var(--ink-2);
   }
@@ -443,30 +438,31 @@ const pitched = instruments.filter((i) => !i.drumMap);
     display: none;
   }
   .cs-status {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   .cs-h {
-    font-size: 1rem;
-    margin: 1.5rem 0 0.5rem;
+    font-size: var(--t-base);
+    margin: var(--s-5) 0 var(--s-2);
   }
   .cs-dia {
     list-style: none;
     padding: 0;
-    margin: 0.6rem 0 0;
+    margin: var(--s-2) 0 0;
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 0.4rem;
+    gap: var(--s-2);
   }
   .cs-dia :global(.cs-dchord) {
     width: 100%;
     display: grid;
-    gap: 0.1rem;
+    gap: var(--s-0);
     justify-items: center;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-    padding: 0.5rem 0.25rem;
+    border-radius: var(--r-sm);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    padding: var(--s-2) var(--s-1);
     cursor: pointer;
     min-height: 3.5rem;
   }
@@ -475,21 +471,21 @@ const pitched = instruments.filter((i) => !i.drumMap);
   }
   .cs-dia :global(.cs-dchord span) {
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: var(--t-sm);
     color: var(--muted);
   }
   .cs-hint {
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   .cs-detected {
-    margin-top: 0.6rem;
+    margin-top: var(--s-2);
     min-height: 1.5em;
   }
   .cs-detected :global(strong) {
     font-family: var(--font-display);
-    font-size: 1.6rem;
-    margin-right: 0.5rem;
+    font-size: var(--t-xl);
+    margin-right: var(--s-2);
   }
   @media (max-width: 720px) {
     .cs-controls {

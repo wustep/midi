@@ -370,18 +370,18 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.6rem 0.9rem;
+    gap: var(--s-2) var(--s-4);
   }
   .ct-hint {
-    font-size: 0.9rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
     max-width: 75ch;
   }
   .ct-check {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    font-size: 0.88rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     min-height: 2.5rem;
   }
   .ct-check input {
@@ -390,14 +390,14 @@
     accent-color: var(--accent);
   }
   .ct-status {
-    font-size: 0.88rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   .ct-inline {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     font-weight: 600;
     color: var(--ink-2);
   }
@@ -410,51 +410,51 @@
   }
   .ct-transport {
     font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--data);
   }
   .ct-stats {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(140px, 42%), 1fr));
-    gap: 0.5rem 1rem;
-    margin: 1rem 0;
+    gap: var(--s-2) var(--s-4);
+    margin: var(--s-4) 0;
   }
   .ct-stats :global(div) {
     border-top: 1px solid var(--line);
-    padding-top: 0.35rem;
+    padding-top: var(--s-1);
   }
   .ct-stats :global(dt) {
-    font-size: 0.72rem;
+    font-size: var(--t-xs);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: var(--tr-label);
     color: var(--muted);
   }
   .ct-stats :global(dd) {
-    margin: 0.1rem 0 0;
+    margin: var(--s-0) 0 0;
     font-family: var(--font-mono);
-    font-size: 1.05rem;
+    font-size: var(--t-base);
   }
   .ct-charts {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    gap: 1rem;
+    gap: var(--s-4);
   }
   figure {
     margin: 0;
   }
   figcaption {
-    font-size: 0.8rem;
+    font-size: var(--t-sm);
     color: var(--muted);
-    margin-bottom: 0.3rem;
+    margin-bottom: var(--s-1);
   }
   canvas {
     display: block;
     width: 100%;
     height: 120px;
     border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    background: var(--bg);
+    border-radius: var(--r-sm);
+    background: var(--surface-sunken);
   }
   .ct-loop-fig {
     max-width: 560px;

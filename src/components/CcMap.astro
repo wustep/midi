@@ -242,39 +242,39 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
   .ccm-controls {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 1rem;
+    gap: var(--s-4);
     align-items: end;
   }
   .ccm-learn {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.3rem 0.75rem;
+    gap: var(--s-1) var(--s-3);
   }
   .ccm-learn .field-label {
     width: 100%;
   }
   .ccm-learn-status {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
     color: var(--ink-2);
   }
   .ccm-filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
-    margin: 0.9rem 0;
+    gap: var(--s-1);
+    margin: var(--s-4) 0;
   }
   .ccm-body {
     display: grid;
     grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: 1rem;
+    gap: var(--s-4);
     align-items: start;
   }
   .ccm-grid {
     display: grid;
     grid-template-columns: repeat(8, minmax(0, 1fr));
-    gap: 3px;
-    border-radius: var(--radius-sm);
+    gap: var(--s-0);
+    border-radius: var(--r-sm);
   }
   .cell {
     position: relative;
@@ -282,11 +282,12 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     align-content: start;
     gap: 0.05rem;
     min-height: 3.1rem;
-    padding: 0.25rem 0.3rem 0.25rem 0.45rem;
+    padding: var(--s-1) var(--s-1) var(--s-1) var(--s-2);
     border: 1px solid var(--line);
     border-left: 4px solid var(--kc, var(--line));
-    border-radius: 4px;
-    background: var(--bg);
+    border-radius: var(--r-xs);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
     cursor: pointer;
     overflow: hidden;
   }
@@ -306,10 +307,10 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
   .cell .num {
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: var(--t-sm);
   }
   .cell .nm {
-    font-size: 0.66rem;
+    font-size: var(--t-2xs);
     line-height: 1.15;
     color: inherit;
     opacity: 0.85;
@@ -322,7 +323,7 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     position: absolute;
     top: 0.2rem;
     right: 0.25rem;
-    font-size: 0.55rem;
+    font-size: var(--t-2xs);
     font-weight: 700;
     letter-spacing: 0.04em;
     opacity: 0.7;
@@ -332,14 +333,14 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     right: 0.25rem;
     bottom: 0.15rem;
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: var(--t-2xs);
     color: var(--accent);
   }
   .cell[aria-selected='true'] .val {
     color: inherit;
   }
   .cell.flash {
-    animation: ccflash 600ms ease-out;
+    animation: ccflash 600ms var(--ease-out); /* a signal indicator decaying, deliberately longer than UI motion */
   }
   @keyframes ccflash {
     from {
@@ -357,45 +358,45 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
   :global(.k-lsb) { --kc: color-mix(in srgb, var(--accent) 45%, var(--line)); }
   :global(.k-switch) { --kc: var(--data); }
   :global(.k-sound) { --kc: var(--meta); }
-  :global(.k-effect) { --kc: #2f7fbf; }
+  :global(.k-effect) { --kc: var(--sky); }
   :global(.k-param) { --kc: var(--warn); }
-  :global(.k-general) { --kc: #8a8a3a; }
+  :global(.k-general) { --kc: var(--olive); }
   :global(.k-mode) { --kc: var(--ink-2); }
   :global(.k-undefined) { --kc: var(--line); }
   .ccm-detail {
     position: sticky;
     top: 5rem;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--bg);
-    padding: 0.9rem 1rem;
-    font-size: 0.92rem;
+    border-radius: var(--r-md);
+    background: var(--surface-sunken);
+    padding: var(--s-4) var(--s-4);
+    font-size: var(--t-ui);
   }
   .ccm-detail :global(p) {
-    margin: 0 0 0.55rem;
+    margin: 0 0 var(--s-2);
   }
   .ccm-detail :global(.d-num) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.4rem;
+    gap: var(--s-2);
     font-weight: 700;
     color: var(--muted);
   }
   .ccm-detail :global(.badge) {
-    font-size: 0.68rem;
+    font-size: var(--t-2xs);
     font-weight: 700;
-    border-radius: 4px;
-    padding: 0.05rem 0.35rem;
+    border-radius: var(--r-xs);
+    padding: 0.05rem var(--s-1);
     background: var(--data-soft);
     color: var(--data);
   }
   .ccm-detail :global(.d-name) {
-    font-size: 1.25rem;
-    margin: 0 0 0.3rem;
+    font-size: var(--t-lg);
+    margin: 0 0 var(--s-1);
   }
   .ccm-detail :global(.d-kind) {
-    font-size: 0.82rem;
+    font-size: var(--t-sm);
     color: var(--ink-2);
   }
   .ccm-detail :global(i),
@@ -403,32 +404,32 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     display: inline-block;
     width: 0.7rem;
     height: 0.7rem;
-    border-radius: 2px;
-    margin-right: 0.35rem;
+    border-radius: var(--r-2xs);
+    margin-right: var(--s-1);
     vertical-align: -0.05em;
     background: var(--kc);
   }
   .ccm-detail :global(.d-common) {
     border-left: 3px solid var(--data);
-    padding-left: 0.6rem;
+    padding-left: var(--s-2);
   }
   .ccm-detail :global(.d-build) {
     border-top: 1px solid var(--line);
-    padding-top: 0.7rem;
-    margin-top: 0.7rem;
+    padding-top: var(--s-3);
+    margin-top: var(--s-3);
   }
   .ccm-detail :global(.d-row) {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    gap: var(--s-2) var(--s-4);
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--s-2);
   }
   .ccm-detail :global(label) {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     font-weight: 600;
   }
   .ccm-detail :global(select) {
@@ -443,25 +444,25 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     min-width: 2ch;
   }
   .ccm-detail :global(.d-bytes) {
-    font-size: 1.05rem;
+    font-size: var(--t-base);
   }
   .ccm-detail :global(.d-bytes .muted) {
-    font-size: 0.8rem;
+    font-size: var(--t-sm);
   }
   .ccm-detail :global(.d-14) {
-    font-size: 0.85rem;
+    font-size: var(--t-md);
   }
   .ccm-detail :global(.d-14 input) {
     width: 6rem;
     min-height: 2.25rem;
     display: inline-block;
-    padding: 0.2rem 0.4rem;
+    padding: var(--s-1) var(--s-2);
   }
   .ccm-detail :global(.d-send) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--s-2);
   }
   .ccm-detail :global(.muted) {
     color: var(--muted);
@@ -469,11 +470,11 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
   .ccm-legend {
     list-style: none;
     padding: 0;
-    margin: 0.9rem 0 0;
+    margin: var(--s-4) 0 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.3rem 1rem;
-    font-size: 0.78rem;
+    gap: var(--s-1) var(--s-4);
+    font-size: var(--t-xs);
     color: var(--ink-2);
   }
   @media (min-width: 1100px) {
@@ -494,8 +495,8 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
   .ccm-out {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
+    gap: var(--s-2);
+    font-size: var(--t-md);
     font-weight: 600;
   }
   .ccm-out select {
@@ -506,7 +507,7 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
     /* Numbers only on phones: 8 × 16 cells, names in the detail panel. */
     .cell {
       min-height: 2.6rem;
-      padding: 0.2rem 0.1rem 0.2rem 0.2rem;
+      padding: var(--s-1) var(--s-0) var(--s-1) var(--s-1);
       border-left-width: 3px;
       place-content: center;
       text-align: center;
@@ -516,7 +517,7 @@ const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').r
       display: none;
     }
     .cell .num {
-      font-size: 0.78rem;
+      font-size: var(--t-xs);
     }
   }
   @media (prefers-reduced-motion: reduce) {

@@ -60,7 +60,7 @@ The catalog is one part of **[midi.community](${SITE})**, an open reference for 
 - 📖 **[Protocol docs](${SITE}/docs/)**: messages and running status, notes and pitch, Control Change, RPN/NRPN, SysEx, timing (clock, SPP, MTC), Standard MIDI Files, General MIDI, MPE, MIDI 2.0 and UMP, MIDI-CI, transports (DIN, TRS, USB, BLE, RTP)
 - 🍳 **[Cookbook](${SITE}/docs/cookbook/)**: tested snippets in JavaScript (Web MIDI), Python (mido), C++ (RtMidi) and Rust (midir, midly)
 - 🔍 **[MIDI Reader](${SITE}/reader/)**: open a \`.mid\` file and see every track, tempo change, controller and SysEx explained, with a piano roll, sampled playback and an annotated hex view
-- 🧰 **[Tools](${SITE}/tools/)**: SysEx builder, message decoder, VLQ encoder, tempo calculator, note/frequency table, and a live [Web MIDI monitor](${SITE}/try/)
+- 🧰 **[Tools](${SITE}/tools/)**: [CC map](${SITE}/tools/cc/), [chords & scales](${SITE}/tools/chords/), [clock & latency tester](${SITE}/tools/clock/), SysEx builder, message decoder, VLQ encoder, tempo calculator, note table, and a live [Web MIDI monitor](${SITE}/try/)
 - 🎹 **[Samples](${SITE}/samples/)**: play openly licensed instruments in the browser, plus SoundFont, SFZ and multisample sources with license notes
 - 💬 **[Community](${SITE}/community/)**: forums, subreddits, Discord servers and mailing lists, and [where to get MIDI files](${SITE}/community/midi-files/) with license and copyright notes
 - 📜 **[Glossary](${SITE}/docs/glossary/)**, **[History of MIDI](${SITE}/docs/history/)**, **[Specs & resources](${SITE}/docs/resources/)**

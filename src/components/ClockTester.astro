@@ -1,0 +1,454 @@
+---
+---
+
+<div class="ct" data-ct>
+  <section class="widget" aria-labelledby="ct-connect-title">
+    <div class="widget-head">
+      <h2 class="widget-title" id="ct-connect-title">Devices</h2>
+      <span class="widget-tag">Web MIDI</span>
+    </div>
+    <div class="ct-row">
+      <button type="button" class="btn btn-primary" data-connect>Connect MIDI devices</button>
+      <label class="ct-check"><input type="checkbox" data-sysex /> Also request SysEx (for SysEx probes)</label>
+      <span class="ct-status" data-status role="status">Not connected. You can still try the simulated clock below.</span>
+    </div>
+  </section>
+
+  <section class="widget" aria-labelledby="ct-clock-title">
+    <div class="widget-head">
+      <h2 class="widget-title" id="ct-clock-title">Incoming clock</h2>
+      <span class="widget-tag">F8 × 24 per quarter</span>
+    </div>
+    <p class="ct-hint">Send MIDI clock from a drum machine, DAW or sequencer. The tester measures tempo and how evenly the clocks arrive.</p>
+    <div class="ct-row">
+      <label class="ct-inline"><span>Input</span><select data-clock-in disabled><option>Connect first</option></select></label>
+      <button type="button" class="btn" data-sim>Simulate a clock</button>
+      <button type="button" class="btn" data-reset>Reset</button>
+      <span class="ct-transport" data-transport aria-live="polite"></span>
+    </div>
+    <dl class="ct-stats" data-clock-stats></dl>
+    <div class="ct-charts">
+      <figure>
+        <figcaption>Interval deviation from the mean (ms), last 384 clocks</figcaption>
+        <canvas data-trace height="120" role="img" aria-label="Clock interval deviation over time"></canvas>
+      </figure>
+      <figure>
+        <figcaption>Jitter histogram (ms)</figcaption>
+        <canvas data-hist height="120" role="img" aria-label="Histogram of clock jitter"></canvas>
+      </figure>
+    </div>
+  </section>
+
+  <section class="widget" aria-labelledby="ct-send-title">
+    <div class="widget-head">
+      <h2 class="widget-title" id="ct-send-title">Send clock</h2>
+      <span class="widget-tag">FA · F8 … · FC</span>
+    </div>
+    <p class="ct-hint">Drive a device from the browser to check that it follows. Clocks are scheduled ahead with Web MIDI timestamps.</p>
+    <div class="ct-row">
+      <label class="ct-inline"><span>Output</span><select data-clock-out disabled><option>Connect first</option></select></label>
+      <label class="ct-inline"><span>BPM</span><input type="number" min="20" max="300" step="0.1" value="120" data-bpm /></label>
+      <button type="button" class="btn" data-send-start disabled>Start</button>
+      <button type="button" class="btn" data-send-stop disabled>Stop</button>
+      <span class="ct-status" data-send-status role="status"></span>
+    </div>
+  </section>
+
+  <section class="widget" aria-labelledby="ct-loop-title">
+    <div class="widget-head">
+      <h2 class="widget-title" id="ct-loop-title">Round-trip latency</h2>
+      <span class="widget-tag">out → device/cable → in</span>
+    </div>
+    <p class="ct-hint">
+      Connect an output back to an input: a MIDI cable from OUT to IN on your interface, a device with MIDI Thru,
+      or a virtual loopback port (the IAC Driver on macOS, loopMIDI on Windows). The tester sends numbered probes and
+      times their return.
+    </p>
+    <div class="ct-row">
+      <label class="ct-inline"><span>Send to</span><select data-loop-out disabled><option>Connect first</option></select></label>
+      <label class="ct-inline"><span>Listen on</span><select data-loop-in disabled><option>Connect first</option></select></label>
+      <label class="ct-inline"><span>Probe</span>
+        <select data-probe>
+          <option value="note">Note On, ch 16</option>
+          <option value="cc">CC 119, ch 16</option>
+          <option value="sysex">SysEx (7D)</option>
+        </select>
+      </label>
+      <label class="ct-inline"><span>Probes</span><input type="number" min="10" max="1000" value="200" data-count /></label>
+      <button type="button" class="btn btn-primary" data-loop-run disabled>Run</button>
+    </div>
+    <p class="ct-status" data-loop-status role="status"></p>
+    <dl class="ct-stats" data-loop-stats></dl>
+    <figure class="ct-loop-fig">
+      <figcaption>Round-trip time histogram (ms)</figcaption>
+      <canvas data-loop-hist height="120" role="img" aria-label="Histogram of round-trip times"></canvas>
+    </figure>
+  </section>
+</div>
+
+<script>
+  import { analyseClock, histogram, intervals, intervalFromBpm, summarize, probeMessage, matchProbe, ProbeTracker, simulateClock, type ProbeKind } from '../lib/timing-stats';
+  import { midiAccess, bindPortSelect } from '../lib/webmidi';
+
+  const fmt = (n: number, d = 2) => (Number.isFinite(n) ? n.toFixed(d) : '–');
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-ct]')) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const status = $('[data-status]');
+    let access: MIDIAccess | undefined;
+    let clockTimes: number[] = [];
+    let simTimer: ReturnType<typeof setInterval> | undefined;
+    let getClockIn: (() => MIDIInput | undefined) | undefined;
+    let getClockOut: (() => MIDIOutput | undefined) | undefined;
+    let getLoopOut: (() => MIDIOutput | undefined) | undefined;
+    let getLoopIn: (() => MIDIInput | undefined) | undefined;
+    let wiredIn: MIDIInput | undefined;
+    const MAX = 4000;
+
+    /* ---------- Drawing ---------- */
+    function sizeCanvas(c: HTMLCanvasElement) {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const w = c.clientWidth || 300;
+      const h = c.clientHeight || 120;
+      if (c.width !== Math.round(w * dpr)) {
+        c.width = Math.round(w * dpr);
+        c.height = Math.round(h * dpr);
+      }
+      const g = c.getContext('2d')!;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, w, h);
+      return { g, w, h, cs: getComputedStyle(root) };
+    }
+
+    function drawHist(c: HTMLCanvasElement, values: number[], lo: number, hi: number, unit = 'ms') {
+      const { g, w, h, cs } = sizeCanvas(c);
+      const bins = 41;
+      const counts = histogram(values, lo, hi, bins);
+      const max = Math.max(1, ...counts);
+      const bw = w / bins;
+      g.fillStyle = cs.getPropertyValue('--data');
+      counts.forEach((n, i) => {
+        const bh = (n / max) * (h - 18);
+        g.fillRect(i * bw + 1, h - 14 - bh, Math.max(1, bw - 2), bh);
+      });
+      g.fillStyle = cs.getPropertyValue('--muted');
+      g.font = `11px ${cs.getPropertyValue('--font-mono')}`;
+      g.fillText(`${lo}${unit}`, 2, h - 2);
+      const mid = `${((lo + hi) / 2).toFixed(1)}`;
+      g.fillText(mid, w / 2 - g.measureText(mid).width / 2, h - 2);
+      const end = `${hi}`;
+      g.fillText(end, w - g.measureText(end).width - 2, h - 2);
+    }
+
+    function drawTrace(c: HTMLCanvasElement, dev: number[], range: number) {
+      const { g, w, h, cs } = sizeCanvas(c);
+      g.fillStyle = cs.getPropertyValue('--line');
+      g.fillRect(0, h / 2, w, 1);
+      g.strokeStyle = cs.getPropertyValue('--accent');
+      g.lineWidth = 1.25;
+      g.beginPath();
+      dev.forEach((d, i) => {
+        const x = (i / Math.max(1, dev.length - 1)) * w;
+        const y = h / 2 - (Math.max(-range, Math.min(range, d)) / range) * (h / 2 - 4);
+        if (i) g.lineTo(x, y);
+        else g.moveTo(x, y);
+      });
+      g.stroke();
+      g.fillStyle = cs.getPropertyValue('--muted');
+      g.font = `11px ${cs.getPropertyValue('--font-mono')}`;
+      g.fillText(`+${range}`, 2, 11);
+      g.fillText(`−${range}`, 2, h - 3);
+    }
+
+    const dl = (rows: [string, string][]) => rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+
+    /* ---------- Incoming clock ---------- */
+    let raf = 0;
+    function updateClock() {
+      raf = 0;
+      const a = analyseClock(clockTimes);
+      const stats = $('[data-clock-stats]');
+      if (!a) {
+        stats.innerHTML = dl([['Tempo', '–'], ['Clocks', String(clockTimes.length)]]);
+        return;
+      }
+      const absJ = summarize(a.jitter.count ? intervals(clockTimes).map((d) => Math.abs(d - a.intervals.mean)) : []);
+      stats.innerHTML = dl([
+        ['Tempo', `${fmt(a.bpmOverall, 1)} BPM`],
+        ['Clocks', clockTimes.length.toLocaleString()],
+        ['Mean interval', `${fmt(a.intervals.mean, 3)} ms`],
+        ['Jitter (SD)', `${fmt(a.jitter.sd, 3)} ms`],
+        ['Jitter p99', `${fmt(absJ.p99, 3)} ms`],
+        ['Worst', `${fmt(Math.max(Math.abs(a.jitter.min), Math.abs(a.jitter.max)), 3)} ms`],
+        ['Missed clocks', String(a.dropouts)],
+      ]);
+      const recent = intervals(clockTimes.slice(-385)).map((d) => d - a.intervals.mean);
+      const range = Math.max(0.5, Math.ceil(Math.max(...recent.map(Math.abs)) * 2) / 2);
+      drawTrace($<HTMLCanvasElement>('[data-trace]'), recent, range);
+      drawHist($<HTMLCanvasElement>('[data-hist]'), intervals(clockTimes).map((d) => d - a.intervals.mean), -range, range);
+    }
+    const scheduleUpdate = () => {
+      if (!raf) raf = requestAnimationFrame(updateClock);
+    };
+    const addClock = (t: number) => {
+      clockTimes.push(t);
+      if (clockTimes.length > MAX) clockTimes = clockTimes.slice(-MAX);
+      scheduleUpdate();
+    };
+
+    const transport = $('[data-transport]');
+    const onClockMsg = (ev: MIDIMessageEvent) => {
+      const d = ev.data;
+      if (!d) return;
+      if (d[0] === 0xf8) addClock(ev.timeStamp);
+      else if (d[0] === 0xfa) transport.textContent = 'Start';
+      else if (d[0] === 0xfb) transport.textContent = 'Continue';
+      else if (d[0] === 0xfc) transport.textContent = 'Stop';
+      else if (d[0] === 0xf2) transport.textContent = `Song Position ${((d[2] << 7) | d[1])} sixteenths`;
+    };
+    const wireClockIn = () => {
+      if (wiredIn) wiredIn.removeEventListener('midimessage', onClockMsg as EventListener);
+      wiredIn = getClockIn?.();
+      wiredIn?.addEventListener('midimessage', onClockMsg as EventListener);
+    };
+
+    $('[data-sim]').addEventListener('click', (e) => {
+      const b = e.currentTarget as HTMLButtonElement;
+      if (simTimer) {
+        clearInterval(simTimer);
+        simTimer = undefined;
+        b.textContent = 'Simulate a clock';
+        transport.textContent = '';
+        return;
+      }
+      clockTimes = [];
+      // 120 BPM with 0.3 ms of Gaussian jitter, generated a beat at a time.
+      let k = 0;
+      const t0 = performance.now();
+      simTimer = setInterval(() => {
+        for (const t of simulateClock(120, 24, 0.3, ++k, t0 + (k - 1) * 500)) addClock(t);
+      }, 500);
+      b.textContent = 'Stop simulation';
+      transport.textContent = 'Simulated: 120 BPM, 0.3 ms jitter';
+    });
+    $('[data-reset]').addEventListener('click', () => {
+      clockTimes = [];
+      transport.textContent = '';
+      updateClock();
+      for (const sel of ['[data-trace]', '[data-hist]']) sizeCanvas($<HTMLCanvasElement>(sel));
+    });
+
+    /* ---------- Sending clock ---------- */
+    let sendTimer: ReturnType<typeof setInterval> | undefined;
+    let nextAt = 0;
+    const sendStatus = $('[data-send-status]');
+    function stopSending(out?: MIDIOutput) {
+      if (sendTimer) clearInterval(sendTimer);
+      sendTimer = undefined;
+      try {
+        out?.send([0xfc]);
+      } catch {}
+      sendStatus.textContent = 'Stopped.';
+    }
+    $('[data-send-start]').addEventListener('click', () => {
+      const out = getClockOut?.();
+      if (!out) return void (sendStatus.textContent = 'Choose an output.');
+      stopSending();
+      const bpm = Math.max(20, Math.min(300, Number($<HTMLInputElement>('[data-bpm]').value) || 120));
+      const step = intervalFromBpm(bpm);
+      nextAt = performance.now() + 50;
+      out.send([0xfa], nextAt - 1);
+      // Schedule 100 ms ahead every 25 ms; the browser delivers at the timestamps.
+      sendTimer = setInterval(() => {
+        const horizon = performance.now() + 100;
+        while (nextAt < horizon) {
+          out.send([0xf8], nextAt);
+          nextAt += step;
+        }
+      }, 25);
+      sendStatus.textContent = `Sending ${bpm} BPM clock to ${out.name}…`;
+    });
+    $('[data-send-stop]').addEventListener('click', () => stopSending(getClockOut?.()));
+
+    /* ---------- Loopback ---------- */
+    const loopStatus = $('[data-loop-status]');
+    let running = false;
+    $('[data-loop-run]').addEventListener('click', async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      if (running) return;
+      const out = getLoopOut?.();
+      const input = getLoopIn?.();
+      if (!out || !input) return void (loopStatus.textContent = 'Choose an output and an input.');
+      const kind = $<HTMLSelectElement>('[data-probe]').value as ProbeKind;
+      if (kind === 'sysex' && !access?.sysexEnabled) return void (loopStatus.textContent = 'SysEx probes need SysEx access: tick the box above and connect again.');
+      const count = Math.max(10, Math.min(1000, Number($<HTMLInputElement>('[data-count]').value) || 200));
+      const tracker = new ProbeTracker();
+      const onMsg = (ev: MIDIMessageEvent) => {
+        if (!ev.data) return;
+        const id = matchProbe(kind, ev.data);
+        if (id !== null) tracker.receive(id, ev.timeStamp);
+      };
+      input.addEventListener('midimessage', onMsg as EventListener);
+      running = true;
+      btn.disabled = true;
+      for (let i = 0; i < count; i++) {
+        const at = performance.now();
+        const id = tracker.send(at);
+        const msg = probeMessage(kind, id);
+        out.send(msg);
+        if (kind === 'note') out.send([0x8f, msg[1], 0]);
+        await new Promise((r) => setTimeout(r, 25));
+        tracker.expire(performance.now(), 1000);
+        if (i % 10 === 0) loopStatus.textContent = `Probe ${i + 1}/${count}… ${tracker.rtts.length} returned`;
+      }
+      await new Promise((r) => setTimeout(r, 1000));
+      tracker.expire(performance.now(), 900);
+      input.removeEventListener('midimessage', onMsg as EventListener);
+      running = false;
+      btn.disabled = false;
+      const s = summarize(tracker.rtts);
+      loopStatus.textContent = tracker.rtts.length
+        ? `Done: ${tracker.rtts.length} of ${count} probes returned${tracker.lost ? `, ${tracker.lost} lost` : ''}.`
+        : `No probes came back. Check that ${out.name} is connected to ${input.name}.`;
+      $('[data-loop-stats]').innerHTML = tracker.rtts.length
+        ? dl([
+            ['Median', `${fmt(s.p50)} ms`], ['Mean', `${fmt(s.mean)} ms`], ['Min', `${fmt(s.min)} ms`], ['p95', `${fmt(s.p95)} ms`],
+            ['Max', `${fmt(s.max)} ms`], ['SD', `${fmt(s.sd)} ms`], ['Lost', String(tracker.lost)],
+          ])
+        : '';
+      if (tracker.rtts.length) {
+        const hi = Math.max(1, Math.ceil(s.p99 * 1.2));
+        drawHist($<HTMLCanvasElement>('[data-loop-hist]'), tracker.rtts, 0, hi);
+      }
+    });
+
+    /* ---------- Connect ---------- */
+    $('[data-connect]').addEventListener('click', async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      try {
+        access = await midiAccess($<HTMLInputElement>('[data-sysex]').checked);
+      } catch (err) {
+        status.textContent = (err as Error).message;
+        return;
+      }
+      getClockIn = bindPortSelect<MIDIInput>(access, $<HTMLSelectElement>('[data-clock-in]'), 'inputs', { onChange: () => wireClockIn() });
+      getClockOut = bindPortSelect<MIDIOutput>(access, $<HTMLSelectElement>('[data-clock-out]'), 'outputs');
+      getLoopOut = bindPortSelect<MIDIOutput>(access, $<HTMLSelectElement>('[data-loop-out]'), 'outputs');
+      getLoopIn = bindPortSelect<MIDIInput>(access, $<HTMLSelectElement>('[data-loop-in]'), 'inputs');
+      $<HTMLSelectElement>('[data-clock-in]').addEventListener('change', wireClockIn);
+      wireClockIn();
+      for (const s of ['[data-send-start]', '[data-send-stop]', '[data-loop-run]']) $<HTMLButtonElement>(s).disabled = false;
+      const n = access.inputs.size;
+      const m = access.outputs.size;
+      status.textContent = `Connected: ${n} input${n === 1 ? '' : 's'}, ${m} output${m === 1 ? '' : 's'}${access.sysexEnabled ? ', SysEx allowed' : ''}.`;
+      btn.textContent = 'Reconnect';
+    });
+
+    updateClock();
+    new ResizeObserver(() => updateClock()).observe(root);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && simTimer) $<HTMLButtonElement>('[data-sim]').click();
+    });
+  }
+</script>
+
+<style>
+  .ct-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.9rem;
+  }
+  .ct-hint {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    max-width: 75ch;
+  }
+  .ct-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    min-height: 2.5rem;
+  }
+  .ct-check input {
+    width: 1.1rem;
+    height: 1.1rem;
+    accent-color: var(--accent);
+  }
+  .ct-status {
+    font-size: 0.88rem;
+    color: var(--ink-2);
+  }
+  .ct-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .ct-inline select {
+    width: auto;
+    max-width: 14rem;
+  }
+  .ct-inline input[type='number'] {
+    width: 5.5rem;
+  }
+  .ct-transport {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--data);
+  }
+  .ct-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 42%), 1fr));
+    gap: 0.5rem 1rem;
+    margin: 1rem 0;
+  }
+  .ct-stats :global(div) {
+    border-top: 1px solid var(--line);
+    padding-top: 0.35rem;
+  }
+  .ct-stats :global(dt) {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .ct-stats :global(dd) {
+    margin: 0.1rem 0 0;
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+  }
+  .ct-charts {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 1rem;
+  }
+  figure {
+    margin: 0;
+  }
+  figcaption {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 120px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+  }
+  .ct-loop-fig {
+    max-width: 560px;
+  }
+  @media (max-width: 720px) {
+    .ct-charts {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

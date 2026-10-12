@@ -64,3 +64,35 @@ test('routing: drums use the kit with fallbacks, out-of-range notes fall back to
   assert.deepEqual(routeNote(insts as never, 0, 40, 30), { id: 'salamander-grand-piano', note: 30 });
   assert.equal(routeNote(insts as never, 0, 40, 120), null);
 });
+
+import { alignLoop, candidatesForProgram } from '../src/lib/sampler.ts';
+
+test('loop points shift only when the decoder kept the encoder delay', () => {
+  const inst = { loops: { '60': { start: 0.5, end: 1.5 } }, pcmSamples: { '60': 88200 }, encoderDelay: 1105 };
+  // Gapless-aware decoder: exactly the PCM length (2 s).
+  assert.deepEqual(alignLoop(inst, 60, 2), { start: 0.5, end: 1.5 });
+  // A few stray samples of padding are tolerated without shifting.
+  assert.deepEqual(alignLoop(inst, 60, 2 + 13 / 44100), { start: 0.5, end: 1.5 });
+  // Decoder kept the delay and padding: shift by 1105 samples.
+  const shifted = alignLoop(inst, 60, 2 + 2300 / 44100)!;
+  assert.ok(Math.abs(shifted.start - (0.5 + 1105 / 44100)) < 1e-12);
+  assert.equal(alignLoop(inst, 62, 2), null);
+});
+
+test('every bundled looped instrument has loop data for each note', () => {
+  for (const i of all.filter((x: { loop?: boolean }) => x.loop)) {
+    for (const n of i.notes) {
+      assert.ok(i.loops[n] && i.pcmSamples[n], `${i.id} ${n}`);
+      assert.ok(i.loops[n].start < i.loops[n].end && i.loops[n].end <= i.pcmSamples[n] / 44100, `${i.id} ${n}`);
+    }
+  }
+});
+
+test('GM candidates exist and low/high notes route to a better-suited instrument', () => {
+  for (let p = 0; p < 128; p++) for (const id of candidatesForProgram(p)) assert.ok(insts.has(id), `program ${p}: ${id}`);
+  assert.deepEqual(routeNote(insts as never, 0, 48, 40), { id: 'vsco2-cello-section', note: 40 }); // strings, low
+  assert.deepEqual(routeNote(insts as never, 0, 48, 70), { id: 'vsco2-violin-section', note: 70 });
+  assert.deepEqual(routeNote(insts as never, 0, 19, 60), { id: 'vsco2-organ', note: 60 });
+  assert.deepEqual(routeNote(insts as never, 0, 56, 80), { id: 'vsco2-trumpet', note: 80 });
+  assert.deepEqual(routeNote(insts as never, 0, 71, 70), { id: 'vsco2-clarinet', note: 70 });
+});

@@ -74,10 +74,25 @@
     "attribution": "Violin Section from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
     "notes": [55, 62, 69, 76, 83],
     "range": [55, 90],
-    "loop": false,
+    "loop": true,
     "release": 0.2,
     "sustain": true,
-    "bytes": 183375
+    "loops": {
+      "55": { "start": 0.889093, "end": 2.320408 },
+      "62": { "start": 0.450454, "end": 1.662608 },
+      "69": { "start": 0.814535, "end": 2.290499 },
+      "76": { "start": 0.524649, "end": 2.195011 },
+      "83": { "start": 0.787347, "end": 2.390499 }
+    },
+    "pcmSamples": {
+      "55": 115560,
+      "62": 86551,
+      "69": 114241,
+      "76": 110030,
+      "83": 118651
+    },
+    "encoderDelay": 1105,
+    "bytes": 152344
   },
   {
     "id": "vsco2-flute",
@@ -90,10 +105,27 @@
     "attribution": "Flute from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
     "notes": [60, 69, 76, 84, 93, 96],
     "range": [59, 98],
-    "loop": false,
+    "loop": true,
     "release": 0.15,
     "sustain": true,
-    "bytes": 220050
+    "loops": {
+      "60": { "start": 0.788322, "end": 2.411814 },
+      "69": { "start": 0.786349, "end": 1.819206 },
+      "76": { "start": 0.602381, "end": 2.121156 },
+      "84": { "start": 0.771905, "end": 2.383787 },
+      "93": { "start": 0.788617, "end": 2.107211 },
+      "96": { "start": 0.7322, "end": 2.32 }
+    },
+    "pcmSamples": {
+      "60": 119591,
+      "69": 93457,
+      "76": 106773,
+      "84": 118355,
+      "93": 106158,
+      "96": 115542
+    },
+    "encoderDelay": 1105,
+    "bytes": 184317
   },
   {
     "id": "vsco2-french-horn",
@@ -106,10 +138,159 @@
     "attribution": "French Horn from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
     "notes": [36, 43, 50, 57, 60],
     "range": [34, 67],
-    "loop": false,
+    "loop": true,
     "release": 0.2,
     "sustain": true,
-    "bytes": 183375
+    "loops": {
+      "36": { "start": 0.580635, "end": 1.7122 },
+      "43": { "start": 0.834127, "end": 2.50839 },
+      "50": { "start": 0.826757, "end": 1.904512 },
+      "57": { "start": 0.477755, "end": 1.814014 },
+      "60": { "start": 0.518844, "end": 1.854263 }
+    },
+    "pcmSamples": {
+      "36": 88770,
+      "43": 123850,
+      "50": 97219,
+      "57": 93228,
+      "60": 95003
+    },
+    "encoderDelay": 1105,
+    "bytes": 139491
+  },
+  {
+    "id": "vsco2-cello-section",
+    "name": "Cello Section",
+    "family": "Strings",
+    "source": "VS Chamber Orchestra: Community Edition (VSCO 2 CE)",
+    "sourceUrl": "https://github.com/sgossner/VSCO-2-CE",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
+    "attribution": "Cello Section from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
+    "notes": [36, 43, 50, 57, 64, 71],
+    "range": [36, 77],
+    "loop": true,
+    "release": 0.25,
+    "sustain": true,
+    "loops": {
+      "36": { "start": 0.631383, "end": 1.641497 },
+      "43": { "start": 0.568367, "end": 1.640159 },
+      "50": { "start": 0.60288, "end": 1.919569 },
+      "57": { "start": 0.725215, "end": 2.386712 },
+      "64": { "start": 0.625125, "end": 2.039274 },
+      "71": { "start": 0.49458, "end": 1.732222 }
+    },
+    "pcmSamples": {
+      "36": 85620,
+      "43": 85561,
+      "50": 97883,
+      "57": 118484,
+      "64": 103162,
+      "71": 89621
+    },
+    "encoderDelay": 1105,
+    "bytes": 162375
+  },
+  {
+    "id": "vsco2-trumpet",
+    "name": "Trumpet",
+    "family": "Brass",
+    "source": "VS Chamber Orchestra: Community Edition (VSCO 2 CE)",
+    "sourceUrl": "https://github.com/sgossner/VSCO-2-CE",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
+    "attribution": "Trumpet from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
+    "notes": [53, 60, 67, 74, 81, 84],
+    "range": [52, 89],
+    "loop": true,
+    "release": 0.15,
+    "sustain": true,
+    "loops": {
+      "53": { "start": 0.463696, "end": 1.548118 },
+      "60": { "start": 0.78415, "end": 1.943832 },
+      "67": { "start": 0.717642, "end": 2.326327 },
+      "74": { "start": 0.707846, "end": 1.709002 },
+      "81": { "start": 0.815964, "end": 2.473084 },
+      "84": { "start": 0.458526, "end": 1.513492 }
+    },
+    "pcmSamples": {
+      "53": 81502,
+      "60": 98953,
+      "67": 115821,
+      "74": 88597,
+      "81": 122293,
+      "84": 79975
+    },
+    "encoderDelay": 1105,
+    "bytes": 164256
+  },
+  {
+    "id": "vsco2-clarinet",
+    "name": "Clarinet",
+    "family": "Winds",
+    "source": "VS Chamber Orchestra: Community Edition (VSCO 2 CE)",
+    "sourceUrl": "https://github.com/sgossner/VSCO-2-CE",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
+    "attribution": "Clarinet from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0",
+    "notes": [50, 58, 65, 74, 82, 89],
+    "range": [50, 94],
+    "loop": true,
+    "release": 0.15,
+    "sustain": true,
+    "loops": {
+      "50": { "start": 1.06941, "end": 2.124422 },
+      "58": { "start": 0.456599, "end": 1.485896 },
+      "65": { "start": 0.707982, "end": 1.953447 },
+      "74": { "start": 0.452971, "end": 1.466304 },
+      "82": { "start": 0.726667, "end": 2.308685 },
+      "89": { "start": 0.660726, "end": 1.860363 }
+    },
+    "pcmSamples": {
+      "50": 106917,
+      "58": 78758,
+      "65": 99377,
+      "74": 77894,
+      "82": 115043,
+      "89": 95272
+    },
+    "encoderDelay": 1105,
+    "bytes": 160492
+  },
+  {
+    "id": "vsco2-organ",
+    "name": "Pipe Organ",
+    "family": "Organ",
+    "source": "VS Chamber Orchestra: Community Edition (VSCO 2 CE)",
+    "sourceUrl": "https://github.com/sgossner/VSCO-2-CE",
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
+    "attribution": "Pipe Organ from VS Chamber Orchestra: Community Edition by Versilian Studios (sampled by Simon Dalzell of Ivy Audio), CC0 1.0",
+    "notes": [36, 45, 54, 63, 72, 81, 90],
+    "range": [31, 96],
+    "loop": true,
+    "release": 0.3,
+    "sustain": true,
+    "loops": {
+      "36": { "start": 0.968776, "end": 2.02356 },
+      "45": { "start": 0.470113, "end": 2.124467 },
+      "54": { "start": 0.618277, "end": 1.987234 },
+      "63": { "start": 0.67263, "end": 1.942063 },
+      "72": { "start": 0.476803, "end": 1.809751 },
+      "81": { "start": 0.457868, "end": 1.496531 },
+      "90": { "start": 0.645465, "end": 2.011361 }
+    },
+    "pcmSamples": {
+      "36": 102469,
+      "45": 106919,
+      "54": 100867,
+      "63": 98875,
+      "72": 93040,
+      "81": 79227,
+      "90": 101931
+    },
+    "encoderDelay": 1105,
+    "bytes": 190900
   },
   {
     "id": "big-rusty-drums",

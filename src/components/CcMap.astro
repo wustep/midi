@@ -1,0 +1,525 @@
+---
+import { CCS, KIND_LABELS } from '../lib/cc';
+
+const filters = [
+  { id: 'all', label: 'All 128' },
+  { id: 'gm1', label: 'GM1' },
+  { id: 'gm2', label: 'GM2' },
+  { id: 'msb', label: 'Continuous' },
+  { id: 'lsb', label: '14-bit LSBs' },
+  { id: 'switch', label: 'Switches' },
+  { id: 'sound', label: 'Sound' },
+  { id: 'effect', label: 'Effects' },
+  { id: 'param', label: 'RPN / NRPN' },
+  { id: 'mode', label: 'Mode' },
+  { id: 'undefined', label: 'Undefined' },
+];
+const short = (name: string) => name.replace(/^LSB for CC (\d+).*$/, 'LSB $1').replace(' (Damper Pedal)', '').replace('Sound Controller ', 'SC ').replace('General Purpose ', 'GP ').replace('Effects ', 'FX ').replace(' Depth', '');
+---
+
+<section class="widget ccm" data-ccm aria-labelledby="ccm-title">
+  <div class="widget-head">
+    <h2 class="widget-title" id="ccm-title">Control Change map</h2>
+    <span class="widget-tag">Bn cc vv</span>
+  </div>
+
+  <div class="ccm-controls">
+    <div class="ccm-search">
+      <label class="field-label" for="ccm-q">Find a controller</label>
+      <input id="ccm-q" type="search" placeholder="74, 0x4A, reverb, sustain…" data-q autocomplete="off" />
+    </div>
+    <div class="ccm-learn">
+      <span class="field-label" id="ccm-learn-label">Move a knob to find its CC, or send one</span>
+      <button type="button" class="btn" data-listen aria-describedby="ccm-learn-label">Connect MIDI devices</button>
+      <label class="ccm-out" data-out-wrap hidden>Send to <select data-out></select></label>
+      <span class="ccm-learn-status" data-listen-status role="status"></span>
+    </div>
+  </div>
+  <div class="ccm-filters" role="group" aria-label="Show">
+    {filters.map((f, i) => <button type="button" class="chip" data-kind={f.id} aria-pressed={i === 0 ? 'true' : 'false'}>{f.label}</button>)}
+  </div>
+
+  <div class="ccm-body">
+    <div class="ccm-grid" data-grid role="listbox" aria-label="Controllers 0 to 127" tabindex="0" aria-activedescendant="cc-74">
+      {
+        CCS.map((c) => (
+          <div role="option" id={`cc-${c.number}`} class={`cell k-${c.kind}`} data-cc={c.number} aria-selected={c.number === 74 ? 'true' : 'false'} aria-label={`CC ${c.number}: ${c.name}`}>
+            <span class="num">{c.number}</span>
+            <span class="nm">{short(c.name)}</span>
+            {(c.gm1 || c.gm2) && <span class="gm" aria-hidden="true">{c.gm1 ? 'GM' : 'GM2'}</span>}
+            <span class="val" data-val></span>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="ccm-detail" data-detail aria-live="polite" role="region" aria-label="Selected controller"></div>
+  </div>
+
+  <ul class="ccm-legend" aria-label="Legend">
+    {Object.entries(KIND_LABELS).map(([k, label]) => <li><i class={`k-${k}`}></i>{label}</li>)}
+  </ul>
+</section>
+
+<script>
+  import { CCS, KIND_LABELS, ccBytes, cc14Bytes, rpnBytes, filterCcs } from '../lib/cc';
+  import { hexBytes, hex } from '../lib/midi';
+  import { midiAccess, bindPortSelect } from '../lib/webmidi';
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-ccm]')) {
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s)!;
+    const grid = $('[data-grid]');
+    const detail = $('[data-detail]');
+    const q = $<HTMLInputElement>('[data-q]');
+    let kind = 'all';
+    let selected = 74;
+    let channel = 1;
+    let value = 64;
+    let wide = 8192;
+    let access: MIDIAccess | undefined;
+    let getOut: (() => MIDIOutput | undefined) | undefined;
+    const lastSeen = new Map<number, number>();
+
+    const cell = (n: number) => root.querySelector<HTMLElement>(`[data-cc="${n}"]`)!;
+
+    function applyFilter() {
+      const shown = new Set(filterCcs(q.value, kind).map((c) => c.number));
+      root.querySelectorAll<HTMLElement>('[data-cc]').forEach((el) => el.classList.toggle('dim', !shown.has(Number(el.dataset.cc))));
+      // Jump to a single exact match.
+      if (shown.size === 1) select([...shown][0]);
+    }
+
+    function select(n: number, focusGrid = false) {
+      root.querySelector('[data-cc][aria-selected="true"]')?.setAttribute('aria-selected', 'false');
+      selected = n;
+      // Start the value at the controller's standard default, or the last value received.
+      value = lastSeen.get(n) ?? CCS[n].default?.value ?? (CCS[n].kind === 'switch' ? 127 : 64);
+      const el = cell(n);
+      el.setAttribute('aria-selected', 'true');
+      grid.setAttribute('aria-activedescendant', el.id);
+      if (focusGrid) el.scrollIntoView({ block: 'nearest' });
+      render();
+    }
+
+    function render() {
+      const c = CCS[selected];
+      const is14 = selected <= 31;
+      const isRpn = selected === 101 || selected === 100 || selected === 6 || selected === 38;
+      const bytes = ccBytes(channel, selected, value);
+      const badges = [c.gm1 && 'GM1', c.gm2 && 'GM2', selected === 74 && 'MPE'].filter(Boolean).map((b) => `<span class="badge">${b}</span>`).join('');
+      detail.innerHTML = `
+        <p class="d-num"><span>CC ${selected}</span> <code>0x${hex(selected)}</code> ${badges}</p>
+        <h3 class="d-name">${esc(c.name)}</h3>
+        <p class="d-kind"><i class="k-${c.kind}"></i>${KIND_LABELS[c.kind]}</p>
+        ${c.values ? `<p><strong>Values:</strong> ${esc(c.values)}</p>` : ''}
+        ${c.default ? `<p><strong>Default:</strong> ${c.default.value} <span class="muted">(${esc(c.default.source)})</span></p>` : ''}
+        ${c.spec ? `<p>${esc(c.spec)}</p>` : ''}
+        ${c.common ? `<p class="d-common"><strong>In practice:</strong> ${esc(c.common)}</p>` : ''}
+        <div class="d-build">
+          <div class="d-row">
+            <label>Channel <select data-ch>${Array.from({ length: 16 }, (_, i) => `<option${i + 1 === channel ? ' selected' : ''}>${i + 1}</option>`).join('')}</select></label>
+            <label class="d-val">Value <input type="range" min="0" max="127" value="${value}" data-v aria-label="Value" /><output>${value}</output></label>
+          </div>
+          <p class="d-bytes"><span class="b b-s">${hex(bytes[0])}</span> <span class="b b-d">${hex(bytes[1])}</span> <span class="b b-d">${hex(bytes[2])}</span> <span class="muted">Control Change, channel ${channel}</span></p>
+          ${is14 ? `<p class="d-14">14-bit with CC ${selected + 32}: <input type="number" min="0" max="16383" value="${wide}" data-wide aria-label="14-bit value" /> → <code>${hexBytes(cc14Bytes(channel, selected, wide))}</code></p>` : ''}
+          ${isRpn ? `<p class="d-14">Pitch bend range <input type="number" min="0" max="24" value="12" data-pbr aria-label="Pitch bend range in semitones" /> semitones (RPN 0/0) → <code data-rpn>${hexBytes(rpnBytes(channel, 0, 0, 12 << 7))}</code></p>` : ''}
+          <div class="d-send">
+            <button type="button" class="btn" data-send>${access ? 'Send' : 'Send to a MIDI output…'}</button>
+            <span class="muted" data-send-status role="status"></span>
+          </div>
+        </div>
+        ${lastSeen.has(selected) ? `<p class="muted" data-last>Last received value: ${lastSeen.get(selected)}</p>` : ''}`;
+    }
+
+    detail.addEventListener('input', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.dataset.v !== undefined) {
+        value = Number(t.value);
+        t.nextElementSibling!.textContent = String(value);
+        const bytes = ccBytes(channel, selected, value);
+        detail.querySelector('.d-bytes')!.innerHTML = `<span class="b b-s">${hex(bytes[0])}</span> <span class="b b-d">${hex(bytes[1])}</span> <span class="b b-d">${hex(bytes[2])}</span> <span class="muted">Control Change, channel ${channel}</span>`;
+        if (access && getOut?.()) getOut()!.send(bytes); // live while dragging
+      } else if (t.dataset.wide !== undefined) {
+        wide = Math.max(0, Math.min(16383, Number(t.value) || 0));
+        t.nextElementSibling!.textContent = hexBytes(cc14Bytes(channel, selected, wide));
+      } else if (t.dataset.pbr !== undefined) {
+        const st = Math.max(0, Math.min(24, Number(t.value) || 0));
+        detail.querySelector('[data-rpn]')!.textContent = hexBytes(rpnBytes(channel, 0, 0, st << 7));
+      }
+    });
+    detail.addEventListener('change', (e) => {
+      const t = e.target as HTMLSelectElement;
+      if (t.dataset.ch !== undefined) {
+        channel = Number(t.value);
+        render();
+      }
+    });
+    detail.addEventListener('click', async (e) => {
+      if (!(e.target as HTMLElement).closest('[data-send]')) return;
+      if (!access) return void connect();
+      const out = getOut?.();
+      const status = detail.querySelector('[data-send-status]')!;
+      if (!out) return void (status.textContent = 'No output selected.');
+      const pbr = detail.querySelector<HTMLInputElement>('[data-pbr]');
+      const msg = pbr ? rpnBytes(channel, 0, 0, Number(pbr.value) << 7) : ccBytes(channel, selected, value);
+      out.send(msg);
+      status.textContent = `Sent ${hexBytes(msg)} to ${out.name}.`;
+    });
+
+    grid.addEventListener('click', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-cc]');
+      if (el) select(Number(el.dataset.cc));
+    });
+    grid.addEventListener('keydown', (e) => {
+      const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+      const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols, ArrowUp: -cols, Home: -selected, End: 127 - selected }[e.key];
+      if (step === undefined) return;
+      e.preventDefault();
+      select(Math.max(0, Math.min(127, selected + step)), true);
+    });
+
+    root.querySelectorAll<HTMLButtonElement>('[data-kind]').forEach((b) =>
+      b.addEventListener('click', () => {
+        kind = b.dataset.kind!;
+        root.querySelectorAll('[data-kind]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        applyFilter();
+      }),
+    );
+    q.addEventListener('input', applyFilter);
+
+    /* ----- Learn: listen to every input ----- */
+    const listenBtn = $<HTMLButtonElement>('[data-listen]');
+    const listenStatus = $('[data-listen-status]');
+    async function connect() {
+      try {
+        access = await midiAccess();
+      } catch (err) {
+        listenStatus.textContent = (err as Error).message;
+        return;
+      }
+      const onMsg = (ev: MIDIMessageEvent) => {
+        const d = ev.data;
+        if (!d || (d[0] & 0xf0) !== 0xb0) return;
+        const n = d[1];
+        lastSeen.set(n, d[2]);
+        const el = cell(n);
+        el.querySelector('[data-val]')!.textContent = String(d[2]);
+        el.classList.remove('flash');
+        void el.offsetWidth;
+        el.classList.add('flash');
+        listenStatus.textContent = `CC ${n} = ${d[2]} on channel ${(d[0] & 0x0f) + 1}`;
+        if (n !== selected) select(n);
+        else {
+          const last = detail.querySelector('[data-last]');
+          if (last) last.textContent = `Last received value: ${d[2]}`;
+          else render();
+        }
+      };
+      const wire = () => {
+        const ins = [...access!.inputs.values()];
+        ins.forEach((i) => (i.onmidimessage = onMsg));
+        listenStatus.textContent = ins.length ? `Listening to ${ins.map((i) => i.name).join(', ')}. Move a knob or fader.` : 'No MIDI inputs found yet.';
+      };
+      access.addEventListener('statechange', wire);
+      wire();
+      getOut = bindPortSelect<MIDIOutput>(access, $<HTMLSelectElement>('[data-out]'), 'outputs');
+      $('[data-out-wrap]').hidden = false;
+      listenBtn.hidden = true;
+      render();
+    }
+    listenBtn.addEventListener('click', connect);
+
+    render();
+  }
+</script>
+
+<style>
+  .ccm-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: end;
+  }
+  .ccm-learn {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.75rem;
+  }
+  .ccm-learn .field-label {
+    width: 100%;
+  }
+  .ccm-learn-status {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+  }
+  .ccm-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0.9rem 0;
+  }
+  .ccm-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+  .ccm-grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 3px;
+    border-radius: var(--radius-sm);
+  }
+  .cell {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 0.05rem;
+    min-height: 3.1rem;
+    padding: 0.25rem 0.3rem 0.25rem 0.45rem;
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--kc, var(--line));
+    border-radius: 4px;
+    background: var(--bg);
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .cell:hover {
+    border-color: var(--line-strong);
+    border-left-color: var(--kc);
+  }
+  .cell[aria-selected='true'] {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+    border-left-color: var(--kc);
+  }
+  .cell.dim {
+    opacity: 0.22;
+  }
+  .cell .num {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.82rem;
+  }
+  .cell .nm {
+    font-size: 0.66rem;
+    line-height: 1.15;
+    color: inherit;
+    opacity: 0.85;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .cell .gm {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.25rem;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    opacity: 0.7;
+  }
+  .cell .val {
+    position: absolute;
+    right: 0.25rem;
+    bottom: 0.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--accent);
+  }
+  .cell[aria-selected='true'] .val {
+    color: inherit;
+  }
+  .cell.flash {
+    animation: ccflash 600ms ease-out;
+  }
+  @keyframes ccflash {
+    from {
+      box-shadow: 0 0 0 3px var(--accent);
+    }
+    to {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+  .ccm-grid:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 3px;
+  }
+  :global(.k-msb) { --kc: var(--accent); }
+  :global(.k-lsb) { --kc: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+  :global(.k-switch) { --kc: var(--data); }
+  :global(.k-sound) { --kc: var(--meta); }
+  :global(.k-effect) { --kc: #2f7fbf; }
+  :global(.k-param) { --kc: var(--warn); }
+  :global(.k-general) { --kc: #8a8a3a; }
+  :global(.k-mode) { --kc: var(--ink-2); }
+  :global(.k-undefined) { --kc: var(--line); }
+  .ccm-detail {
+    position: sticky;
+    top: 5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    padding: 0.9rem 1rem;
+    font-size: 0.92rem;
+  }
+  .ccm-detail :global(p) {
+    margin: 0 0 0.55rem;
+  }
+  .ccm-detail :global(.d-num) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+  .ccm-detail :global(.badge) {
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.05rem 0.35rem;
+    background: var(--data-soft);
+    color: var(--data);
+  }
+  .ccm-detail :global(.d-name) {
+    font-size: 1.25rem;
+    margin: 0 0 0.3rem;
+  }
+  .ccm-detail :global(.d-kind) {
+    font-size: 0.82rem;
+    color: var(--ink-2);
+  }
+  .ccm-detail :global(i),
+  .ccm-legend i {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+    margin-right: 0.35rem;
+    vertical-align: -0.05em;
+    background: var(--kc);
+  }
+  .ccm-detail :global(.d-common) {
+    border-left: 3px solid var(--data);
+    padding-left: 0.6rem;
+  }
+  .ccm-detail :global(.d-build) {
+    border-top: 1px solid var(--line);
+    padding-top: 0.7rem;
+    margin-top: 0.7rem;
+  }
+  .ccm-detail :global(.d-row) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .ccm-detail :global(label) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .ccm-detail :global(select) {
+    width: auto;
+  }
+  .ccm-detail :global(.d-val input) {
+    width: 8rem;
+    accent-color: var(--accent);
+  }
+  .ccm-detail :global(output) {
+    font-family: var(--font-mono);
+    min-width: 2ch;
+  }
+  .ccm-detail :global(.d-bytes) {
+    font-size: 1.05rem;
+  }
+  .ccm-detail :global(.d-bytes .muted) {
+    font-size: 0.8rem;
+  }
+  .ccm-detail :global(.d-14) {
+    font-size: 0.85rem;
+  }
+  .ccm-detail :global(.d-14 input) {
+    width: 6rem;
+    min-height: 2.25rem;
+    display: inline-block;
+    padding: 0.2rem 0.4rem;
+  }
+  .ccm-detail :global(.d-send) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .ccm-detail :global(.muted) {
+    color: var(--muted);
+  }
+  .ccm-legend {
+    list-style: none;
+    padding: 0;
+    margin: 0.9rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+  }
+  @media (min-width: 1100px) {
+    .ccm-grid {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 820px) {
+    .ccm-body,
+    .ccm-controls {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .ccm-detail {
+      position: static;
+      order: -1;
+    }
+  }
+  .ccm-out {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .ccm-out select {
+    width: auto;
+    max-width: 14rem;
+  }
+  @media (max-width: 560px) {
+    /* Numbers only on phones: 8 × 16 cells, names in the detail panel. */
+    .cell {
+      min-height: 2.6rem;
+      padding: 0.2rem 0.1rem 0.2rem 0.2rem;
+      border-left-width: 3px;
+      place-content: center;
+      text-align: center;
+    }
+    .cell .nm,
+    .cell .gm {
+      display: none;
+    }
+    .cell .num {
+      font-size: 0.78rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cell.flash {
+      animation: none;
+      outline: 2px solid var(--accent);
+    }
+  }
+</style>

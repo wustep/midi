@@ -30,7 +30,11 @@ const BOT_BLOCKING_HOSTS = [
   'stackoverflow.com', // Cloudflare challenge
   'music.stackexchange.com', // Cloudflare challenge
   'www.reddit.com', // "Prove your humanity" / 403 for non-browser clients
+  'mixxx.discourse.group', // "Checking your browser" challenge for scripted requests
 ];
+
+/** Hosts that are reachable but routinely take longer than the default timeout to respond. */
+const SLOW_HOSTS = ['www.alsa-project.org', 'zenodo.org'];
 
 const FILES = {
   'resources.json': {
@@ -46,6 +50,7 @@ const FILES = {
   'community.json': {
     groups: ['Forums', 'Reddit', 'Discord', 'Mailing lists', 'Other communities'],
     required: ['group', 'title', 'url', 'description'],
+    tags: ['beginner-friendly', 'developers', 'hardware', 'DAW', 'live-coding', 'modular', 'Linux', 'plugins', 'theory', 'general'],
   },
   'midi-files.json': {
     groups: ['Public-domain & free archives', 'Datasets', 'Other sources'],
@@ -96,6 +101,16 @@ for (const [file, spec] of Object.entries(FILES)) {
     if (file === 'community.json' && e.group === 'Discord' && !e.source) {
       shapeErrors.push(`${where}: Discord entries need a "source" (official page with the invite)`);
     }
+    if (spec.tags) {
+      if (!Array.isArray(e.tags) || e.tags.length === 0) {
+        shapeErrors.push(`${where}: "tags" must be a non-empty array`);
+      } else {
+        for (const t of e.tags) {
+          if (!spec.tags.includes(t)) shapeErrors.push(`${where}: unknown tag "${t}" (allowed: ${spec.tags.join(', ')})`);
+        }
+        if (new Set(e.tags).size !== e.tags.length) shapeErrors.push(`${where}: duplicate tags`);
+      }
+    }
     if (e.url) {
       if (seen.has(e.url)) shapeErrors.push(`${where}: duplicate url ${e.url}`);
       seen.add(e.url);
@@ -117,7 +132,7 @@ async function get(url) {
         'accept-language': 'en-US,en;q=0.9',
         ...(cookies.size ? { cookie: [...cookies].map(([k, v]) => `${k}=${v}`).join('; ') } : {}),
       },
-      signal: AbortSignal.timeout(20_000),
+      signal: AbortSignal.timeout(SLOW_HOSTS.includes(new URL(url).host) ? 60_000 : 20_000),
     });
     await res.body?.cancel();
     for (const c of res.headers.getSetCookie?.() ?? []) {
@@ -139,24 +154,33 @@ async function get(url) {
 const DISCORD_INVITE = /^https?:\/\/(?:www\.)?(?:discord\.gg|discord(?:app)?\.com\/invite)\/([A-Za-z0-9-]+)\/?$/;
 
 async function getDiscord(code) {
-  const res = await fetch(`https://discord.com/api/v9/invites/${code}`, {
-    headers: { 'user-agent': UA, accept: 'application/json' },
-    signal: AbortSignal.timeout(20_000),
-  });
-  const body = await res.json().catch(() => ({}));
-  return { status: res.status, guild: body?.guild?.name };
+  for (let tries = 0; ; tries++) {
+    const res = await fetch(`https://discord.com/api/v9/invites/${code}`, {
+      headers: { 'user-agent': UA, accept: 'application/json' },
+      signal: AbortSignal.timeout(20_000),
+    });
+    const body = await res.json().catch(() => ({}));
+    // The invite API rate-limits bursts; wait as long as it asks (capped) and try again.
+    if (res.status === 429 && tries < 3) {
+      const wait = Math.min(Number(body?.retry_after ?? res.headers.get('retry-after') ?? 2), 30);
+      await new Promise((r) => setTimeout(r, wait * 1000 + 250));
+      continue;
+    }
+    return { status: res.status, guild: body?.guild?.name };
+  }
 }
 
 async function check(url) {
   const discord = url.match(DISCORD_INVITE);
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  const attempts = SLOW_HOSTS.includes(new URL(url).host) ? 3 : 2;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       const res = discord ? await getDiscord(discord[1]) : await get(url);
-      if (res.status === 200 || attempt === 2) return res;
+      if (res.status === 200 || attempt === attempts) return res;
     } catch (err) {
-      if (attempt === 2) return { status: 0, error: err.cause?.code ?? err.message };
+      if (attempt === attempts) return { status: 0, error: err.cause?.code ?? err.message };
     }
-    await new Promise((r) => setTimeout(r, 1500));
+    await new Promise((r) => setTimeout(r, 1500 * attempt));
   }
 }
 

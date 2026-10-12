@@ -2,11 +2,11 @@
 import Base from '../../layouts/Base.astro';
 import { tools } from '../../lib/tools';
 
-const groups = ['Files & devices', 'Calculators & references'] as const;
+const groups = ['Files & devices', 'Theory & reference', 'Calculators'] as const;
 const legacy = Object.fromEntries(tools.filter((t) => t.href.startsWith('/tools/')).map((t) => [t.slug, t.href]));
 ---
 
-<Base title="Tools" section="/tools" description="Interactive MIDI tools that run in your browser: MIDI file inspector and player, SysEx builder, Web MIDI monitor, message decoder, VLQ encoder, tempo calculator, and note table.">
+<Base title="Tools" section="/tools" description="Interactive MIDI tools that run in your browser: MIDI Reader, SysEx builder, clock and latency tester, CC map, chords and scales, Web MIDI monitor, message decoder, VLQ encoder, tempo calculator, and note table.">
   <div class="tools-page">
     <header>
       <p class="eyebrow">Workbench</p>

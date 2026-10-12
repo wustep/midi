@@ -1,0 +1,18 @@
+---
+import Tool from '../../layouts/Tool.astro';
+import CcMap from '../../components/CcMap.astro';
+---
+
+<Tool slug="cc" wide description="Interactive MIDI Control Change map: all 128 CC numbers with MIDI 1.0, General MIDI and GM2 meanings, common synth usage, defaults, and the bytes to send. Connect a controller to identify CCs live.">
+  <Fragment slot="lede">
+    What every Control Change number means: the MIDI 1.0 assignment, what General MIDI and GM2 require, and how
+    synths commonly use it. Pick a controller to get its bytes on any channel, send it to a device, or connect a
+    controller and move a knob to see which CC it sends.
+  </Fragment>
+  <CcMap />
+  <p slot="after" class="note-small">
+    “In practice” notes describe widespread conventions, not rules; check your instrument's MIDI implementation chart.
+    For hardware synths, the community-maintained <a href="https://midi.guide/">MIDI Guide</a> collects CC and NRPN
+    charts for hundreds of devices.
+  </p>
+</Tool>

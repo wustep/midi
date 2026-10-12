@@ -12,6 +12,14 @@ const groupOrder = [
 ];
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const groups = groupOrder.map((g) => ({ ...g, id: slugify(g.title), items: community.filter((c) => c.group === g.title) })).filter((g) => g.items.length);
+const TAG_LABELS: Record<string, string> = {
+  'beginner-friendly': 'Beginner-friendly', developers: 'Developers', hardware: 'Hardware & DIY', DAW: 'DAWs', 'live-coding': 'Live coding',
+  modular: 'Modular', Linux: 'Linux', plugins: 'Plugins', theory: 'Theory', general: 'General',
+};
+const tagCounts = new Map<string, number>();
+for (const c of community) for (const t of (c as { tags?: string[] }).tags ?? []) tagCounts.set(t, (tagCounts.get(t) ?? 0) + 1);
+const tags = Object.keys(TAG_LABELS).filter((t) => (tagCounts.get(t) ?? 0) >= 2);
+const searchText = (c: (typeof community)[number]) => [c.title, c.description, c.note ?? '', c.url, ...((c as { tags?: string[] }).tags ?? [])].join(' ').toLowerCase();
 const host = (url: string) => {
   const u = new URL(url);
   return u.host.replace(/^www\./, '') + (u.pathname.length > 1 ? u.pathname.replace(/\/$/, '') : '');
@@ -40,41 +48,64 @@ const host = (url: string) => {
     </p>
   </Callout>
 
-  <nav class="toc" aria-label="Community groups">
-    {groups.map((g, i) => <>{i > 0 && <span aria-hidden="true">·</span>}<a href={`#${g.id}`}>{g.title} ({g.items.length})</a></>)}
-  </nav>
+  <div class="filter" data-filter-root>
+    <div class="filter-bar">
+      <label class="filter-q">
+        <span class="visually-hidden">Search communities</span>
+        <input type="search" placeholder="Search: JUCE, Teensy, Linux, modular…" data-filter-q autocomplete="off" />
+      </label>
+      <span class="filter-status" data-filter-status role="status"></span>
+    </div>
+    {
+      tags.length > 0 && (
+        <div class="filter-tags" role="group" aria-label="Topic">
+          <button type="button" class="chip" data-filter-tag="" aria-pressed="true">All</button>
+          {tags.map((t) => <button type="button" class="chip" data-filter-tag={t} aria-pressed="false">{TAG_LABELS[t]} <span class="n">{tagCounts.get(t)}</span></button>)}
+        </div>
+      )
+    }
 
-  {
-    groups.map((g) => (
-      <section>
-        <h2 id={g.id}>{g.title}</h2>
-        <p>{g.blurb}</p>
-        <ul class="c-list">
-          {g.items.map((c) => (
-            <li>
-              <div class="c-top">
-                <a class="c-title" href={c.url}>{c.title}</a>
-              </div>
-              <p class="c-desc">{c.description}</p>
-              {c.note && <p class="c-note">{c.note}</p>}
-              {c.source && c.source !== c.url && (
-                <p class="c-note">
-                  Invite published on <a href={c.source}>{host(c.source)}</a>
-                </p>
-              )}
-              <p class="c-host">{host(c.url)}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-    ))
-  }
+    {
+      groups.map((g) => (
+        <details class="fold-group" open data-group data-fold-phone>
+          <summary>
+            <h2 id={g.id}>{g.title}</h2>
+            <span class="fold-count" data-group-count>{g.items.length}</span>
+          </summary>
+          <p class="group-blurb">{g.blurb}</p>
+          <ul class="c-list">
+            {g.items.map((c) => (
+              <li data-item data-text={searchText(c)} data-tags={((c as { tags?: string[] }).tags ?? []).join(' ')}>
+                <div class="c-top">
+                  <a class="c-title" href={c.url}>{c.title}</a>
+                </div>
+                <p class="c-desc">{c.description}</p>
+                {c.note && <p class="c-note">{c.note}</p>}
+                {c.source && c.source !== c.url && (
+                  <p class="c-note">
+                    Invite published on <a href={c.source}>{host(c.source)}</a>
+                  </p>
+                )}
+                <p class="c-host">{host(c.url)}</p>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))
+    }
+    <p class="filter-empty" data-filter-empty hidden>Nothing matches. Try a broader search or another topic.</p>
+  </div>
 
   <p class="small">
     Missing a community? Add it to <a href="https://github.com/wustep/midi/blob/main/data/community.json"><code>data/community.json</code></a>
     with a link to where its invite or sign-up is officially published, and run <code>npm run verify:resources</code>.
   </p>
 </Community>
+
+<script>
+  import { initListFilter } from '../../lib/list-filter';
+  document.querySelectorAll<HTMLElement>('[data-filter-root]').forEach(initListFilter);
+</script>
 
 <style>
   .small {

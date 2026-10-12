@@ -19,6 +19,27 @@ export interface Instrument {
   sustain: boolean;
   drumMap?: Record<string, string>;
   bytes: number;
+  /** Sustained instruments with baked-in crossfade loops: loop points in seconds on the encoder's input timeline. */
+  loop?: boolean;
+  loops?: Record<string, { start: number; end: number }>;
+  /** Samples (at 44.1 kHz) fed to the encoder, per note, to detect whether the decoder kept the encoder delay. */
+  pcmSamples?: Record<string, number>;
+  /** Leading samples an MP3 encoder adds; some decoders keep them, which shifts loop points. */
+  encoderDelay?: number;
+}
+
+/**
+ * Loop points in decoded-buffer seconds. Decoders that honour the gapless (LAME) header return exactly
+ * pcmSamples; others return at least encoderDelay extra leading samples, so the loop shifts by that much.
+ */
+export function alignLoop(inst: Pick<Instrument, 'loops' | 'pcmSamples' | 'encoderDelay'>, note: number, decodedSeconds: number): { start: number; end: number } | null {
+  const loop = inst.loops?.[note];
+  const pcm = inst.pcmSamples?.[note];
+  if (!loop || pcm === undefined) return null;
+  const extra = decodedSeconds - pcm / 44100;
+  const delay = (inst.encoderDelay ?? 0) / 44100;
+  const shift = delay > 0 && extra >= delay - 1e-4 ? delay : 0;
+  return { start: loop.start + shift, end: loop.end + shift };
 }
 
 /** The recorded note to play for `note`, and the playback rate that repitches it. */
@@ -131,6 +152,14 @@ export class Sampler {
     const src = this.ctx.createBufferSource();
     src.buffer = buffer;
     src.playbackRate.value = pick.rate;
+    if (inst.loop) {
+      const lp = alignLoop(inst, pick.sample, buffer.duration);
+      if (lp && lp.end <= buffer.duration) {
+        src.loop = true;
+        src.loopStart = lp.start;
+        src.loopEnd = lp.end;
+      }
+    }
     const gain = this.ctx.createGain();
     gain.gain.setValueAtTime(0, t);
     gain.gain.linearRampToValueAtTime(velocityGain(velocity) * scale, t + 0.004);
@@ -189,18 +218,38 @@ export class Sampler {
 
 /* ---------------- General MIDI → sampled instruments ---------------- */
 
-/** Instrument id for a GM program, using the closest of the bundled instruments. */
-export function instrumentForProgram(program: number): string {
-  if (program === 11) return 'vcsl-vibraphone';
-  if (program === 12 || program === 13) return 'vcsl-marimba';
-  if (program === 46) return 'vcsl-concert-harp';
-  const families = [
-    'salamander-grand-piano', 'vcsl-vibraphone', 'vsco2-flute', 'vcsl-concert-harp', 'vcsl-concert-harp', 'vsco2-violin-section',
-    'vsco2-violin-section', 'vsco2-french-horn', 'vsco2-flute', 'vsco2-flute', 'vsco2-flute', 'vsco2-violin-section',
-    'vcsl-vibraphone', 'vcsl-concert-harp', 'vcsl-marimba', 'salamander-grand-piano',
+const PIANO = 'salamander-grand-piano';
+const VIOLIN = 'vsco2-violin-section';
+const CELLO = 'vsco2-cello-section';
+const HORN = 'vsco2-french-horn';
+const TRUMPET = 'vsco2-trumpet';
+const CLARINET = 'vsco2-clarinet';
+const FLUTE = 'vsco2-flute';
+const ORGAN = 'vsco2-organ';
+const HARP = 'vcsl-concert-harp';
+const VIBES = 'vcsl-vibraphone';
+const MARIMBA = 'vcsl-marimba';
+
+/**
+ * Bundled instruments for a GM program, best first. A note goes to the first one whose range covers it,
+ * so e.g. low string notes fall to the cello section and high brass to the trumpet.
+ */
+export function candidatesForProgram(program: number): string[] {
+  const exact: Record<number, string[]> = {
+    11: [VIBES], 12: [MARIMBA], 13: [MARIMBA], 42: [CELLO, VIOLIN], 43: [CELLO], 46: [HARP], 47: [CELLO, MARIMBA],
+    56: [TRUMPET, HORN], 57: [HORN, CELLO], 58: [HORN, CELLO], 59: [TRUMPET, HORN], 60: [HORN, TRUMPET],
+    68: [CLARINET, FLUTE], 69: [CLARINET], 70: [CLARINET, CELLO], 71: [CLARINET, FLUTE],
+  };
+  if (exact[program]) return exact[program];
+  const families: string[][] = [
+    [PIANO], [VIBES, MARIMBA], [ORGAN], [HARP], [HARP, CELLO], [VIOLIN, CELLO], [VIOLIN, CELLO], [TRUMPET, HORN],
+    [CLARINET, FLUTE], [FLUTE, CLARINET], [FLUTE, CLARINET], [ORGAN, VIOLIN, CELLO], [VIBES, ORGAN], [HARP], [MARIMBA], [PIANO],
   ];
   return families[program >> 3];
 }
+
+/** The primary bundled instrument for a GM program. */
+export const instrumentForProgram = (program: number) => candidatesForProgram(program)[0];
 
 /** GM percussion keys without a sample in the kit, mapped to the closest piece that has one. */
 export const DRUM_FALLBACK: Record<number, number> = {
@@ -221,9 +270,10 @@ export function routeNote(insts: Map<string, Pick<Instrument, 'range' | 'notes' 
     const n = kit.notes.includes(note) ? note : DRUM_FALLBACK[note];
     return n !== undefined && kit.notes.includes(n) ? { id: DRUM_KIT, note: n } : null;
   }
-  const id = instrumentForProgram(program);
-  const inst = insts.get(id);
-  if (inst && playable(inst, note)) return { id, note };
+  for (const id of candidatesForProgram(program)) {
+    const inst = insts.get(id);
+    if (inst && playable(inst, note)) return { id, note };
+  }
   const piano = insts.get(FALLBACK_INSTRUMENT);
   if (piano && playable(piano, note)) return { id: FALLBACK_INSTRUMENT, note };
   return null;
@@ -258,7 +308,10 @@ export class SampledSink {
   /** Instrument ids a list of (channel, program) pairs would use, for preloading. */
   needed(uses: { channel: number; program: number }[]): Instrument[] {
     const ids = new Set<string>();
-    for (const u of uses) ids.add(u.channel === 9 ? DRUM_KIT : instrumentForProgram(u.program));
+    for (const u of uses) {
+      if (u.channel === 9) ids.add(DRUM_KIT);
+      else for (const id of candidatesForProgram(u.program)) ids.add(id);
+    }
     if (uses.some((u) => u.channel !== 9)) ids.add(FALLBACK_INSTRUMENT);
     return [...ids].map((id) => this.insts.get(id)!).filter(Boolean);
   }
@@ -299,7 +352,7 @@ export class SampledSink {
         else if (d1 === 11) this.expression[ch] = d2;
         else if (d1 === 64) {
           // The pedal applies to every instrument this channel might be using.
-          const ids = new Set([instrumentForProgram(this.programs[ch]), FALLBACK_INSTRUMENT]);
+          const ids = new Set([...candidatesForProgram(this.programs[ch]), FALLBACK_INSTRUMENT]);
           for (const id of ids) this.samplers.get(id)?.setSustain(d2 >= 64, when);
         } else if (d1 === 120 || d1 === 123) this.panic();
         else if (d1 === 121) this.expression[ch] = 127;

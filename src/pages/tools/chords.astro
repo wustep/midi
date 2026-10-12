@@ -1,0 +1,13 @@
+---
+import Tool from '../../layouts/Tool.astro';
+import ChordScale from '../../components/ChordScale.astro';
+---
+
+<Tool slug="chords" description="Chord and scale reference with correct note spelling and MIDI note numbers: play chords with sampled instruments, send them to a MIDI output, see diatonic chords, and name the chord you play on a MIDI keyboard.">
+  <Fragment slot="lede">
+    Any chord or scale, spelled the way musicians write it (F major has B♭, not A♯), with the MIDI note numbers
+    you'd send. Hear it with the sampled instruments, send it to a synth, browse the chords in a key, or play a
+    chord on a MIDI keyboard and get its name.
+  </Fragment>
+  <ChordScale />
+</Tool>

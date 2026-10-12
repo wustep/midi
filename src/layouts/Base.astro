@@ -170,6 +170,18 @@ const nav = [
         sync();
       });
 
+      // Long grouped lists fold on phones: <details data-fold-phone open> starts closed there.
+      if (matchMedia('(max-width: 720px)').matches) {
+        document.querySelectorAll<HTMLDetailsElement>('details[data-fold-phone]').forEach((d) => (d.open = false));
+      }
+      // Opening a #link to something inside a folded group opens the group.
+      const openTarget = () => {
+        if (!location.hash) return;
+        document.getElementById(decodeURIComponent(location.hash.slice(1)))?.closest('details')?.setAttribute('open', '');
+      };
+      addEventListener('hashchange', openTarget);
+      openTarget();
+
       // Wide tables and code blocks scroll sideways on small screens. Make the ones that
       // actually overflow keyboard-focusable, labelled by their caption or nearest heading.
       const usedLabels = new Map<string, number>();
@@ -320,6 +332,44 @@ const nav = [
     :global(:root:not([data-theme='light'])) .i-moon {
       display: block;
     }
+  }
+  :global(details.fold-group) {
+    border-top: 1px solid var(--line);
+  }
+  :global(details.fold-group > summary) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  :global(details.fold-group > summary::-webkit-details-marker) {
+    display: none;
+  }
+  :global(details.fold-group > summary::before) {
+    content: '';
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid var(--ink-2);
+    border-bottom: 2px solid var(--ink-2);
+    transform: rotate(-45deg);
+    transition: transform 150ms;
+    flex-shrink: 0;
+  }
+  :global(details.fold-group[open] > summary::before) {
+    transform: rotate(45deg);
+  }
+  :global(details.fold-group > summary > :is(h2, h3)) {
+    margin: 0.6rem 0;
+  }
+  :global(details.fold-group .fold-count) {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  :global(details.fold-group[open]) {
+    padding-bottom: 1rem;
   }
   main:focus {
     outline: none;

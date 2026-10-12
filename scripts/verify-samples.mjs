@@ -5,6 +5,8 @@
  *     answers 200 (redirects followed, browser user agent). A 403/429 from hosts known to block bots is a warning.
  *  2. Every data/samples.json entry has its audio files on disk under public/sounds/<id>/<note>.mp3,
  *     their total size matches `bytes`, a LICENSE.txt is present, and the license is redistributable.
+ *     Looped instruments (loop: true) need encoderDelay plus loops/pcmSamples for every note, with
+ *     0 ≤ start < end ≤ duration, and pcmSamples must match the PCM length recorded in each MP3's LAME tag.
  * Exits 1 on any failure.
  *
  * Usage: node scripts/verify-samples.mjs [--offline]   (--offline skips the network checks)
@@ -41,6 +43,47 @@ for (const s of sources) {
   titles.add(s.title);
 }
 
+/**
+ * Reads the Xing/Info + LAME tag of an MP3: frame count, encoder delay and end padding (in samples).
+ * Returns null when the file has no such tag.
+ */
+function lameTag(buf) {
+  let p = 0;
+  if (buf.toString('latin1', 0, 3) === 'ID3') p = 10 + ((buf[6] << 21) | (buf[7] << 14) | (buf[8] << 7) | buf[9]);
+  const head = buf.subarray(p, p + 64).toString('latin1');
+  const at = Math.max(head.indexOf('Xing'), head.indexOf('Info'));
+  if (at < 0) return null;
+  const x = p + at;
+  const flags = buf.readUInt32BE(x + 4);
+  if (!(flags & 1)) return null;
+  const frames = buf.readUInt32BE(x + 8);
+  let o = x + 12;
+  if (flags & 2) o += 4;
+  if (flags & 4) o += 100;
+  if (flags & 8) o += 4;
+  if (o + 24 > buf.length) return null;
+  const delay = (buf[o + 21] << 4) | (buf[o + 22] >> 4);
+  const padding = ((buf[o + 22] & 15) << 8) | buf[o + 23];
+  return { frames, delay, padding, samples: frames * 1152 - delay - padding };
+}
+
+/** Loop fields of one note: 0 ≤ start < end ≤ duration, and pcmSamples consistent with the MP3's LAME tag. */
+function checkLoop(where, e, n, buf) {
+  const pcm = e.pcmSamples[n];
+  const { start, end } = e.loops[n];
+  if (!Number.isInteger(pcm) || pcm <= 0) return fail(`${where}: pcmSamples["${n}"] must be a positive integer`);
+  const duration = pcm / 44100;
+  if (typeof start !== 'number' || typeof end !== 'number' || !(start >= 0 && start < end && end <= duration))
+    return fail(`${where}: loops["${n}"] must satisfy 0 ≤ start < end ≤ duration (${duration.toFixed(3)} s); got ${start}–${end}`);
+  if (end - start < 0.5) warn(`${where}: loops["${n}"] is shorter than 0.5 s (${(end - start).toFixed(3)} s)`);
+  const tag = lameTag(buf);
+  if (!tag) return warn(`${where}: ${n}.mp3 has no LAME/Info tag; cannot cross-check pcmSamples`);
+  if (tag.samples !== pcm) fail(`${where}: ${n}.mp3 LAME tag says ${tag.samples} PCM samples but pcmSamples["${n}"] is ${pcm}`);
+  // The tag's delay excludes the 529-sample MP3 decoder delay, which encoderDelay includes.
+  if (Number.isInteger(e.encoderDelay) && tag.delay + 529 !== e.encoderDelay)
+    warn(`${where}: ${n}.mp3 LAME tag delay ${tag.delay} + 529 ≠ encoderDelay ${e.encoderDelay}`);
+}
+
 /* ---------- 2. self-hosted instruments ---------- */
 console.log('Checking data/samples.json and public/sounds/…');
 const ids = new Set();
@@ -65,6 +108,15 @@ for (const e of samples) {
   if (typeof e.release !== 'number' || typeof e.sustain !== 'boolean' || typeof e.loop !== 'boolean')
     fail(`${where}: release (number), sustain and loop (booleans) are required`);
 
+  if (e.loop) {
+    if (!Number.isInteger(e.encoderDelay) || e.encoderDelay < 0) fail(`${where}: loop instruments need an integer encoderDelay (samples)`);
+    for (const k of ['loops', 'pcmSamples'])
+      if (!e[k] || typeof e[k] !== 'object') fail(`${where}: loop instruments need a "${k}" object`);
+      else if (Object.keys(e[k]).sort((a, b) => a - b).join() !== (e.notes ?? []).join()) fail(`${where}: ${k} keys must match notes`);
+  } else if (e.loops || e.pcmSamples) {
+    fail(`${where}: loops/pcmSamples given but loop is false`);
+  }
+
   let bytes = 0;
   for (const n of e.notes ?? []) {
     const file = new URL(`public/sounds/${e.id}/${n}.mp3`, root);
@@ -72,7 +124,9 @@ for (const e of samples) {
       bytes += (await stat(file)).size;
     } catch {
       fail(`${where}: missing public/sounds/${e.id}/${n}.mp3`);
+      continue;
     }
+    if (e.loop && e.loops?.[n] && e.pcmSamples?.[n] !== undefined) checkLoop(where, e, n, await readFile(file));
   }
   if (bytes !== e.bytes) fail(`${where}: bytes is ${e.bytes} but files on disk total ${bytes}`);
   try {
@@ -85,7 +139,7 @@ for (const e of samples) {
   console.log(`  ✓ ${e.id}: ${e.notes?.length} files, ${(bytes / 1024).toFixed(0)} KB, ${e.license}`);
 }
 console.log(`  total self-hosted audio: ${(totalBytes / 1024).toFixed(0)} KB`);
-if (totalBytes > 4 * 1024 * 1024) warn('self-hosted audio exceeds the 4 MB budget');
+if (totalBytes > 3.5 * 1024 * 1024) warn('self-hosted audio exceeds the 3.5 MB budget');
 
 /* ---------- 3. URLs ---------- */
 /** fetch() with manual redirects and a cookie jar (some hosts redirect-loop until a cookie is set). */

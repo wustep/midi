@@ -9,7 +9,7 @@ export interface Tool {
   demo: [string, string];
   /** Background reading. */
   docs: { label: string; href: string }[];
-  group: 'Files & devices' | 'Calculators & references';
+  group: 'Files & devices' | 'Theory & reference' | 'Calculators';
 }
 
 export const tools: Tool[] = [
@@ -32,25 +32,43 @@ export const tools: Tool[] = [
     docs: [{ label: 'Messages', href: '/docs/messages/' }, { label: 'Transports', href: '/docs/transports/' }],
   },
   {
-    slug: 'decoder', href: '/tools/decoder/', title: 'Message decoder', group: 'Calculators & references',
+    slug: 'clock', href: '/tools/clock/', title: 'Clock & latency tester', group: 'Files & devices',
+    blurb: 'Measure the tempo and jitter of incoming MIDI clock, send clock to a device, and time a round trip through a loopback.',
+    demo: ['F8 F8 F8 …', '120.0 BPM · ±0.3 ms'],
+    docs: [{ label: 'Timing & Sync', href: '/docs/timing/' }, { label: 'Transports', href: '/docs/transports/' }],
+  },
+  {
+    slug: 'cc', href: '/tools/cc/', title: 'CC map', group: 'Theory & reference',
+    blurb: 'All 128 Control Change numbers: what the spec, GM and GM2 say, how synths use them, and the bytes to send. Move a knob to find its number.',
+    demo: ['CC 74', 'Brightness · B0 4A 40'],
+    docs: [{ label: 'Control Change', href: '/docs/control-change/' }, { label: 'RPN & NRPN', href: '/docs/rpn-nrpn/' }],
+  },
+  {
+    slug: 'chords', href: '/tools/chords/', title: 'Chords & scales', group: 'Theory & reference',
+    blurb: 'Correctly spelled chords and scales with MIDI note numbers. Hear them with sampled instruments, send them to a synth, or play one to name it.',
+    demo: ['Am7', 'A C E G · 57 60 64 67'],
+    docs: [{ label: 'Notes & Pitch', href: '/docs/notes/' }],
+  },
+  {
+    slug: 'decoder', href: '/tools/decoder/', title: 'Message decoder', group: 'Calculators',
     blurb: 'Paste raw bytes and see each message decoded, running status and real-time bytes included.',
     demo: ['B0 40 7F', 'CC 64 Sustain = on'],
     docs: [{ label: 'Messages', href: '/docs/messages/' }, { label: 'RPN & NRPN', href: '/docs/rpn-nrpn/' }, { label: 'SysEx', href: '/docs/sysex/' }],
   },
   {
-    slug: 'vlq', href: '/tools/vlq/', title: 'VLQ encoder', group: 'Calculators & references',
+    slug: 'vlq', href: '/tools/vlq/', title: 'VLQ encoder', group: 'Calculators',
     blurb: 'Convert delta-times and lengths to and from Standard MIDI File variable-length quantities.',
     demo: ['480', '83 60'],
     docs: [{ label: 'Standard MIDI Files', href: '/docs/smf/#vlq' }],
   },
   {
-    slug: 'tempo', href: '/tools/tempo/', title: 'Tempo calculator', group: 'Calculators & references',
+    slug: 'tempo', href: '/tools/tempo/', title: 'Tempo calculator', group: 'Calculators',
     blurb: 'BPM, microseconds per quarter note, ticks, and MIDI clock intervals.',
     demo: ['120 BPM', 'FF 51 03 07 A1 20'],
     docs: [{ label: 'Timing & Sync', href: '/docs/timing/' }],
   },
   {
-    slug: 'notes', href: '/tools/notes/', title: 'Note table', group: 'Calculators & references',
+    slug: 'notes', href: '/tools/notes/', title: 'Note table', group: 'Theory & reference',
     blurb: 'All 128 note numbers with names, frequencies and GM drum sounds. Click to hear.',
     demo: ['69 · A4', '440.00 Hz'],
     docs: [{ label: 'Notes & Pitch', href: '/docs/notes/' }, { label: 'General MIDI', href: '/docs/general-midi/' }],

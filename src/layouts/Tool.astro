@@ -94,6 +94,11 @@ const others = tools.filter((t) => t.slug !== slug);
     color: var(--muted);
     margin-top: -0.75rem;
   }
+  .tool-shell :global(.note-small) {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    max-width: 80ch;
+  }
   .other-tools {
     margin-top: 4rem;
     border-top: 1px solid var(--line);
@@ -128,5 +133,19 @@ const others = tools.filter((t) => t.slug !== slug);
     font-size: 0.85rem;
     color: var(--muted);
     line-height: 1.4;
+  }
+  @media (max-width: 560px) {
+    /* Titles only on phones: the full descriptions live on the tools hub. */
+    .other-tools ul {
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+    .other-tools a {
+      padding: 0.6rem 0.7rem;
+      min-height: 2.75rem;
+    }
+    .other-tools span {
+      display: none;
+    }
   }
 </style>

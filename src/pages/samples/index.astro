@@ -31,14 +31,15 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
 
     <p class="small">
       Each instrument is a handful of recorded notes (one velocity layer), repitched to fill its range and fetched only
-      when you choose it ({totalKb} KB for all {instruments.length}). The <a href="/reader/">MIDI Reader</a> plays files
+      when you choose it ({totalKb} KB for all {instruments.length}). Sustained instruments (strings, winds, brass and
+      organ) have crossfaded loops baked in, so held notes keep sounding. The <a href="/reader/">MIDI Reader</a> plays files
       with the same sounds. They're good for sketching, not a substitute for the full libraries below.
     </p>
 
     <h2 id="bundled">The sounds on this page</h2>
     <p>
-      Only instruments whose licenses allow redistribution are hosted here. Files were trimmed, converted to mono and
-      MP3-encoded; each folder has a <code>LICENSE.txt</code> listing the original files.
+      Only instruments whose licenses allow redistribution are hosted here. Files were trimmed, converted to mono,
+      looped where the instrument sustains, and MP3-encoded; each folder has a <code>LICENSE.txt</code> listing the original files.
     </p>
     <div class="table-wrap">
       <table>
@@ -74,8 +75,8 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
     </nav>
     {
       groups.map((g) => (
-        <section>
-          <h3 id={g.id}>{g.title}</h3>
+        <details class="fold-group" open data-fold-phone>
+          <summary><h3 id={g.id}>{g.title}</h3><span class="fold-count">{g.items.length}</span></summary>
           <ul class="src-list">
             {g.items.map((s) => (
               <li>
@@ -96,7 +97,7 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
               </li>
             ))}
           </ul>
-        </section>
+        </details>
       ))
     }
     <p class="small">

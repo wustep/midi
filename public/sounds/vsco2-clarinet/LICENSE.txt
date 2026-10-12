@@ -1,0 +1,26 @@
+Clarinet (vsco2-clarinet)
+=========================
+
+Attribution: Clarinet from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0
+
+Source:   VS Chamber Orchestra: Community Edition (VSCO 2 CE)
+          https://github.com/sgossner/VSCO-2-CE
+Credit:   Versilian Studios (recorded by Sam Gossner & Simon Dalzell; sample cutting by Elan Hickler/Soundemote)
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  50.mp3  <- DCClar_susLong_D2_v2_rr1_sum.wav
+  58.mp3  <- DCClar_susLong_A#2_v2_rr1_sum.wav
+  65.mp3  <- DCClar_susLong_F3_v2_rr1_sum.wav
+  74.mp3  <- DCClar_susLong_D4_v2_rr1_sum.wav
+  82.mp3  <- DCClar_susLong_A#4_v2_rr1_sum.wav
+  89.mp3  <- DCClar_susLong_F#5_v2_rr1_sum.wav
+Source path pattern: Woodwinds/Clarinet/susLong/DCClar_susLong_<note>_v2_rr1_sum.wav
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+Exception: the source file named F#5 actually sounds F5 (measured MIDI 89.02), so it is mapped to 89.mp3 by its measured pitch.
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, a loop region chosen in the sustain with a crossfade baked in so it repeats seamlessly (loop points in data/samples.json), cut shortly after the loop end with a short fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

@@ -46,15 +46,21 @@ const demos = [
       <h2 id="rd-overview">Overview</h2>
       <dl class="rd-summary" data-summary></dl>
       <div data-warnings></div>
-      <h3>The header chunk, byte by byte</h3>
-      <p class="rd-explain">
-        Every Standard MIDI File starts with a 14-byte <code>MThd</code> chunk. It says how the tracks relate (the
-        format), how many track chunks follow, and how to turn ticks into time (the division).
-      </p>
-      <div class="rd-anno" data-header-anno></div>
+      <details class="rd-fold sub" data-fold open>
+        <summary><h3>The header chunk, byte by byte</h3><span class="rd-count">14 bytes</span></summary>
+        <p class="rd-explain">
+          Every Standard MIDI File starts with a 14-byte <code>MThd</code> chunk. It says how the tracks relate (the
+          format), how many track chunks follow, and how to turn ticks into time (the division).
+        </p>
+        <div class="rd-anno" data-header-anno></div>
+      </details>
     </section>
 
-    <div class="rd-transport" role="group" aria-label="Playback">
+    <button type="button" class="rd-fab" data-fab aria-label="Play" hidden>
+      <svg class="i-play" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9.5-5.5z"></path></svg>
+      <svg class="i-pause" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zm6 0h3v11h-3z"></path></svg>
+    </button>
+    <div class="rd-transport" role="group" aria-label="Playback" data-transport>
       <button type="button" class="btn btn-primary rd-play" data-play>
         <svg class="i-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9.5-5.5z"></path></svg>
         <svg class="i-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zm6 0h3v11h-3z"></path></svg>
@@ -115,36 +121,36 @@ const demos = [
       <div class="table-wrap"><table data-tracks></table></div>
     </section>
 
-    <section class="rd-sec" aria-labelledby="rd-tempo">
-      <h2 id="rd-tempo">Tempo, meter &amp; key</h2>
+    <details class="rd-sec rd-fold" data-fold open>
+      <summary><h2 id="rd-tempo">Tempo, meter &amp; key</h2><span class="rd-count" data-count="tempo"></span></summary>
       <p class="rd-explain" data-tempo-explain></p>
       <div class="table-wrap"><table data-tempo></table></div>
-    </section>
+    </details>
 
-    <section class="rd-sec" aria-labelledby="rd-meta">
-      <h2 id="rd-meta">Meta events</h2>
+    <details class="rd-sec rd-fold" data-fold open>
+      <summary><h2 id="rd-meta">Meta events</h2><span class="rd-count" data-count="meta"></span></summary>
       <p class="rd-explain">
         Meta events (<code>FF type length data</code>) live only in files: names, lyrics, markers, tempo and signatures.
         They are never sent to instruments.
       </p>
       <ul class="rd-counts" data-meta-counts></ul>
       <div class="table-wrap" data-text-wrap><table data-texts></table></div>
-    </section>
+    </details>
 
-    <section class="rd-sec" aria-labelledby="rd-cc">
-      <h2 id="rd-cc">Controllers &amp; pitch bend</h2>
+    <details class="rd-sec rd-fold" data-fold open>
+      <summary><h2 id="rd-cc">Controllers &amp; pitch bend</h2><span class="rd-count" data-count="cc"></span></summary>
       <p class="rd-explain">Every continuous control stream in the file, per channel, with how often it changes and the range of values it covers.</p>
       <div data-cc></div>
-    </section>
+    </details>
 
-    <section class="rd-sec" aria-labelledby="rd-sysex">
-      <h2 id="rd-sysex">System Exclusive</h2>
+    <details class="rd-sec rd-fold" data-fold open>
+      <summary><h2 id="rd-sysex">System Exclusive</h2><span class="rd-count" data-count="sysex"></span></summary>
       <p class="rd-explain">
         SysEx events carry manufacturer-specific data, such as GM/GS/XG resets and patch settings. In a file they are stored
         as <code>F0 length data</code>; the length is not sent.
       </p>
       <div data-sysex></div>
-    </section>
+    </details>
 
     <section class="rd-sec" aria-labelledby="rd-events">
       <div class="rd-head">
@@ -301,8 +307,21 @@ const demos = [
       }
     }
 
+    const fab = $<HTMLButtonElement>('[data-fab]');
+    fab.addEventListener('click', () => playBtn.click());
+    // The transport isn't sticky on phones; show a floating play button once it has scrolled above the viewport.
+    const transportEl = $('[data-transport]');
+    const phone = matchMedia('(max-width: 720px)');
+    let fabRaf = 0;
+    const syncFab = () => {
+      fabRaf = 0;
+      fab.hidden = !smf || !phone.matches || result.hidden || transportEl.getBoundingClientRect().bottom > 0;
+    };
+    addEventListener('scroll', () => (fabRaf ||= requestAnimationFrame(syncFab)), { passive: true });
     const syncPlay = () => {
       const on = player?.playing ?? false;
+      fab.classList.toggle('is-playing', on);
+      fab.setAttribute('aria-label', on ? 'Pause' : 'Play');
       playBtn.classList.toggle('is-playing', on);
       $('[data-play-label]').textContent = on ? 'Pause' : 'Play';
       if (on && !raf) raf = requestAnimationFrame(frame);
@@ -425,6 +444,13 @@ const demos = [
       if (f) loadFile(f);
     });
 
+    const setCount = (key: string, text: string) => {
+      const el = root.querySelector(`[data-count="${key}"]`);
+      if (el) el.textContent = text;
+    };
+    // On phones, start with the secondary sections folded so the page stays scannable.
+    if (matchMedia('(max-width: 720px)').matches) root.querySelectorAll<HTMLDetailsElement>('[data-fold]').forEach((d) => (d.open = false));
+
     /* ---------- Overview ---------- */
 
     const pos = (tick: number) => (smf?.header.smpte ? `${tick}` : barBeat(tick, ppq, timeSigs));
@@ -546,6 +572,7 @@ const demos = [
       if (!sig.time.length && !s.header.smpte) rows.push({ tick: 0, kind: 'Time Signature', value: '4/4 (assumed; none in the file)' });
       rows.sort((a, b) => a.tick - b.tick);
       const list = rows.slice(0, 300);
+      setCount('tempo', plural(rows.length, 'change'));
       $('[data-tempo]').innerHTML = `<caption class="visually-hidden">Tempo, time signature and key signature changes</caption><thead><tr><th>Position</th><th>Time</th><th>Event</th><th>Value</th></tr></thead><tbody>${list
         .map((r) => `<tr><td><code>${pos(r.tick)}</code></td><td>${timeButton(r.tick)}</td><td>${r.e ? eventButton(r.e, r.kind) : r.kind}</td><td>${esc(r.value)}</td></tr>`)
         .join('')}${rows.length > list.length ? `<tr><td colspan="4" class="muted">…${rows.length - list.length} more</td></tr>` : ''}</tbody>`;
@@ -555,6 +582,7 @@ const demos = [
       const s = smf!;
       const counts = metaSummary(s);
       $('[data-meta-counts]').innerHTML = counts.length ? counts.map((m) => `<li><code>FF ${hex(m.type)}</code> ${esc(m.name)} <strong>${m.count}</strong></li>`).join('') : '<li>No meta events.</li>';
+      setCount('meta', plural(counts.reduce((n, m) => n + m.count, 0), 'event'));
       const texts = textEvents(s);
       const list = texts.slice(0, 200);
       $('[data-text-wrap]').hidden = !texts.length;
@@ -565,6 +593,7 @@ const demos = [
 
     function renderControllers() {
       const use = controllerUsage(smf!);
+      setCount('cc', use.length ? plural(use.length, 'stream') : 'none');
       $('[data-cc]').innerHTML = use.length
         ? `<div class="table-wrap"><table><caption class="visually-hidden">Controller usage</caption><thead><tr><th>Ch</th><th>Control</th><th class="num">Messages</th><th>Values</th></tr></thead><tbody>${use
             .map((u) => {
@@ -579,6 +608,7 @@ const demos = [
 
     function renderSysex() {
       const list = sysexList(smf!);
+      setCount('sysex', list.length ? plural(list.length, 'message') : 'none');
       $('[data-sysex]').innerHTML = list.length
         ? `<div class="table-wrap"><table><caption class="visually-hidden">SysEx events</caption><thead><tr><th>Time</th><th>Trk</th><th>Manufacturer</th><th>Message</th><th class="num">Bytes</th></tr></thead><tbody>${list
             .map((x) => `<tr><td>${timeButton(x.event.tick)}</td><td>${x.event.track + 1}</td><td>${x.manufacturerId ? `<code>${hexBytes(x.manufacturerId)}</code> ` : ''}${esc(x.manufacturer ?? (x.manufacturerId ? 'Unknown' : ''))}</td><td>${eventButton(x.event, esc(x.description ?? 'Manufacturer-specific data'))}${x.complete ? '' : ' <span class="pill">no F7</span>'}</td><td class="num">${x.event.data.length}</td></tr>`)
@@ -693,7 +723,7 @@ const demos = [
         return;
       }
       const d = describeEvent(e);
-      box.innerHTML = `<p class="sel-title"><span class="swatch" style="background:${color(e.track)}"></span>${esc(d.name)} <span class="muted">track ${e.track + 1} · ${pos(e.tick)} · bytes ${e.offset}–${e.offset + e.length - 1}</span></p><p class="sel-detail">${esc(d.detail)}</p><div class="rd-anno">${annoRows(annotateEvent(e, file))}</div><p class="sel-actions"><button type="button" class="linkish" data-seek-to="${tempo!.tickToSeconds(e.tick)}">Jump playback here</button></p>`;
+      box.innerHTML = `<p class="sel-title"><span class="swatch" style="background:${color(e.track)}"></span>${esc(d.name)} <span class="muted">track ${e.track + 1} · ${pos(e.tick)} · ${fmtSec(tempo!.tickToSeconds(e.tick))} · bytes ${e.offset}–${e.offset + e.length - 1}</span></p><p class="sel-detail">${esc(d.detail)}</p><div class="rd-anno">${annoRows(annotateEvent(e, file))}</div><p class="sel-actions"><button type="button" class="linkish" data-seek-to="${tempo!.tickToSeconds(e.tick)}">Jump playback here</button></p>`;
     }
 
     root.addEventListener('click', (ev) => {
@@ -1159,6 +1189,66 @@ const demos = [
   .rd-anno :global(span) {
     color: var(--ink-2);
   }
+  .rd-fold > summary {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    cursor: pointer;
+    list-style: none;
+    margin-bottom: 0.6rem;
+    min-height: 2.75rem;
+    align-items: center;
+  }
+  .rd-fold > summary::-webkit-details-marker {
+    display: none;
+  }
+  .rd-fold > summary::before {
+    content: '';
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid var(--ink-2);
+    border-bottom: 2px solid var(--ink-2);
+    transform: rotate(-45deg);
+    transition: transform 150ms;
+    flex-shrink: 0;
+  }
+  .rd-fold[open] > summary::before {
+    transform: rotate(45deg);
+  }
+  .rd-fold > summary h2,
+  .rd-fold > summary h3 {
+    margin: 0;
+  }
+  .rd-fold.sub {
+    margin-top: 1.25rem;
+  }
+  .rd-count {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .rd-fab {
+    position: fixed;
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    z-index: 40;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    border: 0;
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: var(--shadow);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .rd-fab .i-pause,
+  .rd-fab:global(.is-playing) .i-play {
+    display: none;
+  }
+  .rd-fab:global(.is-playing) .i-pause {
+    display: block;
+  }
   .rd-transport {
     display: flex;
     flex-wrap: wrap;
@@ -1483,6 +1573,25 @@ const demos = [
   @media (max-width: 720px) {
     .rd-load {
       grid-template-columns: minmax(0, 1fr);
+    }
+    .rd-sec h2 {
+      font-size: 1.2rem;
+    }
+    .rd-fold.rd-sec {
+      margin-top: 0.5rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.25rem;
+    }
+    .rd-fold:not([open]) > summary {
+      margin-bottom: 0;
+    }
+    /* Position already says where; the clock time is one tap away in the selected-event panel. */
+    .rd-events :global(td:nth-child(2)),
+    .rd-events :global(th:nth-child(2)) {
+      display: none;
+    }
+    .rd-events :global(td:nth-child(6)) {
+      min-width: 9rem;
     }
     /* Too tall to stay pinned on a phone; it would cover what you're reading. */
     .rd-transport {

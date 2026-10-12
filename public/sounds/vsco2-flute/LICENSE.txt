@@ -20,6 +20,6 @@ Files (file name = MIDI note number; C4 = 60):
 Source path pattern: Woodwinds/Flute/susvib/LDFlute_susvib_<note>_v1_1.wav
 Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
 
-Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed, cut to at most 3 s with a short fade-out), converted to mono, level-normalized, and MP3-encoded (96 kbps, 44.1 kHz).
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, a loop region chosen in the sustain with a crossfade baked in so it repeats seamlessly (loop points in data/samples.json), cut shortly after the loop end with a short fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
 
 The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

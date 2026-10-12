@@ -1,0 +1,25 @@
+Cello Section (vsco2-cello-section)
+===================================
+
+Attribution: Cello Section from VS Chamber Orchestra: Community Edition by Versilian Studios, CC0 1.0
+
+Source:   VS Chamber Orchestra: Community Edition (VSCO 2 CE)
+          https://github.com/sgossner/VSCO-2-CE
+Credit:   Versilian Studios (recorded by Sam Gossner & Simon Dalzell; sample cutting by Elan Hickler/Soundemote)
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  36.mp3  <- susvib_C1_v3_1.wav
+  43.mp3  <- susvib_G1_v3_1.wav
+  50.mp3  <- susvib_D2_v3_1.wav
+  57.mp3  <- susvib_A2_v3_1.wav
+  64.mp3  <- susvib_E3_v3_1.wav
+  71.mp3  <- susvib_B3_v3_1.wav
+Source path pattern: Strings/Cello Section/susvib/susvib_<note>_v3_1.wav
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, a loop region chosen in the sustain with a crossfade baked in so it repeats seamlessly (loop points in data/samples.json), cut shortly after the loop end with a short fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

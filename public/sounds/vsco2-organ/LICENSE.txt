@@ -1,0 +1,29 @@
+Pipe Organ (vsco2-organ)
+========================
+
+Attribution: Pipe Organ from VS Chamber Orchestra: Community Edition by Versilian Studios (sampled by Simon Dalzell of Ivy Audio), CC0 1.0
+
+Source:   VS Chamber Orchestra: Community Edition (VSCO 2 CE)
+          https://github.com/sgossner/VSCO-2-CE
+Credit:   Organ sampled by Simon Dalzell of Ivy Audio (winter 2015-16); Versilian Studios LLC
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE
+          The organ folder's Info.txt (https://github.com/sgossner/VSCO-2-CE/blob/master/Keys/Organ/Info.txt) adds:
+          "Bearer is granted right to redistribute this sample set by Versilian Studios LLC.
+          Credit to both original author and Versilian Studios is encouraged."
+
+Files (file name = MIDI note number; C4 = 60):
+  36.mp3  <- NT5_PedalQuiet_064_rr1.wav
+  45.mp3  <- NT5_Man3Quiet_131_rr1.wav
+  54.mp3  <- NT5_Man3Quiet_140_rr1.wav
+  63.mp3  <- NT5_Man3Quiet_149_rr1.wav
+  72.mp3  <- NT5_Man3Quiet_158_rr1.wav
+  81.mp3  <- NT5_Man3Quiet_167_rr1.wav
+  90.mp3  <- NT5_Man3Quiet_176_rr1.wav
+Source path pattern: Keys/Organ/Quiet/NT5_Man3Quiet_<N>_rr1.wav (manual) and Keys/Organ/Quiet/NT5_PedalQuiet_<N>_rr1.wav (pedal, 36.mp3 only)
+Note naming: the source numbers the Quiet set's samples with an index N, not a note name: NT5_Man3Quiet_N is MIDI N - 86 and NT5_PedalQuiet_N is MIDI N - 28 here (C4 = 60), verified by pitch analysis including the harmonic series, so there is no octave ambiguity. The low C (36.mp3) comes from the pedal division because the lowest manual samples are very quiet.
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed), converted to mono, level-normalized, a loop region chosen in the sustain with a crossfade baked in so it repeats seamlessly (loop points in data/samples.json), cut shortly after the loop end with a short fade-out, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

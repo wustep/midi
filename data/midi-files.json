@@ -36,7 +36,6 @@
     "licenseNote": "The repository says it is released under the GNU GPLv3. The ABC files come unchanged from the Nottingham Music Database and were cleaned before the MIDI conversion.",
     "commercialUse": "yes"
   },
-
   {
     "group": "Datasets",
     "title": "The Lakh MIDI Dataset",
@@ -208,7 +207,72 @@
     "size": "11,674 performances (~1,000 hours)",
     "paper": "https://archives.ismir.net/ismir2022/paper/000053.pdf"
   },
-
+  {
+    "group": "Datasets",
+    "title": "Bach Doodle Dataset",
+    "url": "https://magenta.tensorflow.org/datasets/bach-doodle",
+    "description": "Melodies entered by users of the 2019 Bach Doodle, each with a MIDI of the melody and a MIDI of its Coconet harmonization plus metadata.",
+    "license": "CC BY 4.0",
+    "licenseNote": "Google LLC makes the dataset available under a Creative Commons Attribution 4.0 International license. Cite the ISMIR 2019 Bach Doodle paper when you use it.",
+    "commercialUse": "yes",
+    "size": "21.6 million harmonizations",
+    "paper": "https://arxiv.org/abs/1907.06637"
+  },
+  {
+    "group": "Datasets",
+    "title": "PDMX",
+    "url": "https://zenodo.org/records/15571083",
+    "description": "Over 250,000 public-domain MusicXML scores from MuseScore, released with compressed MusicXML, PDF and MIDI files for each song where available.",
+    "license": "CC BY 4.0",
+    "licenseNote": "The Zenodo record is CC BY 4.0 and the scores were chosen from MuseScore's public-domain listings. The authors found that 12.29% of songs (31,221) carry a different license inside the file than on the website, flag them in a license_conflict column, and recommend the no_license_conflict subset.",
+    "commercialUse": "varies",
+    "size": "250K+ scores",
+    "paper": "https://arxiv.org/abs/2409.10831"
+  },
+  {
+    "group": "Datasets",
+    "title": "MidiCaps",
+    "url": "https://huggingface.co/datasets/amaai-lab/MidiCaps",
+    "description": "Lakh MIDI Dataset files paired with text captions describing genre, mood, key, tempo, chords and instrumentation.",
+    "license": "CC BY-SA 4.0",
+    "licenseNote": "The Hugging Face dataset card lists CC BY-SA 4.0. The MIDI files come from the Lakh MIDI Dataset, so the same caveat applies: many are transcriptions of copyrighted songs.",
+    "commercialUse": "unclear",
+    "size": "168k files",
+    "paper": "https://arxiv.org/abs/2406.02255"
+  },
+  {
+    "group": "Datasets",
+    "title": "EMOPIA",
+    "url": "https://zenodo.org/records/5090631",
+    "description": "Pop piano clips with emotion labels on the valence-arousal quadrants, provided as audio and MIDI transcriptions.",
+    "license": "CC BY 4.0",
+    "licenseNote": "The Zenodo record is CC BY 4.0. The MIDI clips are machine transcriptions (made with GiantMIDI) of pop piano covers found on YouTube, so rights in the underlying songs are not cleared.",
+    "commercialUse": "unclear",
+    "size": "1,087 clips from 387 songs",
+    "paper": "https://arxiv.org/abs/2108.01374"
+  },
+  {
+    "group": "Datasets",
+    "title": "ComMU",
+    "url": "https://github.com/pozalabs/ComMU-code",
+    "description": "Short MIDI phrases written by professional composers, each tagged with 12 kinds of metadata such as BPM, key, instrument, track role and chord progression.",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseNote": "The README says the ComMU dataset is released under CC BY-NC-SA 4.0, is provided primarily for research and may not be used for commercial purposes.",
+    "commercialUse": "no",
+    "size": "11,144 samples",
+    "paper": "https://arxiv.org/abs/2211.09385"
+  },
+  {
+    "group": "Datasets",
+    "title": "MusicNet",
+    "url": "https://zenodo.org/records/5120004",
+    "description": "Freely licensed classical recordings with aligned note labels, released with the reference MIDI files used to build the labels.",
+    "license": "CC BY 4.0",
+    "licenseNote": "The Zenodo record is CC BY 4.0. The recordings are Creative Commons and public-domain performances, and the metadata file records where each recording and MIDI file came from, so check it for individual files.",
+    "commercialUse": "varies",
+    "size": "330 recordings",
+    "paper": "https://arxiv.org/abs/1611.09827"
+  },
   {
     "group": "Other sources",
     "title": "Kunst der Fuge",
@@ -265,5 +329,14 @@
     "license": "Varies / unclear",
     "licenseNote": "The site does not publish a license or terms for its files. Most files are arrangements of copyrighted popular songs, so reuse beyond personal listening or practice needs permission from the rights holders.",
     "commercialUse": "unclear"
+  },
+  {
+    "group": "Other sources",
+    "title": "abcnotation.com tune search",
+    "url": "https://abcnotation.com/",
+    "description": "A search engine over hundreds of thousands of ABC tunes from online collections, with a score and MIDI file generated for each tune.",
+    "license": "Varies by tune",
+    "licenseNote": "There is no blanket license. The site says copyright music is never knowingly returned in search results without the composer's consent: score and sound files are usually excluded for tunes with a named composer unless the tune is traditional, out of copyright or the composer has agreed. Tunes from consenting composers stay under the composer's copyright, so contact them for any commercial use.",
+    "commercialUse": "varies"
   }
 ]

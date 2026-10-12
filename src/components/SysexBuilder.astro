@@ -1,0 +1,471 @@
+---
+import { MANUFACTURERS } from '../lib/sysex';
+import { hexBytes } from '../lib/midi';
+
+interface Props {
+  level?: 2 | 3;
+}
+const { level = 2 } = Astro.props;
+const Heading = `h${level}`;
+const Sub = `h${level + 1}`;
+
+/** Presets: well-known, documented messages. */
+const presets = [
+  { label: 'Identity Request', id: '7E', header: '7F 06 01', data: '', checksum: 'none', note: 'Universal Non-Real Time. Device ID 7F = all call. Devices answer with an Identity Reply (06 02).' },
+  { label: 'GM System On', id: '7E', header: '7F 09 01', data: '', checksum: 'none', note: 'Universal Non-Real Time, sub-IDs 09 01. Resets a General MIDI device to its GM defaults.' },
+  { label: 'GM2 System On', id: '7E', header: '7F 09 03', data: '', checksum: 'none', note: 'Universal Non-Real Time, sub-IDs 09 03 (General MIDI 2).' },
+  { label: 'Master Volume', id: '7F', header: '7F 04 01', data: '7F 7F', checksum: 'none', note: 'Universal Real Time, sub-IDs 04 01. Data is a 14-bit value, LSB first (here 16383 = full volume).' },
+  { label: 'GS Reset', id: '41', header: '10 42 12', data: '40 00 7F 00', checksum: 'roland', note: 'Roland DT1 (12) to model 42 (GS), address 40 00 7F, value 00. The checksum covers address and data.' },
+  { label: 'GS Master Volume', id: '41', header: '10 42 12', data: '40 00 04 64', checksum: 'roland', note: 'Roland DT1, address 40 00 04, value 64 hex (100).' },
+  { label: 'XG System On', id: '43', header: '10 4C', data: '00 00 7E 00', checksum: 'none', note: 'Yamaha parameter change (1n, device 0) to model 4C (XG): address 00 00 7E, value 00.' },
+];
+---
+
+<section class="widget sxb" data-sxb aria-labelledby="sxb-title">
+  <div class="widget-head">
+    <Heading class="widget-title" id="sxb-title">SysEx builder</Heading>
+    <span class="widget-tag">F0 … F7</span>
+  </div>
+
+  <div class="presets" role="group" aria-label="Presets">
+    {presets.map((p) => <button type="button" class="chip" data-preset={JSON.stringify(p)}>{p.label}</button>)}
+  </div>
+  <p class="sxb-note" data-note aria-live="polite"></p>
+
+  <div class="sxb-grid">
+    <div class="sxb-field sxb-span">
+      <label class="field-label" for="sxb-man">Manufacturer</label>
+      <select id="sxb-man" data-man>
+        {MANUFACTURERS.map((m) => <option value={hexBytes(m.id)}>{hexBytes(m.id)} · {m.name}</option>)}
+        <option value="custom">Other (enter ID)…</option>
+      </select>
+    </div>
+    <div class="sxb-field" data-custom-wrap hidden>
+      <label class="field-label" for="sxb-id">Manufacturer ID (hex)</label>
+      <input id="sxb-id" type="text" data-id spellcheck="false" autocomplete="off" placeholder="00 21 09" />
+    </div>
+    <div class="sxb-field">
+      <span class="field-label" id="sxb-radix-label">Type bytes as</span>
+      <div class="seg" role="group" aria-labelledby="sxb-radix-label">
+        <button type="button" class="chip" data-radix="16" aria-pressed="true">Hex</button>
+        <button type="button" class="chip" data-radix="10" aria-pressed="false">Decimal</button>
+      </div>
+    </div>
+    <div class="sxb-field sxb-span">
+      <label class="field-label" for="sxb-header">Header <span class="hint-inline">device ID, model, command…</span></label>
+      <input id="sxb-header" type="text" data-header spellcheck="false" autocomplete="off" />
+    </div>
+    <div class="sxb-field sxb-span">
+      <label class="field-label" for="sxb-data">Data <span class="hint-inline">address and values</span></label>
+      <input id="sxb-data" type="text" data-data spellcheck="false" autocomplete="off" />
+    </div>
+    <div class="sxb-field">
+      <label class="field-label" for="sxb-cs">Checksum</label>
+      <select id="sxb-cs" data-cs>
+        <option value="none">None</option>
+        <option value="roland">Roland / Yamaha (two's complement of sum)</option>
+        <option value="xor">XOR of bytes</option>
+        <option value="sum">Sum of bytes, 7-bit</option>
+      </select>
+    </div>
+    <div class="sxb-field">
+      <label class="field-label" for="sxb-over">Checksum covers</label>
+      <select id="sxb-over" data-over>
+        <option value="data">Data only</option>
+        <option value="header+data">Header + data</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sxb-out" aria-live="polite">
+    <div class="sxb-bytes" data-bytes></div>
+    <ul class="sxb-legend" data-legend></ul>
+    <div class="sxb-problems" data-problems></div>
+    <div class="sxb-formats">
+      <div class="sxb-format"><span>Hex</span><code data-fmt="hex"></code><button type="button" class="chip" data-copy="hex">Copy</button></div>
+      <div class="sxb-format"><span>Decimal</span><code data-fmt="dec"></code><button type="button" class="chip" data-copy="dec">Copy</button></div>
+      <div class="sxb-format"><span>C / JS</span><code data-fmt="c"></code><button type="button" class="chip" data-copy="c">Copy</button></div>
+    </div>
+    <div class="sxb-send">
+      <button type="button" class="btn" data-send>Send to a MIDI output…</button>
+      <select data-send-out hidden aria-label="MIDI output"></select>
+      <span class="sxb-send-status" data-send-status role="status"></span>
+    </div>
+  </div>
+
+  <Sub class="sxb-h">Value encoder</Sub>
+  <p class="sxb-hint">SysEx payload bytes are 7-bit (00–7F). Split larger values before putting them in the data.</p>
+  <div class="sxb-enc">
+    <div>
+      <label class="field-label" for="sxb-val">Value</label>
+      <input id="sxb-val" type="text" data-val value="1000" spellcheck="false" autocomplete="off" />
+    </div>
+    <div>
+      <label class="field-label" for="sxb-enc">Encoding</label>
+      <select id="sxb-enc" data-enc>
+        <option value="7msb">7-bit bytes, MSB first</option>
+        <option value="7lsb">7-bit bytes, LSB first</option>
+        <option value="nib">Nibbles, high first</option>
+        <option value="nibl">Nibbles, low first</option>
+        <option value="pack">8-to-7 packed (value as bytes, big-endian)</option>
+      </select>
+    </div>
+    <div>
+      <label class="field-label" for="sxb-n">Bytes</label>
+      <select id="sxb-n" data-n>
+        <option>1</option><option selected>2</option><option>3</option><option>4</option>
+      </select>
+    </div>
+  </div>
+  <div class="sxb-enc-out">
+    <code data-enc-out></code>
+    <button type="button" class="chip" data-insert>Append to data</button>
+  </div>
+</section>
+
+<script>
+  import { buildSysex, parseBytes, to7bit, toNibbles, pack8to7, type ChecksumKind } from '../lib/sysex';
+  import { hex, hexBytes } from '../lib/midi';
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-sxb]')) {
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const man = $<HTMLSelectElement>('[data-man]');
+    const idIn = $<HTMLInputElement>('[data-id]');
+    const customWrap = $('[data-custom-wrap]');
+    const headerIn = $<HTMLInputElement>('[data-header]');
+    const dataIn = $<HTMLInputElement>('[data-data]');
+    const cs = $<HTMLSelectElement>('[data-cs]');
+    const over = $<HTMLSelectElement>('[data-over]');
+    const note = $('[data-note]');
+    let radix: 16 | 10 = 16;
+    let current: number[] = [];
+
+    const fmt = (bytes: number[]) => (radix === 16 ? hexBytes(bytes) : bytes.join(' '));
+
+    function render() {
+      const idRes = man.value === 'custom' ? parseBytes(idIn.value, 16) : parseBytes(man.value, 16);
+      const h = parseBytes(headerIn.value, radix);
+      const d = parseBytes(dataIn.value, radix);
+      for (const [el, r] of [[idIn, idRes], [headerIn, h], [dataIn, d]] as const) el.setAttribute('aria-invalid', String(Boolean(r.error)));
+      const problems = [idRes.error && `Manufacturer ID: ${idRes.error}`, h.error && `Header: ${h.error}`, d.error && `Data: ${d.error}`].filter(Boolean) as string[];
+      const m = buildSysex({ id: idRes.bytes, header: h.bytes, data: d.bytes, checksum: cs.value as ChecksumKind, checksumOver: over.value as 'data' | 'header+data' });
+      problems.push(...m.problems);
+      current = m.bytes;
+      const kindOf = (i: number) => m.parts.find((p) => i >= p.start && i < p.end)!.kind;
+      $('[data-bytes]').innerHTML = m.bytes
+        .map((b, i) => `<span class="b sx-${kindOf(i)}${b > 0x7f && i > 0 && i < m.bytes.length - 1 ? ' sx-bad' : ''}">${hex(b)}</span>`)
+        .join(' ');
+      $('[data-legend]').innerHTML = m.parts
+        .map((p) => `<li><span class="b sx-${p.kind}">${p.end - p.start}</span> ${p.label}${p.kind === 'checksum' ? ` = ${hex(m.checksum!)} (${m.checksum})` : ''}</li>`)
+        .join('');
+      $('[data-problems]').innerHTML = problems.length ? `<ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>` : '';
+      $('[data-fmt="hex"]').textContent = hexBytes(m.bytes);
+      $('[data-fmt="dec"]').textContent = m.bytes.join(' ');
+      $('[data-fmt="c"]').textContent = `{ ${m.bytes.map((b) => `0x${hex(b)}`).join(', ')} }`;
+      $<HTMLButtonElement>('[data-send]').disabled = problems.length > 0;
+    }
+
+    function setRadix(r: 16 | 10) {
+      if (r === radix) return;
+      // Convert what's typed so the bytes stay the same.
+      const convert = (el: HTMLInputElement) => {
+        const res = parseBytes(el.value, radix);
+        if (!res.error) el.value = r === 16 ? hexBytes(res.bytes) : res.bytes.join(' ');
+      };
+      convert(headerIn);
+      convert(dataIn);
+      radix = r;
+      root.querySelectorAll<HTMLButtonElement>('[data-radix]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.radix) === r)));
+      render();
+      encode();
+    }
+
+    root.querySelectorAll<HTMLButtonElement>('[data-radix]').forEach((b) => b.addEventListener('click', () => setRadix(Number(b.dataset.radix) as 16 | 10)));
+
+    root.querySelectorAll<HTMLButtonElement>('[data-preset]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const p = JSON.parse(b.dataset.preset!);
+        setRadix(16);
+        man.value = [...man.options].some((o) => o.value === p.id) ? p.id : 'custom';
+        idIn.value = p.id;
+        customWrap.hidden = man.value !== 'custom';
+        headerIn.value = p.header;
+        dataIn.value = p.data;
+        cs.value = p.checksum;
+        over.value = 'data';
+        note.textContent = p.note;
+        render();
+      }),
+    );
+
+    man.addEventListener('change', () => {
+      customWrap.hidden = man.value !== 'custom';
+      if (man.value === 'custom') idIn.focus();
+      note.textContent = '';
+      render();
+    });
+    for (const el of [idIn, headerIn, dataIn]) el.addEventListener('input', render);
+    for (const el of [cs, over]) el.addEventListener('change', render);
+
+    root.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) =>
+      b.addEventListener('click', async () => {
+        const text = $(`[data-fmt="${b.dataset.copy}"]`).textContent ?? '';
+        try {
+          await navigator.clipboard.writeText(text);
+          b.textContent = 'Copied';
+        } catch {
+          b.textContent = 'Copy failed';
+        }
+        setTimeout(() => (b.textContent = 'Copy'), 1500);
+      }),
+    );
+
+    /* ----- Sending ----- */
+    const sendBtn = $<HTMLButtonElement>('[data-send]');
+    const outSel = $<HTMLSelectElement>('[data-send-out]');
+    const sendStatus = $('[data-send-status]');
+    let access: MIDIAccess | undefined;
+    sendBtn.addEventListener('click', async () => {
+      if (!access) {
+        if (!navigator.requestMIDIAccess) {
+          sendStatus.textContent = "This browser doesn't support Web MIDI.";
+          return;
+        }
+        try {
+          access = await navigator.requestMIDIAccess({ sysex: true });
+        } catch {
+          sendStatus.textContent = 'SysEx access was blocked. Allow MIDI device control in the site settings.';
+          return;
+        }
+        const fill = () => {
+          const outs = [...access!.outputs.values()];
+          outSel.innerHTML = outs.map((o) => `<option value="${esc(o.id)}">${esc(o.name ?? o.id)}</option>`).join('');
+          outSel.hidden = !outs.length;
+          sendBtn.textContent = outs.length ? 'Send' : 'Send to a MIDI output…';
+          if (!outs.length) sendStatus.textContent = 'No MIDI outputs found.';
+        };
+        access.onstatechange = fill;
+        fill();
+        if (access.outputs.size) sendStatus.textContent = 'Choose an output and press Send.';
+        return;
+      }
+      const out = access.outputs.get(outSel.value);
+      if (!out) {
+        sendStatus.textContent = 'No MIDI output selected.';
+        return;
+      }
+      try {
+        out.send(current);
+        sendStatus.textContent = `Sent ${current.length} bytes to ${out.name}.`;
+      } catch (e) {
+        sendStatus.textContent = `Couldn't send: ${(e as Error).message}`;
+      }
+    });
+
+    /* ----- Value encoder ----- */
+    const valIn = $<HTMLInputElement>('[data-val]');
+    const enc = $<HTMLSelectElement>('[data-enc]');
+    const nSel = $<HTMLSelectElement>('[data-n]');
+    const encOut = $('[data-enc-out]');
+    const insert = $<HTMLButtonElement>('[data-insert]');
+    let encoded: number[] = [];
+    function encode() {
+      const raw = valIn.value.trim();
+      const v = /^0x/i.test(raw) ? parseInt(raw, 16) : /^-?\d+$/.test(raw) ? Number(raw) : NaN;
+      const n = Number(nSel.value);
+      try {
+        if (!Number.isFinite(v)) throw new RangeError('Enter a whole number (decimal, or hex with 0x)');
+        switch (enc.value) {
+          case '7msb': encoded = to7bit(v, n); break;
+          case '7lsb': encoded = to7bit(v, n).reverse(); break;
+          case 'nib': encoded = toNibbles(v, n); break;
+          case 'nibl': encoded = toNibbles(v, n).reverse(); break;
+          case 'pack': {
+            if (v < 0 || v >= 256 ** n) throw new RangeError(`${v} does not fit in ${n} byte${n === 1 ? '' : 's'}`);
+            const bytes = Array.from({ length: n }, (_, i) => Math.floor(v / 256 ** (n - 1 - i)) & 0xff);
+            encoded = pack8to7(bytes);
+            break;
+          }
+        }
+        valIn.setAttribute('aria-invalid', 'false');
+        encOut.textContent = `${fmt(encoded)}${radix === 16 ? '' : ' (decimal)'}`;
+        insert.disabled = false;
+      } catch (e) {
+        valIn.setAttribute('aria-invalid', 'true');
+        encOut.textContent = (e as Error).message;
+        encoded = [];
+        insert.disabled = true;
+      }
+    }
+    for (const el of [enc, nSel]) el.addEventListener('change', encode);
+    valIn.addEventListener('input', encode);
+    insert.addEventListener('click', () => {
+      dataIn.value = `${dataIn.value.trim()} ${fmt(encoded)}`.trim();
+      render();
+    });
+
+    (root.querySelector<HTMLButtonElement>('[data-preset]'))?.click();
+    encode();
+  }
+</script>
+
+<style>
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .sxb-note {
+    min-height: 1.4em;
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin: 0 0 0.75rem;
+  }
+  .sxb-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem 1rem;
+  }
+  .sxb-span {
+    grid-column: 1 / -1;
+  }
+  .sxb-grid input,
+  .sxb-enc input {
+    font-family: var(--font-mono);
+  }
+  .hint-inline {
+    font-weight: 400;
+    color: var(--muted);
+  }
+  .seg {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .sxb-out {
+    margin-top: 1.1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+  }
+  .sxb-bytes {
+    font-size: 1.15rem;
+    line-height: 2;
+    word-spacing: 0.1em;
+  }
+  .sxb-out :global(.sx-frame) {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .sxb-out :global(.sx-id) {
+    color: var(--meta);
+    background: var(--meta-soft);
+  }
+  .sxb-out :global(.sx-header) {
+    color: var(--ink-2);
+    background: var(--surface-2);
+  }
+  .sxb-out :global(.sx-data) {
+    color: var(--data);
+    background: var(--data-soft);
+  }
+  .sxb-out :global(.sx-checksum) {
+    color: var(--warn);
+    background: var(--warn-soft);
+  }
+  .sxb-out :global(.sx-bad) {
+    outline: 2px solid var(--accent);
+  }
+  .sxb-legend {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    font-size: 0.82rem;
+    color: var(--ink-2);
+  }
+  .sxb-problems :global(ul) {
+    margin: 0.6rem 0 0;
+    padding-left: 1.2rem;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .sxb-formats {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+  }
+  .sxb-format {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.85rem;
+  }
+  .sxb-format span {
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .sxb-format code {
+    overflow-wrap: anywhere;
+    font-size: 0.85rem;
+  }
+  .sxb-send {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin-top: 0.9rem;
+  }
+  .sxb-send select {
+    width: auto;
+    max-width: 16rem;
+  }
+  .sxb-send-status {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .sxb-h {
+    font-size: 1rem;
+    margin: 1.6rem 0 0.3rem;
+  }
+  .sxb-hint {
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+  .sxb-enc {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr 0.6fr;
+    gap: 0.75rem;
+  }
+  .sxb-enc-out {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.7rem;
+  }
+  .sxb-enc-out code {
+    font-size: 1rem;
+  }
+  @media (max-width: 560px) {
+    .sxb-grid,
+    .sxb-enc {
+      grid-template-columns: 1fr;
+    }
+    .sxb-format {
+      grid-template-columns: 1fr auto;
+    }
+    .sxb-format code {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+  }
+</style>

@@ -9,8 +9,6 @@ const groupOrder = [
   'RFCs and web standards',
   'Platform documentation',
   'Learning and references',
-  'Datasets',
-  'Community',
 ];
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const groups = groupOrder
@@ -22,7 +20,7 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
 <Doc
   title="Specs & Resources"
   slug="resources"
-  description="Official MIDI Association and AMEI specifications, USB-IF class definitions, RFCs, the Web MIDI API, platform docs, and datasets."
+  description="Official MIDI Association and AMEI specifications, USB-IF class definitions, RFCs, the Web MIDI API, platform documentation and learning references."
   specs={[{ label: 'MIDI Association spec index', href: 'https://midi.org/specs' }]}
 >
   <p>
@@ -66,6 +64,11 @@ const host = (url: string) => new URL(url).host.replace(/^www\./, '');
   }
 
   <h2 id="in-this-guide">In this guide</h2>
+  <p>
+    Looking for people rather than documents? See <a href="/community/">forums, chat and mailing lists</a>. For MIDI
+    files and research datasets with license notes, see <a href="/community/midi-files/">Getting MIDI files</a>; for
+    free instrument sounds, <a href="/samples/">Samples</a>.
+  </p>
   <p>
     Looking for code rather than reading? The <a href="/libraries/">library catalog</a> lists verified open-source
     implementations, and the <a href="/docs/cookbook/">Cookbook</a> has short runnable recipes.

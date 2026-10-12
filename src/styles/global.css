@@ -201,6 +201,10 @@ hr {
   color: var(--ink);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px;
@@ -229,6 +233,8 @@ hr {
 
 /* ---------- Tables ---------- */
 .table-wrap {
+  /* Positioned so visually-hidden (absolute) children are clipped by the scroll box too. */
+  position: relative;
   overflow-x: auto;
   margin: 1.25rem 0 1.75rem;
   border: 1px solid var(--line);
@@ -378,6 +384,37 @@ textarea:focus-visible {
 }
 .btn-primary:hover {
   background: var(--ink-2);
+}
+
+.chip {
+  border: 1px solid var(--control);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  min-height: 2.25rem;
+  color: var(--ink);
+}
+.chip:hover {
+  background: var(--surface-2);
+}
+.chip[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* Comfortable tap targets on touch screens. */
+@media (pointer: coarse) {
+  .chip,
+  .btn,
+  input[type='text'],
+  input[type='search'],
+  input[type='number'],
+  select {
+    min-height: 2.75rem;
+  }
 }
 
 .widget {

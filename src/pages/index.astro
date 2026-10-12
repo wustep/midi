@@ -3,6 +3,10 @@ import Base from '../layouts/Base.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import { docGroups } from '../lib/docs-nav';
+import { tools as allTools } from '../lib/tools';
+import instruments from '../../data/samples.json';
+import community from '../../data/community.json';
+import midiFiles from '../../data/midi-files.json';
 
 const quickRef = [
   ['8n', 'Note Off', 'note, velocity'],
@@ -25,17 +29,16 @@ const libRounded = Math.floor(libCount / 10) * 10;
 const chapters = [
   { id: 'protocol', n: '01', title: 'Protocol' },
   { id: 'libraries', n: '02', title: 'Libraries' },
-  { id: 'tools', n: '03', title: 'Tools' },
-  { id: 'try', n: '04', title: 'Try it' },
-  { id: 'reference', n: '05', title: 'Reference' },
+  { id: 'reader', n: '03', title: 'Reader' },
+  { id: 'tools', n: '04', title: 'Tools' },
+  { id: 'samples', n: '05', title: 'Samples' },
+  { id: 'community', n: '06', title: 'Community' },
+  { id: 'reference', n: '07', title: 'Reference' },
 ];
 
-const tools = [
-  { href: '/tools/#decoder', title: 'Message decoder', blurb: 'Paste raw bytes, get every message decoded, running status included.', demo: ['B0 40 7F', 'CC 64 Sustain = on'] },
-  { href: '/tools/#vlq', title: 'VLQ encoder', blurb: 'Delta-times and lengths to and from Standard MIDI File VLQs.', demo: ['480', '83 60'] },
-  { href: '/tools/#tempo', title: 'Tempo calculator', blurb: 'BPM, µs per quarter, ticks, and MIDI clock intervals.', demo: ['120 BPM', 'FF 51 03 07 A1 20'] },
-  { href: '/tools/#notes', title: 'Note table', blurb: 'All 128 notes with names, frequencies and GM drums. Click to hear.', demo: ['69 · A4', '440.00 Hz'] },
-];
+const tools = allTools.filter((t) => t.slug !== 'reader');
+const communityGroups = ['Forums', 'Reddit', 'Discord', 'Mailing lists'].map((g) => ({ g, items: community.filter((c) => c.group === g) }));
+const datasetCount = midiFiles.filter((f) => f.group === 'Datasets').length;
 
 const refBlurbs: Record<string, string> = {
   cookbook: 'Web MIDI · mido · RtMidi · midir',
@@ -51,13 +54,13 @@ const refBlurbs: Record<string, string> = {
       <p class="eyebrow">An open reference</p>
       <h1>The field guide<br />to <span class="hl">MIDI</span>.</h1>
       <p class="lede">
-        How MIDI works down to the byte, from MIDI 1.0 to MIDI 2.0. Interactive tools, a live Web MIDI monitor,
-        runnable recipes, and {libRounded}+ open-source libraries, each one checked against GitHub.
+        How MIDI works down to the byte, from MIDI 1.0 to MIDI 2.0. A MIDI file reader, playable instruments, a live
+        Web MIDI monitor, runnable recipes, and {libRounded}+ open-source libraries, each one checked against GitHub.
       </p>
       <div class="cta">
         <a class="btn btn-primary" href="/docs/">Read the docs</a>
+        <a class="btn" href="/reader/">Open a MIDI file</a>
         <a class="btn" href="/libraries/">Browse libraries</a>
-        <a class="btn" href="/try/">Plug something in</a>
       </div>
     </div>
 
@@ -208,11 +211,34 @@ const refBlurbs: Record<string, string> = {
     </div>
   </section>
 
-  <!-- 03 Tools -->
-  <section class="chapter" id="tools" aria-labelledby="tools-title">
-    <div class="chapter-inner">
+  <!-- 03 Reader -->
+  <section class="chapter" id="reader" aria-labelledby="reader-title">
+    <div class="chapter-inner split">
       <header class="chapter-head">
         <p class="chapter-num">03</p>
+        <h2 id="reader-title">MIDI Reader</h2>
+        <p class="chapter-lede">
+          Drop in any <code>.mid</code> file and read it: tracks and instruments, tempo and key changes, controllers,
+          SysEx, a piano roll, and every event linked to its exact bytes. Play it with sampled instruments or your own
+          gear. Nothing is uploaded.
+        </p>
+        <a class="btn btn-primary" href="/reader/">Open the Reader</a>
+      </header>
+      <div class="fake-anno" aria-hidden="true">
+        <p class="fa-head"><span class="swatch"></span>Note On <span>track 2 · 1:1:0 · bytes 212–215</span></p>
+        <div><code class="fa-d">00</code><strong>Delta-time</strong><span>0 ticks after the previous event</span></div>
+        <div><code class="fa-s">90</code><strong>Status</strong><span>Note On, channel 1</span></div>
+        <div><code class="fa-v">3C</code><strong>Note</strong><span>60 = C4</span></div>
+        <div><code class="fa-v">64</code><strong>Velocity</strong><span>100</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Tools -->
+  <section class="chapter alt" id="tools" aria-labelledby="tools-title">
+    <div class="chapter-inner">
+      <header class="chapter-head">
+        <p class="chapter-num">04</p>
         <h2 id="tools-title">Tools</h2>
         <p class="chapter-lede">Small, fast utilities for the everyday questions of MIDI work. They run entirely in your browser.</p>
       </header>
@@ -236,34 +262,61 @@ const refBlurbs: Record<string, string> = {
     </div>
   </section>
 
-  <!-- 04 Try it -->
-  <section class="chapter alt" id="try" aria-labelledby="try-title">
+  <!-- 05 Samples -->
+  <section class="chapter" id="samples" aria-labelledby="samples-title">
     <div class="chapter-inner split">
       <header class="chapter-head">
-        <p class="chapter-num">04</p>
-        <h2 id="try-title">Try it</h2>
+        <p class="chapter-num">05</p>
+        <h2 id="samples-title">Samples</h2>
         <p class="chapter-lede">
-          Plug in a keyboard or controller and the <a href="/try/">Web MIDI monitor</a> lists your devices and decodes every
-          incoming message live, with a keyboard view, controller meters, and a clock-tempo readout. Nothing leaves
-          your browser.
+          Play openly licensed instruments in the browser with your mouse, touch screen, computer keyboard or a MIDI
+          controller, then find full SoundFonts and SFZ libraries with clear license notes.
         </p>
-        <a class="btn btn-primary" href="/try/">Open the monitor</a>
+        <a class="btn btn-primary" href="/samples/">Play the instruments</a>
       </header>
-      <div class="fake-log" aria-hidden="true">
-        <div><span class="t">0.512</span><span class="b b-s">90</span> <span class="b b-d">3C</span> <span class="b b-d">64</span><span class="m">Note On C4 vel 100</span></div>
-        <div><span class="t">0.538</span><span class="b b-s">B0</span> <span class="b b-d">40</span> <span class="b b-d">7F</span><span class="m">CC 64 Sustain = 127</span></div>
-        <div><span class="t">0.701</span><span class="b b-s">E0</span> <span class="b b-d">00</span> <span class="b b-d">50</span><span class="m">Pitch Bend +2048</span></div>
-        <div><span class="t">0.944</span><span class="b b-s">B0</span> <span class="b b-d">01</span> <span class="b b-d">2A</span><span class="m">CC 1 Modulation = 42</span></div>
-        <div><span class="t">1.103</span><span class="b b-s">80</span> <span class="b b-d">3C</span> <span class="b b-d">40</span><span class="m">Note Off C4 vel 64</span></div>
+      <div class="inst-card" aria-hidden="true">
+        <div class="mini-keys">{Array.from({ length: 15 }, (_, i) => <span class:list={[{ on: i === 4 || i === 7 }]}></span>)}</div>
+        <ul class="inst-chips">{instruments.map((i) => <li>{i.name}</li>)}</ul>
       </div>
     </div>
   </section>
 
-  <!-- 05 Reference -->
+  <!-- 06 Community -->
+  <section class="chapter alt" id="community" aria-labelledby="community-title">
+    <div class="chapter-inner">
+      <header class="chapter-head">
+        <p class="chapter-num">06</p>
+        <h2 id="community-title">Community</h2>
+        <p class="chapter-lede">Where to ask questions and find people building with MIDI, and where to get MIDI files you're allowed to use.</p>
+      </header>
+      <ul class="ref-grid">
+        {
+          communityGroups.map(({ g, items }) => (
+            <li>
+              <a href={`/community/#${g.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+                <span class="ref-kicker">{items.length} listed</span>
+                <strong>{g}</strong>
+                <span>{items.slice(0, 4).map((c) => c.title).join(' · ')}</span>
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href="/community/midi-files/">
+            <span class="ref-kicker">{midiFiles.length} sources · {datasetCount} datasets</span>
+            <strong>Getting MIDI files</strong>
+            <span>Public-domain archives and research datasets, with license and copyright notes.</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 07 Reference -->
   <section class="chapter" id="reference" aria-labelledby="reference-title">
     <div class="chapter-inner">
       <header class="chapter-head">
-        <p class="chapter-num">05</p>
+        <p class="chapter-num">07</p>
         <h2 id="reference-title">Reference</h2>
         <p class="chapter-lede">Code you can paste, words you can look up, and where it all came from.</p>
       </header>
@@ -679,36 +732,85 @@ const refBlurbs: Record<string, string> = {
   .split .chapter-lede {
     margin-bottom: 1.5rem;
   }
-  .fake-log {
+  .fake-anno,
+  .inst-card {
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    background: var(--bg);
-    padding: 0.75rem 1rem;
-    font-size: 0.88rem;
+    background: var(--surface);
+    padding: 1rem 1.1rem;
     box-shadow: var(--shadow);
+    font-size: 0.92rem;
   }
-  .fake-log div {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.45rem 0;
-    border-bottom: 1px solid var(--line);
-    white-space: nowrap;
-    overflow: hidden;
+  .fa-head {
+    font-weight: 700;
+    margin: 0 0 0.4rem;
   }
-  .fake-log div:last-child {
-    border-bottom: 0;
-  }
-  .fake-log .t {
-    font-family: var(--font-mono);
+  .fa-head span:last-child {
+    font-weight: 400;
+    font-size: 0.82rem;
     color: var(--muted);
-    width: 3.5rem;
-    flex-shrink: 0;
   }
-  .fake-log .m {
-    margin-left: 0.75rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .fake-anno .swatch {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+    background: hsl(172 62% 50%);
+  }
+  .fake-anno div {
+    display: grid;
+    grid-template-columns: 2.6rem 6rem minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: baseline;
+    border-top: 1px solid var(--line);
+    padding: 0.45rem 0;
+  }
+  .fake-anno span {
+    color: var(--ink-2);
+  }
+  .fa-d {
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .fa-s {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .fa-v {
+    color: var(--data);
+    font-weight: 700;
+  }
+  .mini-keys {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    gap: 2px;
+    height: 90px;
+    margin-bottom: 0.9rem;
+  }
+  .mini-keys span {
+    background: #fbfaf6;
+    border: 1px solid var(--line-strong);
+    border-radius: 0 0 4px 4px;
+  }
+  .mini-keys span.on {
+    background: var(--accent-soft);
+    box-shadow: inset 0 -5px 0 var(--accent);
+  }
+  .inst-chips {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .inst-chips li {
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.15rem 0.65rem;
+    font-size: 0.82rem;
+    background: var(--bg);
   }
 
   /* Reference */

@@ -35,6 +35,12 @@ const manufacturers = [
     System Exclusive (SysEx) is MIDI's escape hatch: an arbitrary-length message whose meaning is defined by a
     manufacturer, or by the MIDI Association for the "Universal" messages every device can share.
   </p>
+  <Callout title="Build one">
+    <p>
+      The <a href="/tools/sysex/">SysEx builder</a> assembles messages from a manufacturer ID, header and data, computes
+      Roland-style checksums, and splits values into 7-bit bytes.
+    </p>
+  </Callout>
 
   <h2 id="framing">Framing</h2>
   <p>

@@ -1,0 +1,132 @@
+---
+import Base from './Base.astro';
+import { tools, toolBySlug } from '../lib/tools';
+
+interface Props {
+  slug: string;
+  description?: string;
+  /** Wider layout for tools with big tables (the file inspector). */
+  wide?: boolean;
+}
+const { slug, description, wide = false } = Astro.props;
+const tool = toolBySlug(slug);
+const others = tools.filter((t) => t.slug !== slug);
+---
+
+<Base title={tool.title} section="/tools" description={description ?? tool.blurb}>
+  <div class:list={['tool-shell', { wide }]}>
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="/tools/">Tools</a></li>
+        <li aria-current="page">{tool.title}</li>
+      </ol>
+    </nav>
+    <header class="tool-header">
+      <h1>{tool.title}</h1>
+      <p class="lede"><slot name="lede">{tool.blurb}</slot></p>
+    </header>
+    <slot />
+    {
+      tool.docs.length > 0 && (
+        <p class="more">
+          Background:{' '}
+          {tool.docs.map((d, i) => (
+            <>
+              {i > 0 && ' · '}
+              <a href={d.href}>{d.label}</a>
+            </>
+          ))}
+        </p>
+      )
+    }
+    <slot name="after" />
+    <nav class="other-tools" aria-labelledby="other-tools-title">
+      <h2 id="other-tools-title">More tools</h2>
+      <ul>
+        {
+          others.map((t) => (
+            <li>
+              <a href={t.href}>
+                <strong>{t.title}</strong>
+                <span>{t.blurb}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .tool-shell {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem var(--gutter) 0;
+  }
+  .tool-shell.wide {
+    max-width: 1180px;
+  }
+  .crumbs ol {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .crumbs li + li::before {
+    content: '/';
+    margin-right: 0.4rem;
+    color: var(--line-strong);
+  }
+  .crumbs a {
+    color: var(--ink-2);
+  }
+  .tool-header h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    margin-bottom: 0.5rem;
+  }
+  .more {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: -0.75rem;
+  }
+  .other-tools {
+    margin-top: 4rem;
+    border-top: 1px solid var(--line);
+  }
+  .other-tools h2 {
+    font-size: 1.1rem;
+    margin: 1.5rem 0 1rem;
+  }
+  .other-tools ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 0.75rem;
+  }
+  .other-tools a {
+    display: grid;
+    gap: 0.2rem;
+    height: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.8rem 0.95rem;
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--surface);
+  }
+  .other-tools a:hover {
+    border-color: var(--accent);
+  }
+  .other-tools span {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+</style>

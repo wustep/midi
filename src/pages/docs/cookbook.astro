@@ -534,7 +534,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     id: 'write-file',
     title: 'Write a C major scale to a .mid file',
     intro: 'A format 0 file at 480 ticks per quarter note and 120 BPM: one quarter note per scale degree. Delta times are in ticks, measured from the previous event.',
-    docs: [{ label: 'Standard MIDI Files', href: '/docs/smf/' }, { label: 'VLQ encoder', href: '/tools/#vlq' }],
+    docs: [{ label: 'Standard MIDI Files', href: '/docs/smf/' }, { label: 'VLQ encoder', href: '/tools/vlq/' }],
     snippets: [
       {
         lang: 'js', lib: 'midi-file', libQuery: 'midi-file',
@@ -595,7 +595,7 @@ fn main() -> std::io::Result<()> {
     id: 'clock',
     title: 'Send MIDI clock at a given BPM',
     intro: 'MIDI clock is 24 Timing Clock (F8) bytes per quarter note: 20.83 ms apart at 120 BPM. Timers jitter, so schedule against an absolute timeline instead of sleeping a fixed interval, and in the browser use send() timestamps to look ahead.',
-    docs: [{ label: 'Timing & Sync', href: '/docs/timing/' }, { label: 'Tempo calculator', href: '/tools/#tempo' }],
+    docs: [{ label: 'Timing & Sync', href: '/docs/timing/' }, { label: 'Tempo calculator', href: '/tools/tempo/' }],
     snippets: [
       {
         lang: 'js', lib: 'Web MIDI', libQuery: 'web midi',
@@ -696,7 +696,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     id: 'note-math',
     title: 'Convert between note numbers, names, and frequencies',
     intro: 'Equal temperament with A4 = 440 Hz at note 69. Octave naming varies: this uses C4 = 60 (scientific pitch); Yamaha-style software calls the same note C3.',
-    docs: [{ label: 'Notes & Pitch', href: '/docs/notes/' }, { label: 'Note table', href: '/tools/#notes' }],
+    docs: [{ label: 'Notes & Pitch', href: '/docs/notes/' }, { label: 'Note table', href: '/tools/notes/' }],
     snippets: [
       {
         lang: 'js', lib: 'no dependencies', libQuery: 'tonal',

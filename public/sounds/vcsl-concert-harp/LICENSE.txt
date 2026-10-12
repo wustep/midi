@@ -1,0 +1,28 @@
+Concert Harp (vcsl-concert-harp)
+================================
+
+Attribution: Concert Harp from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0
+
+Source:   Versilian Community Sample Library (VCSL)
+          https://github.com/sgossner/VCSL
+Credit:   Versilian Studios LLC
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VCSL/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  35.mp3  <- KSHarp_B1_mf1.wav
+  41.mp3  <- KSHarp_F2_mf1.wav
+  48.mp3  <- KSHarp_C3_mf3.wav
+  55.mp3  <- KSHarp_G3_mf1.wav
+  62.mp3  <- KSHarp_D4_mf1.wav
+  69.mp3  <- KSHarp_A4_mf1.wav
+  76.mp3  <- KSHarp_E5_mf1.wav
+  83.mp3  <- KSHarp_B5_mf1.wav
+  93.mp3  <- KSHarp_A6_mf1.wav
+Source path pattern: Chordophones/Composite Chordophones/Concert Harp/KSHarp_<note>_mf1.wav (C3 uses _mf3)
+Note naming: the source names notes with C4 = middle C (MIDI 60) (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed, cut to at most 3 s with a short fade-out), converted to mono, level-normalized, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

@@ -1,0 +1,148 @@
+---
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Which sub-page is active. */
+  page: 'community' | 'midi-files';
+}
+const { title, description, page } = Astro.props;
+const tabs = [
+  { key: 'community', href: '/community/', label: 'Forums & chat' },
+  { key: 'midi-files', href: '/community/midi-files/', label: 'Getting MIDI files' },
+  { key: 'specs', href: '/docs/resources/', label: 'Specs & references' },
+  { key: 'samples', href: '/samples/', label: 'Free samples' },
+];
+---
+
+<Base title={title} section="/community" description={description}>
+  <div class="community-page">
+    <nav class="sub-nav" aria-label="Community & resources">
+      <ul>
+        {
+          tabs.map((t) => (
+            <li>
+              <a href={t.href} aria-current={t.key === page ? 'page' : undefined}>
+                {t.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <slot />
+  </div>
+</Base>
+
+<style>
+  .community-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 1.5rem var(--gutter) 0;
+  }
+  .sub-nav ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0 0 1rem;
+    margin: 0 0 2rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .sub-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: 0.3rem 0.85rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink-2);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .sub-nav a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .sub-nav a[aria-current='page'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bg);
+  }
+  .community-page :global(.c-list) {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.75rem;
+  }
+  .community-page :global(.c-list > li) {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.8rem 1rem;
+    display: grid;
+    align-content: start;
+    gap: 0.3rem;
+  }
+  .community-page :global(.c-top) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+  }
+  .community-page :global(.c-title) {
+    font-weight: 700;
+  }
+  .community-page :global(.c-desc) {
+    margin: 0;
+    font-size: 0.94rem;
+  }
+  .community-page :global(.c-note) {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--ink-2);
+  }
+  .community-page :global(.c-host) {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+  .community-page :global(.badge) {
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.05rem 0.4rem;
+    background: var(--surface-2);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .community-page :global(.badge.yes) {
+    background: var(--data-soft);
+    color: var(--data);
+  }
+  .community-page :global(.badge.no) {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .community-page :global(.badge.varies),
+  .community-page :global(.badge.unclear) {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  .community-page :global(.toc) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .community-page :global(.toc a) {
+    font-size: 0.88rem;
+  }
+</style>

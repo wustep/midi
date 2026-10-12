@@ -19,8 +19,10 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 const nav = [
   { href: '/docs/', label: 'Docs', key: '/docs' },
   { href: '/libraries/', label: 'Libraries', key: '/libraries' },
+  { href: '/reader/', label: 'Reader', key: '/reader' },
   { href: '/tools/', label: 'Tools', key: '/tools' },
-  { href: '/try/', label: 'Try it', key: '/try' },
+  { href: '/samples/', label: 'Samples', key: '/samples' },
+  { href: '/community/', label: 'Community', key: '/community' },
 ];
 ---
 
@@ -74,7 +76,10 @@ const nav = [
           </svg>
           <span class="wordmark-text">MIDI<span class="wordmark-sub">Field Guide</span></span>
         </a>
-        <nav class="site-nav" aria-label="Primary">
+        <button class="icon-btn menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Primary">
           <ul>
             {
               nav.map((item) => (
@@ -138,6 +143,24 @@ const nav = [
         root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       const sync = () => btn?.setAttribute('aria-pressed', String(current() === 'dark'));
       sync();
+
+      // Phone menu: the primary nav collapses behind a button.
+      const menuBtn = document.querySelector<HTMLButtonElement>('.menu-btn');
+      const header = document.querySelector<HTMLElement>('.site-header');
+      const setMenu = (open: boolean) => {
+        menuBtn?.setAttribute('aria-expanded', String(open));
+        header?.classList.toggle('menu-open', open);
+      };
+      menuBtn?.addEventListener('click', () => setMenu(menuBtn.getAttribute('aria-expanded') !== 'true'));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && header?.classList.contains('menu-open')) {
+          setMenu(false);
+          menuBtn?.focus();
+        }
+      });
+      document.addEventListener('click', (e) => {
+        if (header?.classList.contains('menu-open') && !header.contains(e.target as Node)) setMenu(false);
+      });
       btn?.addEventListener('click', () => {
         const next = current() === 'dark' ? 'light' : 'dark';
         root.dataset.theme = next;
@@ -315,24 +338,52 @@ const nav = [
   .fineprint {
     font-size: 0.82rem;
   }
-  @media (max-width: 720px) {
+  .menu-btn {
+    display: none;
+  }
+  @media (max-width: 760px) {
     .site-header-inner {
       flex-wrap: wrap;
-      gap: 0.25rem 1rem;
+      gap: 0 0.5rem;
+      position: relative;
     }
     .wordmark-sub {
       display: none;
     }
-    .site-nav {
+    .header-actions {
+      order: 2;
+    }
+    .menu-btn {
+      display: inline-grid;
       order: 3;
+      border-color: var(--line);
+    }
+    .site-nav {
+      display: none;
+      order: 4;
       width: 100%;
-      overflow-x: auto;
-      margin: 0 calc(var(--gutter) * -1);
-      padding: 0 var(--gutter);
-      width: calc(100% + var(--gutter) * 2);
+      padding: 0.5rem 0 0.75rem;
+    }
+    .menu-open .site-nav {
+      display: block;
+    }
+    .site-nav ul {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.4rem;
     }
     .site-nav a {
-      padding: 0.35rem 0.6rem;
+      display: grid;
+      place-items: center;
+      min-height: 2.9rem;
+      padding: 0.4rem;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 0.95rem;
+    }
+    .site-nav a[aria-current='page'] {
+      border-color: var(--accent);
+      box-shadow: inset 0 -2px 0 var(--accent);
     }
   }
 </style>

@@ -1,0 +1,118 @@
+---
+import Base from '../../layouts/Base.astro';
+import { tools } from '../../lib/tools';
+
+const groups = ['Files & devices', 'Calculators & references'] as const;
+const legacy = Object.fromEntries(tools.filter((t) => t.href.startsWith('/tools/')).map((t) => [t.slug, t.href]));
+---
+
+<Base title="Tools" section="/tools" description="Interactive MIDI tools that run in your browser: MIDI file inspector and player, SysEx builder, Web MIDI monitor, message decoder, VLQ encoder, tempo calculator, and note table.">
+  <div class="tools-page">
+    <header>
+      <p class="eyebrow">Workbench</p>
+      <h1>Tools</h1>
+      <p class="lede">Utilities for the everyday questions of MIDI work. Everything runs in your browser, and files you open are never uploaded.</p>
+    </header>
+
+    {
+      groups.map((g) => (
+        <section aria-labelledby={`g-${g.replace(/\W+/g, '-')}`}>
+          <h2 id={`g-${g.replace(/\W+/g, '-')}`}>{g}</h2>
+          <ul class:list={['tool-cards', { big: g === 'Files & devices' }]}>
+            {tools
+              .filter((t) => t.group === g)
+              .map((t) => (
+                <li>
+                  <a href={t.href}>
+                    <span class="demo" aria-hidden="true">
+                      <code>{t.demo[0]}</code>
+                      <span class="arrow">→</span>
+                      <code class="out">{t.demo[1]}</code>
+                    </span>
+                    <strong>{t.title}</strong>
+                    <span class="blurb">{t.blurb}</span>
+                  </a>
+                </li>
+              ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<script is:inline define:vars={{ legacy }}>
+  // The tools used to live on this page as #anchors; send old links to their new pages.
+  const target = legacy[location.hash.slice(1)];
+  if (target) location.replace(target);
+</script>
+
+<style>
+  .tools-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 0;
+  }
+  h2 {
+    font-size: 1.15rem;
+    margin: 2.5rem 0 1rem;
+  }
+  .tool-cards {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.9rem;
+  }
+  .tool-cards.big {
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  }
+  .tool-cards a {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    height: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem 1.1rem;
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .tool-cards a:hover {
+    border-color: var(--accent);
+  }
+  .tool-cards strong {
+    font-family: var(--font-display);
+    font-stretch: 110%;
+    font-size: 1.05rem;
+  }
+  .big strong {
+    font-size: 1.2rem;
+  }
+  .demo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+  }
+  .demo code {
+    background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .demo .out {
+    color: var(--data);
+  }
+  .arrow {
+    color: var(--muted);
+  }
+  .blurb {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    line-height: 1.45;
+  }
+</style>

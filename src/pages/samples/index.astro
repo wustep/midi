@@ -1,0 +1,208 @@
+---
+import Base from '../../layouts/Base.astro';
+import Callout from '../../components/Callout.astro';
+import SamplePlayer from '../../components/SamplePlayer.astro';
+import instruments from '../../../data/samples.json';
+import sources from '../../../data/sample-sources.json';
+
+const groupOrder = ['SoundFonts (SF2/SF3)', 'SFZ libraries', 'Multisampled instruments', 'Drum kits', 'Collections & directories'];
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const groups = groupOrder.map((title) => ({ title, id: slugify(title), items: sources.filter((s) => s.group === title) })).filter((g) => g.items.length);
+const totalKb = Math.round(instruments.reduce((n, i) => n + i.bytes, 0) / 1024);
+const host = (url: string) => new URL(url).host.replace(/^www\./, '');
+---
+
+<Base
+  title="Samples"
+  section="/samples"
+  description="Play free, openly licensed instrument samples in your browser with an on-screen keyboard, your computer keyboard, or a MIDI controller, and find SoundFonts, SFZ libraries and multisamples with clear license notes."
+>
+  <div class="samples-page">
+    <header>
+      <p class="eyebrow">Samples</p>
+      <h1>Free instrument sounds</h1>
+      <p class="lede">
+        Openly licensed SoundFonts, SFZ libraries and multisampled instruments for your MIDI projects, with license notes,
+        and a few of them playable right here.
+      </p>
+    </header>
+
+    <SamplePlayer />
+
+    <p class="small">
+      Each instrument is a handful of recorded notes (one velocity layer), repitched to fill its range and fetched only
+      when you choose it ({totalKb} KB for all {instruments.length}). The <a href="/reader/">MIDI Reader</a> plays files
+      with the same sounds. They're good for sketching, not a substitute for the full libraries below.
+    </p>
+
+    <h2 id="bundled">The sounds on this page</h2>
+    <p>
+      Only instruments whose licenses allow redistribution are hosted here. Files were trimmed, converted to mono and
+      MP3-encoded; each folder has a <code>LICENSE.txt</code> listing the original files.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <caption class="visually-hidden">Bundled instruments and their licenses</caption>
+        <thead><tr><th>Instrument</th><th>Source</th><th>License</th><th>Notes</th><th class="num">Size</th></tr></thead>
+        <tbody>
+          {
+            instruments.map((i) => (
+              <tr>
+                <td><strong>{i.name}</strong><br /><small class="muted">{i.family}</small></td>
+                <td><a href={i.sourceUrl}>{i.source}</a><br /><small class="muted">{i.attribution}</small></td>
+                <td><a href={i.licenseUrl}>{i.license}</a> · <a href={`/sounds/${i.id}/LICENSE.txt`}>details</a></td>
+                <td>{i.notes.length} samples</td>
+                <td class="num">{Math.round(i.bytes / 1024)} KB</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="sources">Where to get more</h2>
+    <Callout title="Free to use is not free to share" type="warn">
+      <p>
+        Many free libraries let you use the sounds in your music but forbid redistributing the samples themselves, or
+        forbid commercial use. <strong>CC0</strong> means no conditions; <strong>CC BY</strong> needs credit;
+        <strong>NC</strong> licenses rule out commercial use; custom licenses say what they say. Check the source's own
+        license before bundling samples in an app, game or plugin.
+      </p>
+    </Callout>
+    <nav class="res-toc" aria-label="Source groups">
+      {groups.map((g) => <a href={`#${g.id}`}>{g.title}</a>)}
+    </nav>
+    {
+      groups.map((g) => (
+        <section>
+          <h3 id={g.id}>{g.title}</h3>
+          <ul class="src-list">
+            {g.items.map((s) => (
+              <li>
+                <div class="src-top">
+                  <a class="src-title" href={s.url}>{s.title}</a>
+                  <span class="src-badges">
+                    {s.formats.map((f) => <span class="fmt">{f}</span>)}
+                    <span class="lic">{s.license}</span>
+                  </span>
+                </div>
+                <p class="src-desc">{s.description}</p>
+                <p class="src-lic">
+                  <strong>License:</strong> {s.licenseNote}
+                  {s.licenseUrl && <> <a href={s.licenseUrl}>Read the license</a>.</>}
+                  {s.size && <> Size: {s.size}.</>}
+                </p>
+                <p class="src-host">{host(s.url)}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+    <p class="small">
+      Every link and license on this page is checked by <code>npm run verify:samples</code>. Found a great openly
+      licensed library we missed? <a href="https://github.com/wustep/midi-new/blob/main/CONTRIBUTING.md">Suggest it</a>.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .samples-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 2.5rem var(--gutter) 0;
+  }
+  .samples-page h2 {
+    margin-top: 2.75rem;
+  }
+  .small {
+    font-size: 0.92rem;
+    color: var(--ink-2);
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .res-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .res-toc a {
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    text-decoration: none;
+    min-height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+  }
+  .res-toc a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .src-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.75rem;
+  }
+  .src-list li {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.8rem 1rem;
+    display: grid;
+    align-content: start;
+  }
+  .src-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.3rem 0.75rem;
+  }
+  .src-title {
+    font-weight: 700;
+  }
+  .src-badges {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .fmt,
+  .lic {
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.05rem 0.4rem;
+  }
+  .fmt {
+    font-family: var(--font-mono);
+    background: var(--data-soft);
+    color: var(--data);
+  }
+  .lic {
+    background: var(--surface-2);
+    color: var(--ink-2);
+  }
+  .src-desc {
+    margin: 0.35rem 0 0.3rem;
+    font-size: 0.94rem;
+  }
+  .src-lic {
+    margin: 0 0 0.3rem;
+    font-size: 0.86rem;
+    color: var(--ink-2);
+  }
+  .src-host {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--muted);
+  }
+</style>

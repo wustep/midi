@@ -1,0 +1,19 @@
+---
+import Tool from '../../layouts/Tool.astro';
+import SysexBuilder from '../../components/SysexBuilder.astro';
+---
+
+<Tool slug="sysex" description="Build MIDI System Exclusive messages: manufacturer IDs, Universal SysEx presets, Roland and XOR checksums, 7-bit and nibble value encoding, hex and decimal output.">
+  <Fragment slot="lede">
+    Assemble System Exclusive messages byte by byte: pick a manufacturer, add a header and data, and let the builder
+    frame the message, compute the checksum, and flag bytes that don't fit in 7 bits. Copy the result as hex, decimal
+    or a C array, or send it to a device.
+  </Fragment>
+  <SysexBuilder level={2} />
+  <p slot="after" class="note-small">
+    Manufacturer IDs are a selection from the MIDI Association's
+    <a href="https://midi.org/sysexidtable">SysEx ID table</a>. Header and data layouts are device-specific: check
+    your instrument's MIDI implementation chart. To decode a message you received, paste it into the
+    <a href="/tools/decoder/">message decoder</a>.
+  </p>
+</Tool>

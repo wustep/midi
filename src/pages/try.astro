@@ -11,7 +11,7 @@ const whiteIndex = (n: number) => keys.filter((k) => k < n && !isBlack(k)).lengt
 const whiteCount = keys.filter((k) => !isBlack(k)).length;
 ---
 
-<Base title="Try Web MIDI" section="/try" description="Plug in a MIDI controller and watch messages arrive live in your browser via the Web MIDI API. Nothing is uploaded.">
+<Base title="Try Web MIDI" section="/tools" description="Plug in a MIDI controller and watch messages arrive live in your browser via the Web MIDI API. Nothing is uploaded.">
   <div class="try-page">
     <header class="try-header">
       <p class="eyebrow">Live monitor</p>
@@ -144,7 +144,7 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
         <li><strong>Linux:</strong> <code>sudo modprobe snd-virmidi</code> creates virtual raw MIDI ports; <code>aconnect -l</code> lists ALSA sequencer clients.</li>
         <li>Or send from the command line with <a href="https://github.com/gbevin/SendMIDI">SendMIDI</a>, e.g. <code>sendmidi dev "IAC" on 60 100</code>.</li>
       </ul>
-      <p>Want to understand what you're seeing? Start with <a href="/docs/messages/">Messages</a> or paste bytes into the <a href="/tools/#decoder">decoder</a>.</p>
+      <p>Want to understand what you're seeing? Start with <a href="/docs/messages/">Messages</a> or paste bytes into the <a href="/tools/decoder/">decoder</a>.</p>
     </section>
   </div>
 </Base>

@@ -39,12 +39,5 @@
   { "group": "Learning and references", "title": "General MIDI (Wikipedia)", "url": "https://en.wikipedia.org/wiki/General_MIDI", "publisher": "Wikipedia", "description": "GM's history, program list and percussion map with references." },
   { "group": "Learning and references", "title": "MIDI Polyphonic Expression (Wikipedia)", "url": "https://en.wikipedia.org/wiki/MIDI_Polyphonic_Expression", "publisher": "Wikipedia", "description": "Background on MPE, its adoption and supporting instruments." },
   { "group": "Learning and references", "title": "Outline of the Standard MIDI File Structure", "url": "https://ccrma.stanford.edu/~craig/14q/midifile/MidiFileFormat.html", "publisher": "Craig Stuart Sapp, CCRMA", "description": "A concise, widely cited walkthrough of the SMF byte layout." },
-  { "group": "Learning and references", "title": "MIDI technical specification notes", "url": "http://www.somascape.org/midi/tech/spec.html", "publisher": "somascape.org", "description": "A detailed independent write-up of MIDI 1.0 messages and behaviors." },
-
-  { "group": "Datasets", "title": "The Lakh MIDI Dataset", "url": "https://colinraffel.com/projects/lmd/", "publisher": "Colin Raffel", "description": "About 176,000 unique MIDI files, a subset of them matched and aligned to the Million Song Dataset." },
-  { "group": "Datasets", "title": "Lakh MIDI dataset code", "url": "https://github.com/craffel/midi-dataset", "publisher": "Colin Raffel", "description": "Code used to build the Lakh MIDI dataset by matching and aligning MIDI to audio." },
-  { "group": "Datasets", "title": "MAESTRO", "url": "https://magenta.tensorflow.org/datasets/maestro", "publisher": "Google Magenta", "description": "About 200 hours of virtuosic piano performances with aligned audio and fine-grained MIDI." },
-  { "group": "Datasets", "title": "GiantMIDI-Piano", "url": "https://github.com/bytedance/GiantMIDI-Piano", "publisher": "ByteDance", "description": "A large classical piano MIDI dataset transcribed from recordings." },
-
-  { "group": "Community", "title": "MIDI.org forum", "url": "https://midi.org/community", "publisher": "MIDI Association", "description": "The official community forum for questions about MIDI specifications and products." }
+  { "group": "Learning and references", "title": "MIDI technical specification notes", "url": "http://www.somascape.org/midi/tech/spec.html", "publisher": "somascape.org", "description": "A detailed independent write-up of MIDI 1.0 messages and behaviors." }
 ]

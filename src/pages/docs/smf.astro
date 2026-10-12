@@ -66,6 +66,12 @@ const dump: [string, string][] = [
     A <code>.mid</code> file is a sequence of chunks. Its tracks hold MIDI messages, each stamped with a delta time,
     plus meta events for tempo, meter, names and markers. The format is compact, big-endian, and simple to parse.
   </p>
+  <Callout title="See it in a real file">
+    <p>
+      Open any <code>.mid</code> in the <a href="/reader/">MIDI Reader</a> to follow along: click an event to see its
+      delta-time, status and data bytes highlighted in a hex view, or click a byte to find the event it belongs to.
+    </p>
+  </Callout>
 
   <h2 id="chunks">Chunks</h2>
   <p>Every chunk has the same 8-byte preamble:</p>

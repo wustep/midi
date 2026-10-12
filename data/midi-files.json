@@ -1,0 +1,269 @@
+[
+  {
+    "group": "Public-domain & free archives",
+    "title": "The Mutopia Project",
+    "url": "https://www.mutopiaproject.org/",
+    "description": "Volunteer-typeset editions of public-domain classical music, each published as PDF, LilyPond source and a MIDI preview.",
+    "license": "Public domain / CC",
+    "licenseNote": "Every piece is public domain or under CC BY or CC BY-SA, and each piece page names its license. Mutopia says all of its music may be freely downloaded, copied, modified, performed, recorded and used commercially, with attribution and share-alike where the license requires it.",
+    "commercialUse": "yes",
+    "size": "2,124 pieces"
+  },
+  {
+    "group": "Public-domain & free archives",
+    "title": "IMSLP / Petrucci Music Library",
+    "url": "https://imslp.org/",
+    "description": "A huge library of public-domain scores that also accepts MIDI among its permitted recording formats, so some works include MIDI files.",
+    "license": "Public domain / CC",
+    "licenseNote": "IMSLP says each item is either public domain or released under a license by its copyright holder, and reviewers check status only for Canada, the US and the EU. Items under a license (some are non-commercial) carry their own terms, so check each file and your own country's copyright law.",
+    "commercialUse": "varies"
+  },
+  {
+    "group": "Public-domain & free archives",
+    "title": "The Session",
+    "url": "https://thesession.org/",
+    "description": "A community database of traditional Irish tunes in ABC notation, with a MIDI download for each setting.",
+    "license": "ODbL + custom terms",
+    "licenseNote": "The Session's data dumps on GitHub are licensed to share and adapt for any purpose, even commercially, with the database itself under the ODbL. The same license forbids using, processing or training on the material with large language models, apart from an accessibility exception.",
+    "commercialUse": "yes"
+  },
+  {
+    "group": "Public-domain & free archives",
+    "title": "Nottingham Dataset (cleaned ABC and MIDI)",
+    "url": "https://github.com/jukedeck/nottingham-dataset",
+    "description": "A cleaned copy of the Nottingham Music Database of British and American folk tunes, converted from ABC to MIDI.",
+    "license": "GPL-3.0",
+    "licenseNote": "The repository says it is released under the GNU GPLv3. The ABC files come unchanged from the Nottingham Music Database and were cleaned before the MIDI conversion.",
+    "commercialUse": "yes"
+  },
+
+  {
+    "group": "Datasets",
+    "title": "The Lakh MIDI Dataset",
+    "url": "https://colinraffel.com/projects/lmd/",
+    "description": "176,581 unique MIDI files scraped from the web, 45,129 of them matched and aligned to the Million Song Dataset.",
+    "license": "CC BY 4.0",
+    "licenseNote": "The dataset is distributed under CC BY 4.0, and the author asks that you cite the project page and his thesis. He did not create the MIDI files: most are fan transcriptions of copyrighted songs whose authors cannot be reliably credited, so the CC license does not clear rights in the underlying music.",
+    "commercialUse": "unclear",
+    "size": "176,581 files",
+    "paper": "https://colinraffel.com/publications/thesis.pdf"
+  },
+  {
+    "group": "Datasets",
+    "title": "Lakh MIDI dataset code",
+    "url": "https://github.com/craffel/midi-dataset",
+    "description": "The code used to build the Lakh MIDI Dataset by matching and aligning MIDI files to audio.",
+    "license": "Not stated",
+    "licenseNote": "The repository does not declare a license. It holds the matching and alignment code, not the MIDI files themselves.",
+    "commercialUse": "unclear"
+  },
+  {
+    "group": "Datasets",
+    "title": "MAESTRO",
+    "url": "https://magenta.tensorflow.org/datasets/maestro",
+    "description": "About 200 hours of virtuosic piano performances from the International Piano-e-Competition, with MIDI aligned to audio within about 3 ms.",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseNote": "Google LLC releases MAESTRO under CC BY-NC-SA 4.0, so it may not be used commercially and derivatives must be shared under the same license. Cite the ICLR 2019 paper when you use it.",
+    "commercialUse": "no",
+    "size": "~200 hours, 1,276 performances",
+    "paper": "https://arxiv.org/abs/1810.12247"
+  },
+  {
+    "group": "Datasets",
+    "title": "GiantMIDI-Piano",
+    "url": "https://github.com/bytedance/GiantMIDI-Piano",
+    "description": "Classical piano MIDI automatically transcribed from recordings, covering 2,786 composers.",
+    "license": "CC BY 4.0",
+    "licenseNote": "The README lists the license as CC BY 4.0, and downloading requires agreeing to a disclaimer that the data comes as is. The MIDI files are machine transcriptions of recordings found on YouTube.",
+    "commercialUse": "unclear",
+    "size": "10,855 files",
+    "paper": "https://arxiv.org/abs/2010.07061"
+  },
+  {
+    "group": "Datasets",
+    "title": "GigaMIDI",
+    "url": "https://huggingface.co/datasets/Metacreation/GigaMIDI",
+    "description": "A very large symbolic music collection with annotations for detecting expressive performance and loops.",
+    "license": "CC BY-NC 4.0",
+    "licenseNote": "GigaMIDI is distributed under CC BY-NC 4.0 for non-commercial research and education only. Hugging Face gates access, and you must agree not to infringe copyright or harm the creative rights of artists.",
+    "commercialUse": "no",
+    "size": "2.1+ million files",
+    "paper": "https://arxiv.org/abs/2502.17726"
+  },
+  {
+    "group": "Datasets",
+    "title": "Aria-MIDI",
+    "url": "https://huggingface.co/datasets/loubb/aria-midi",
+    "description": "Solo-piano MIDI transcribed from about 100,000 hours of recordings, with genre, composer and performer metadata.",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseNote": "The dataset card says Aria-MIDI is distributed under CC BY-NC-SA 4.0, and accessing it means agreeing to the authors' disclaimer. The transcription tools are released separately under Apache-2.0.",
+    "commercialUse": "no",
+    "size": "1,186,253 files",
+    "paper": "https://arxiv.org/abs/2504.15071"
+  },
+  {
+    "group": "Datasets",
+    "title": "Slakh2100",
+    "url": "http://www.slakh.com/",
+    "description": "2,100 multi-track songs rendered from Lakh MIDI files with professional sample libraries, with the aligned MIDI for every stem.",
+    "license": "CC BY 4.0",
+    "licenseNote": "Slakh2100 and Flakh2100 are licensed under CC BY 4.0, and the authors ask you to cite their WASPAA 2019 paper. The MIDI comes from the Lakh MIDI Dataset, so the same caveat about transcriptions of copyrighted songs applies.",
+    "commercialUse": "unclear",
+    "size": "2,100 tracks, 145 hours",
+    "paper": "https://arxiv.org/abs/1909.08494"
+  },
+  {
+    "group": "Datasets",
+    "title": "POP909",
+    "url": "https://github.com/music-x-lab/POP909-Dataset",
+    "description": "Piano arrangements of 909 Chinese pop songs, with melody, bridge and piano tracks plus beat, chord and key annotations.",
+    "license": "MIT (repository)",
+    "licenseNote": "The GitHub repository is MIT-licensed, and the authors ask you to cite the ISMIR 2020 paper. The MIDI files are arrangements of copyrighted popular songs, so the repository license does not grant rights in the songs themselves.",
+    "commercialUse": "unclear",
+    "size": "909 songs",
+    "paper": "https://arxiv.org/abs/2008.07142"
+  },
+  {
+    "group": "Datasets",
+    "title": "MetaMIDI Dataset",
+    "url": "https://github.com/jeffreyjohnens/MetaMIDIDataset",
+    "description": "A large scraped MIDI collection with artist, title and genre metadata, and many files matched to Spotify and MusicBrainz.",
+    "license": "Restricted access",
+    "licenseNote": "Files are on Zenodo with restricted access: you must give your name, institution, contact details and research project, and agree not to share or distribute the dataset. The authors did not create the MIDI files and provide a list of the files' copyright meta-events instead.",
+    "commercialUse": "unclear",
+    "size": "436,631 files"
+  },
+  {
+    "group": "Datasets",
+    "title": "Los Angeles MIDI Dataset",
+    "url": "https://huggingface.co/datasets/projectlosangeles/Los-Angeles-MIDI-Dataset",
+    "description": "A large, de-duplicated MIDI collection for music information retrieval and music AI, with metadata and chord data.",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseNote": "The Hugging Face dataset card declares CC BY-NC-SA 4.0, although the companion GitHub code repository is Apache-2.0. The files were assembled from web scrapes, so the underlying songs keep their own copyrights.",
+    "commercialUse": "no",
+    "size": "~405,000 files"
+  },
+  {
+    "group": "Datasets",
+    "title": "ADL Piano MIDI",
+    "url": "https://github.com/lucasnfe/adl-piano-midi",
+    "description": "Piano-only tracks extracted from the Lakh MIDI Dataset plus other public sources, organized by genre and artist.",
+    "license": "Varies / unclear",
+    "licenseNote": "The repository does not state a license. About 9,000 files are piano tracks taken from the Lakh MIDI Dataset (CC BY 4.0), and about 2,000 more were scraped from other public sources on the internet.",
+    "commercialUse": "unclear",
+    "size": "11,086 pieces",
+    "paper": "https://arxiv.org/abs/2008.07009"
+  },
+  {
+    "group": "Datasets",
+    "title": "Groove MIDI Dataset",
+    "url": "https://magenta.tensorflow.org/datasets/groove",
+    "description": "Expressive, tempo-aligned drumming by hired professional drummers on a Roland TD-11 kit, with synthesized audio.",
+    "license": "CC BY 4.0",
+    "licenseNote": "Google LLC releases the Groove MIDI Dataset under CC BY 4.0, which allows commercial use with attribution. The performances were recorded for the dataset rather than transcribed from existing songs.",
+    "commercialUse": "yes",
+    "size": "1,150 files, 13.6 hours",
+    "paper": "https://arxiv.org/abs/1905.06118"
+  },
+  {
+    "group": "Datasets",
+    "title": "Expanded Groove MIDI Dataset (E-GMD)",
+    "url": "https://magenta.tensorflow.org/datasets/e-gmd",
+    "description": "The Groove MIDI performances re-recorded through 43 drum kits, giving 444 hours of audio with velocity-annotated MIDI.",
+    "license": "CC BY 4.0",
+    "licenseNote": "Google LLC releases E-GMD under CC BY 4.0, and it is also mirrored on Zenodo under the same license. Cite the paper that introduced it.",
+    "commercialUse": "yes",
+    "size": "444 hours",
+    "paper": "https://arxiv.org/abs/2004.00188"
+  },
+  {
+    "group": "Datasets",
+    "title": "NES Music Database (NES-MDB)",
+    "url": "https://github.com/chrisdonahue/nesmdb",
+    "description": "Multi-instrument scores from NES game soundtracks, extracted from the games' own sound data with expressive attributes.",
+    "license": "MIT (repository)",
+    "licenseNote": "The repository is MIT-licensed. The music is from commercial Nintendo Entertainment System games, so the compositions remain under their publishers' copyrights.",
+    "commercialUse": "unclear",
+    "size": "5,278 songs from 397 games",
+    "paper": "https://arxiv.org/abs/1806.04278"
+  },
+  {
+    "group": "Datasets",
+    "title": "ASAP (Aligned Scores and Performances)",
+    "url": "https://github.com/fosfrancesco/asap-dataset",
+    "description": "Western classical piano scores aligned with MIDI performances and beat, downbeat, key and time-signature annotations.",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseNote": "The README says the dataset is available under CC BY-NC-SA 4.0, so it may not be used commercially and derivatives must be shared alike.",
+    "commercialUse": "no",
+    "size": "236 scores, 1,067 performances"
+  },
+  {
+    "group": "Datasets",
+    "title": "ATEPP",
+    "url": "https://github.com/tangjjbetsy/ATEPP",
+    "description": "Expressive piano performances by 49 virtuoso pianists, transcribed from existing audio recordings.",
+    "license": "CC BY 4.0",
+    "licenseNote": "The README states CC BY 4.0, while the GitHub repository metadata lists CC0-1.0, and downloading requires agreeing to a disclaimer. The MIDI files are transcriptions of existing commercial recordings.",
+    "commercialUse": "unclear",
+    "size": "11,674 performances (~1,000 hours)",
+    "paper": "https://archives.ismir.net/ismir2022/paper/000053.pdf"
+  },
+
+  {
+    "group": "Other sources",
+    "title": "Kunst der Fuge",
+    "url": "https://www.kunstderfuge.com/",
+    "description": "A large archive of classical MIDI files, free for a few downloads a day and unlimited with a subscription.",
+    "license": "Site terms",
+    "licenseNote": "Files may be copyrighted by their sequencers and carry an embedded copyright label. The site asks you not to distribute any file without its written permission, and any non-personal use requires reading its terms.",
+    "commercialUse": "no",
+    "size": "20,000+ files"
+  },
+  {
+    "group": "Other sources",
+    "title": "Classical Archives",
+    "url": "https://www.classicalarchives.com/midi.html",
+    "description": "A long-running classical music site with a MIDI section that can be browsed by composer or contributor.",
+    "license": "Site terms",
+    "licenseNote": "The terms limit use to personal, noncommercial use and forbid distributing, modifying or creating derivative works from the content. They also prohibit scraping and text and data mining, including for AI.",
+    "commercialUse": "no"
+  },
+  {
+    "group": "Other sources",
+    "title": "MIDIWORLD",
+    "url": "https://www.midiworld.com/",
+    "description": "A long-running site of free classical, jazz and original MIDI files plus MIDI basics.",
+    "license": "Varies / unclear",
+    "licenseNote": "The site accepts only classical, jazz and original files because of copyright, and it does not publish a license for the files. Ask the sequencer before reusing a file.",
+    "commercialUse": "unclear"
+  },
+  {
+    "group": "Other sources",
+    "title": "VGMusic",
+    "url": "https://www.vgmusic.com/",
+    "description": "The Video Game Music Archive, collecting fan-sequenced MIDI arrangements of game soundtracks since 1996.",
+    "license": "Varies / unclear",
+    "licenseNote": "VGMusic says every file is copyrighted by its sequencer and you should contact the author before using one in a project. The files are fan arrangements of copyrighted game music, so the original publishers' rights also apply.",
+    "commercialUse": "no",
+    "size": "31,806 files"
+  },
+  {
+    "group": "Other sources",
+    "title": "BitMidi",
+    "url": "https://bitmidi.com/",
+    "description": "A browser-playable index of MIDI files that grew from a large zip of web-collected MIDIs.",
+    "license": "Varies / unclear",
+    "licenseNote": "BitMidi does not state a license for its files, which came from a zip of web-collected MIDIs posted to Reddit. Many are arrangements of copyrighted pop, film and game music.",
+    "commercialUse": "unclear",
+    "size": "113,229 files"
+  },
+  {
+    "group": "Other sources",
+    "title": "FreeMidi.org",
+    "url": "https://freemidi.org/",
+    "description": "A user-contributed collection of MIDI files sorted by genre and artist, mostly popular songs.",
+    "license": "Varies / unclear",
+    "licenseNote": "The site does not publish a license or terms for its files. Most files are arrangements of copyrighted popular songs, so reuse beyond personal listening or practice needs permission from the rights holders.",
+    "commercialUse": "unclear"
+  }
+]

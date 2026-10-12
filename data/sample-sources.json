@@ -1,0 +1,313 @@
+[
+  {
+    "group": "SoundFonts (SF2/SF3)",
+    "title": "FluidR3_GM",
+    "url": "https://packages.debian.org/sid/fluid-soundfont-gm",
+    "description": "Frank Wen's Fluid Release 3 General MIDI bank; the original download site is gone, and Debian's fluid-soundfont-gm package is the maintained copy.",
+    "formats": [
+      "sf2"
+    ],
+    "license": "MIT",
+    "licenseUrl": "https://sources.debian.org/data/main/f/fluid-soundfont/3.1-6/debian/copyright",
+    "licenseNote": "Released by Frank Wen under the MIT license, so it can be used, modified and redistributed, including commercially, as long as the copyright and permission notice are kept with copies."
+  },
+  {
+    "group": "SoundFonts (SF2/SF3)",
+    "title": "GeneralUser GS",
+    "url": "https://www.schristiancollins.com/generaluser",
+    "description": "S. Christian Collins's compact GM/GS bank with 261 presets and 13 drum kits, designed to sound good with a low memory footprint.",
+    "formats": [
+      "sf2"
+    ],
+    "license": "Custom free license",
+    "licenseUrl": "https://github.com/mrbumpy409/GeneralUser-GS/blob/main/documentation/LICENSE.txt",
+    "licenseNote": "Free for private or commercial music creation and may be modified or bundled in software projects. The author notes he cannot fully trace every sample's origin, and asks sites to link to his page or host their own copy rather than hot-linking his downloads."
+  },
+  {
+    "group": "SoundFonts (SF2/SF3)",
+    "title": "MuseScore_General",
+    "url": "https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/",
+    "description": "A General MIDI bank distributed by MuseScore, adapted by S. Christian Collins from FluidR3Mono with some instruments replaced.",
+    "formats": [
+      "sf2",
+      "sf3"
+    ],
+    "license": "MIT",
+    "licenseUrl": "https://ftp.osuosl.org/pub/musescore/soundfont/MuseScore_General/MuseScore_General_License.md",
+    "licenseNote": "Shared under the MIT license like FluidR3 before it; the listed acknowledgements and copyright notices must be included in any derivative work.",
+    "size": "206 MB (SF2), 38 MB (SF3)"
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "Salamander Grand Piano",
+    "url": "https://github.com/sfzinstruments/SalamanderGrandPiano",
+    "description": "Alexander Holm's Yamaha C5 grand recorded with 16 velocity layers in minor thirds, remapped for SFZ by the SFZ Instruments project.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC-BY-3.0",
+    "licenseUrl": "https://github.com/sfzinstruments/SalamanderGrandPiano/blob/master/LICENSE",
+    "licenseNote": "Creative Commons Attribution 3.0: use, modification, redistribution and commercial use are allowed with credit to Alexander Holm."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "Sonatina Symphonic Orchestra",
+    "url": "https://github.com/peastman/sso",
+    "description": "Mattias Westlund's 2011 free orchestral library, now maintained by Peter Eastman with full string, brass, woodwind and percussion sections.",
+    "formats": [
+      "sfz",
+      "wav"
+    ],
+    "license": "CC-Sampling-Plus-1.0",
+    "licenseUrl": "https://github.com/peastman/sso/blob/master/LICENSE",
+    "licenseNote": "Creative Commons Sampling Plus 1.0 (a retired license): samples may be used and transformed in new works, including commercial music, with attribution, but the library may only be copied and redistributed as a whole for noncommercial purposes, and advertising use is excluded."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "Virtual Playing Orchestra",
+    "url": "https://virtualplaying.com/virtual-playing-orchestra/",
+    "description": "A free SFZ orchestra that combines samples from Sonatina, No Budget Orchestra, VSCO 2 CE, the University of Iowa, Philharmonia and others, with performance scripts.",
+    "formats": [
+      "sfz",
+      "wav"
+    ],
+    "license": "Mixed (CC Sampling+ / CC BY-SA and others)",
+    "licenseUrl": "https://virtualplaying.com/virtual-playing-orchestra/",
+    "licenseNote": "No restrictions on making music with it, including commercially. Redistribution is governed by the licenses of each source library and must give credit; derived libraries must be kept personal or given away free, not sold."
+  },
+  {
+    "group": "SFZ libraries",
+    "title": "Karoryfer Samples free libraries",
+    "url": "https://shop.karoryfer.com/pages/free-samples",
+    "description": "More than two dozen free instruments from Karoryfer, including drum kits, basses, guitars, saxophones and oddities, built for SFZ players.",
+    "formats": [
+      "sfz",
+      "wav",
+      "flac"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://shop.karoryfer.com/pages/free-samples",
+    "licenseNote": "Karoryfer states all its free libraries are now CC0 (older downloads may carry a less permissive license, and the Marie Ork voice bank is the exception), so they can be used and redistributed without restriction."
+  },
+  {
+    "group": "Multisampled instruments",
+    "title": "VSCO 2 Community Edition",
+    "url": "https://versilian-studios.com/vsco-community/",
+    "description": "Versilian Studios' open chamber-orchestra library with strings, woodwinds, brass, percussion and keys, also mirrored on GitHub with SFZ mappings.",
+    "formats": [
+      "wav",
+      "sfz"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VSCO-2-CE/blob/master/LICENSE",
+    "licenseNote": "Public-domain dedication: use, modify, redistribute and sell without royalties or attribution.",
+    "size": "3 GB"
+  },
+  {
+    "group": "Multisampled instruments",
+    "title": "Versilian Community Sample Library (VCSL)",
+    "url": "https://github.com/sgossner/VCSL",
+    "description": "Versilian Studios' broad general-purpose sample set, organised by instrument family, from harpsichords and pianos to world percussion.",
+    "formats": [
+      "wav",
+      "sfz"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sgossner/VCSL/blob/master/LICENSE",
+    "licenseNote": "Public-domain dedication: the project says you can do whatever you want with the sounds, including commercial software, with no royalties, credit or special terms."
+  },
+  {
+    "group": "Multisampled instruments",
+    "title": "University of Iowa Musical Instrument Samples",
+    "url": "https://theremin.music.uiowa.edu/MIS.html",
+    "description": "Single-note recordings of orchestral instruments at several dynamics, made by Lawrence Fritts at the University of Iowa Electronic Music Studios since 1997.",
+    "formats": [
+      "aiff"
+    ],
+    "license": "Free, no restrictions",
+    "licenseUrl": "https://theremin.music.uiowa.edu/MIS.html",
+    "licenseNote": "The site states the recordings may be downloaded and used for any projects without restrictions; no formal license is attached, so credit to the University of Iowa is courteous."
+  },
+  {
+    "group": "Multisampled instruments",
+    "title": "Philharmonia sound samples",
+    "url": "https://philharmonia.co.uk/resources/sound-samples/",
+    "description": "Thousands of short notes and articulations recorded by Philharmonia Orchestra players, covering the standard orchestra plus guitar, mandolin, banjo and percussion.",
+    "formats": [
+      "mp3"
+    ],
+    "license": "Custom free license",
+    "licenseUrl": "https://philharmonia.co.uk/resources/sound-samples/",
+    "licenseNote": "Free to use in any work, including commercial releases, but the samples must not be sold or made available as is, as samples or as a sampler instrument."
+  },
+  {
+    "group": "Multisampled instruments",
+    "title": "Pianobook",
+    "url": "https://www.pianobook.co.uk/",
+    "description": "A community site with more than 1,700 free sample packs, mostly for Decent Sampler and Kontakt.",
+    "formats": [
+      "decentsampler",
+      "kontakt",
+      "exs24",
+      "sfz"
+    ],
+    "license": "Custom free license",
+    "licenseUrl": "https://www.pianobook.co.uk/faq/",
+    "licenseNote": "Packs may be used royalty-free in commercial and non-commercial compositions, but selling or redistributing packs you did not create is forbidden, and Pianobook cannot guarantee every upload is copyright-free."
+  },
+  {
+    "group": "Drum kits",
+    "title": "Big Rusty Drums",
+    "url": "https://github.com/sfzinstruments/karoryfer.big-rusty-drums",
+    "description": "Karoryfer's multi-mic recording of a 1980s Polish drum kit, with many articulations and velocity layers.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sfzinstruments/karoryfer.big-rusty-drums/blob/main/LICENSE",
+    "licenseNote": "Public-domain dedication: free to use, modify and redistribute for any purpose without attribution."
+  },
+  {
+    "group": "Drum kits",
+    "title": "Virtuosity Drums",
+    "url": "https://github.com/sfzinstruments/virtuosity_drums",
+    "description": "A jazz club house kit recorded with six mixable mic positions by Versilian Studios and Karoryfer Samples, with General MIDI percussion.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC0-1.0",
+    "licenseUrl": "https://github.com/sfzinstruments/virtuosity_drums/blob/master/LICENSE",
+    "licenseNote": "Public-domain dedication: free to use, modify and redistribute for any purpose without attribution."
+  },
+  {
+    "group": "Drum kits",
+    "title": "DrumGizmo drum kits",
+    "url": "https://drumgizmo.org/wiki/doku.php?id=kits",
+    "description": "Multichannel acoustic kits (DRSKit, MuldjordKit, CrocellKit and others) made for the DrumGizmo plugin, with SFZ conversions of some kits on SFZ Instruments.",
+    "formats": [
+      "drumgizmo",
+      "wav"
+    ],
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://drumgizmo.org/wiki/doku.php?id=kits:drskit",
+    "licenseNote": "DRSKit and MuldjordKit are CC BY 4.0, so redistribution and commercial use are allowed with credit; the DRSKit page asks for attribution wherever other credits for a composition are shown. Check each kit's page for its own terms."
+  },
+  {
+    "group": "Drum kits",
+    "title": "Naked Drums",
+    "url": "https://github.com/sfzinstruments/WilkinsonAudio.NakedDrums",
+    "description": "Wilkinson Audio's multi-mic acoustic kit with 10 round-robins and up to 5 velocity layers, packaged for SFZ.",
+    "formats": [
+      "sfz",
+      "flac"
+    ],
+    "license": "CC-BY-4.0",
+    "licenseUrl": "https://github.com/sfzinstruments/WilkinsonAudio.NakedDrums/blob/master/LICENSE",
+    "licenseNote": "Creative Commons Attribution 4.0: use, modification, redistribution and commercial use are allowed with credit to Wilkinson Audio."
+  },
+  {
+    "group": "Drum kits",
+    "title": "AVL Drumkits",
+    "url": "https://www.bandshed.net/avldrumkits/",
+    "description": "Acoustic drum kits from the AV Linux project, available as Hydrogen kits, SFZ, SoundFont and an LV2 plugin.",
+    "formats": [
+      "h2drumkit",
+      "sfz",
+      "sf2"
+    ],
+    "license": "CC-BY-SA-3.0",
+    "licenseUrl": "https://www.bandshed.net/avldrumkits/",
+    "licenseNote": "CC BY-SA 3.0. Music made with the kits can be distributed or sold without attribution; attribution and share-alike apply only if you modify or redistribute the samples or kit files themselves."
+  },
+  {
+    "group": "Drum kits",
+    "title": "Hydrogen drum kits",
+    "url": "https://sourceforge.net/projects/hydrogen/files/Sound%20Libraries/",
+    "description": "The main and community-donated kits for the Hydrogen drum machine.",
+    "formats": [
+      "h2drumkit"
+    ],
+    "license": "Varies by kit",
+    "licenseNote": "Each kit declares its own license in its metadata: many are GPL or CC BY / BY-SA, some state none, and a few forbid redistributing the samples. Check the individual kit before reusing it."
+  },
+  {
+    "group": "Collections & directories",
+    "title": "SFZ Instruments",
+    "url": "https://sfzinstruments.github.io/",
+    "description": "A categorised directory of free and commercial SFZ instruments, plus a GitHub organisation hosting cleaned-up free libraries.",
+    "formats": [
+      "sfz"
+    ],
+    "license": "Varies by instrument",
+    "licenseNote": "The directory links out to libraries under many different licenses; the GitHub-hosted repositories each carry their own LICENSE file."
+  },
+  {
+    "group": "Collections & directories",
+    "title": "SFZ Format",
+    "url": "https://sfzformat.com/",
+    "description": "The community reference for the SFZ sampler format: headers, opcodes, modulation and player compatibility, with tutorials.",
+    "formats": [
+      "sfz"
+    ],
+    "license": "Documentation (no samples)",
+    "licenseNote": "A documentation site rather than a sample source; consult the library you load for sample licensing."
+  },
+  {
+    "group": "Collections & directories",
+    "title": "FreePats",
+    "url": "https://freepats.zenvoid.org/",
+    "description": "A project collecting free instrument banks organised by General MIDI family, with strict rules on sample provenance.",
+    "formats": [
+      "sf2",
+      "sfz"
+    ],
+    "license": "Varies by bank (free licenses)",
+    "licenseUrl": "https://freepats.zenvoid.org/about.html",
+    "licenseNote": "Every bank uses a free license that is Open Source/DFSG-compatible and permits distributing music under any license; individual banks range from CC0 to CC BY and GPL, as listed on each page."
+  },
+  {
+    "group": "Collections & directories",
+    "title": "Polyphone soundfont collection",
+    "url": "https://www.polyphone.io/en/soundfonts",
+    "description": "User-shared SoundFonts on the site of the Polyphone SoundFont editor, searchable by category.",
+    "formats": [
+      "sf2",
+      "sf3",
+      "sfz"
+    ],
+    "license": "Varies by soundfont",
+    "licenseUrl": "https://www.polyphone.io/en/licenses",
+    "licenseNote": "Each soundfont carries one of the site's listed licenses, from public domain and Creative Commons variants to more restrictive terms; check the license on each download page."
+  },
+  {
+    "group": "Collections & directories",
+    "title": "Freesound",
+    "url": "https://freesound.org/",
+    "description": "A huge collaborative database of user-uploaded recordings, including many single-note instrument samples and packs.",
+    "formats": [
+      "wav",
+      "flac",
+      "mp3"
+    ],
+    "license": "Varies by sound (CC0 / CC BY / CC BY-NC)",
+    "licenseUrl": "https://freesound.org/help/faq/",
+    "licenseNote": "Each sound is CC0, CC BY or CC BY-NC (some older uploads use Sampling+); attribution sounds need credit, and NC sounds cannot be used in work that earns money."
+  },
+  {
+    "group": "Collections & directories",
+    "title": "MIDI.js Soundfonts",
+    "url": "https://github.com/gleitz/midi-js-soundfonts",
+    "description": "General MIDI banks pre-rendered to per-note audio files and JavaScript for use with MIDI.js and other browser players.",
+    "formats": [
+      "mp3",
+      "ogg",
+      "js"
+    ],
+    "license": "Mixed (CC-BY-3.0 / CC-BY-SA-3.0)",
+    "licenseUrl": "https://github.com/gleitz/midi-js-soundfonts#soundfonts-available",
+    "licenseNote": "The README lists the Fluid set as CC BY 3.0 and the Musyng Kite and FatBoy sets as CC BY-SA 3.0, so credit (and share-alike for the latter) applies when redistributing."
+  }
+]

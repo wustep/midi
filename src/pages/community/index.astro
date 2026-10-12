@@ -1,0 +1,88 @@
+---
+import Community from '../../layouts/Community.astro';
+import Callout from '../../components/Callout.astro';
+import community from '../../../data/community.json';
+
+const groupOrder = [
+  { title: 'Forums', blurb: 'Long-form questions and answers. Search before you post: most MIDI questions have been asked before.' },
+  { title: 'Reddit', blurb: 'Active subreddits for gear, production and audio programming. Check each one’s rules first.' },
+  { title: 'Discord', blurb: 'Real-time chat. Only servers with an invite published on the project’s own site are listed; the source is linked for each.' },
+  { title: 'Mailing lists', blurb: 'Developer and user lists, with public archives that are often the best record of how things work.' },
+  { title: 'Other communities', blurb: 'Q&A sites and code-sharing hubs.' },
+];
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const groups = groupOrder.map((g) => ({ ...g, id: slugify(g.title), items: community.filter((c) => c.group === g.title) })).filter((g) => g.items.length);
+const host = (url: string) => {
+  const u = new URL(url);
+  return u.host.replace(/^www\./, '') + (u.pathname.length > 1 ? u.pathname.replace(/\/$/, '') : '');
+};
+---
+
+<Community
+  title="Community"
+  page="community"
+  description="Where to ask MIDI questions and meet other builders: forums (MIDI Association, KVR, Gearspace, lines, JUCE), subreddits, Discord servers with official invites, and mailing lists."
+>
+  <header>
+    <p class="eyebrow">Community</p>
+    <h1>Forums, chat &amp; mailing lists</h1>
+    <p class="lede">
+      {community.length} places where people who build and play with MIDI hang out, from spec questions to firmware,
+      plugins and live rigs. Every link is checked automatically.
+    </p>
+  </header>
+
+  <Callout title="Getting good answers">
+    <p>
+      Say what you're using (device, OS, DAW or library and versions), what you expected and what happened. For MIDI
+      bugs, the raw bytes help most: capture them with the <a href="/try/">Web MIDI monitor</a> and paste them, or
+      decode them first with the <a href="/tools/decoder/">message decoder</a>.
+    </p>
+  </Callout>
+
+  <nav class="toc" aria-label="Community groups">
+    {groups.map((g, i) => <>{i > 0 && <span aria-hidden="true">·</span>}<a href={`#${g.id}`}>{g.title} ({g.items.length})</a></>)}
+  </nav>
+
+  {
+    groups.map((g) => (
+      <section>
+        <h2 id={g.id}>{g.title}</h2>
+        <p>{g.blurb}</p>
+        <ul class="c-list">
+          {g.items.map((c) => (
+            <li>
+              <div class="c-top">
+                <a class="c-title" href={c.url}>{c.title}</a>
+              </div>
+              <p class="c-desc">{c.description}</p>
+              {c.note && <p class="c-note">{c.note}</p>}
+              {c.source && c.source !== c.url && (
+                <p class="c-note">
+                  Invite published on <a href={c.source}>{host(c.source)}</a>
+                </p>
+              )}
+              <p class="c-host">{host(c.url)}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  <p class="small">
+    Missing a community? Add it to <a href="https://github.com/wustep/midi-new/blob/main/data/community.json"><code>data/community.json</code></a>
+    with a link to where its invite or sign-up is officially published, and run <code>npm run verify:resources</code>.
+  </p>
+</Community>
+
+<style>
+  .small {
+    margin-top: 2.5rem;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+  }
+  .toc span {
+    color: var(--muted);
+  }
+</style>

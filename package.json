@@ -9,10 +9,12 @@
     "dev": "astro dev",
     "build": "node scripts/validate-data.mjs && node scripts/generate-readme.mjs && astro build && node scripts/check-links.mjs",
     "preview": "astro preview",
+    "test": "node --test tests/",
     "verify": "node scripts/verify-links.mjs",
     "readme": "node scripts/generate-readme.mjs",
     "check:data": "node scripts/validate-data.mjs",
     "verify:resources": "node scripts/verify-resources.mjs",
+    "verify:samples": "node scripts/verify-samples.mjs",
     "check:links": "node scripts/check-links.mjs"
   },
   "dependencies": {

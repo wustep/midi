@@ -1,0 +1,30 @@
+Drum Kit (big-rusty-drums)
+==========================
+
+Attribution: Big Rusty Drums by Karoryfer Samples, CC0 1.0
+
+Source:   Big Rusty Drums
+          https://github.com/sfzinstruments/karoryfer.big-rusty-drums
+Credit:   Karoryfer Samples
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sfzinstruments/karoryfer.big-rusty-drums/blob/main/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  36.mp3  <- Kick: kick_24/kick (kick + overhead mics)
+  37.mp3  <- Side Stick: snare_14/sidestick (top + bottom + overhead)
+  38.mp3  <- Snare: snare_14/center (top + bottom + overhead)
+  41.mp3  <- Low Floor Tom: tom_22/center
+  42.mp3  <- Closed Hi-Hat: hihat_14/cl
+  43.mp3  <- High Floor Tom: tom_18/center
+  44.mp3  <- Pedal Hi-Hat: hihat_14/chik
+  45.mp3  <- Low Tom: tom_15/center
+  46.mp3  <- Open Hi-Hat: hihat_14/open
+  47.mp3  <- Low-Mid Tom: tom_14/center
+  49.mp3  <- Crash Cymbal: crash_17/cr
+  51.mp3  <- Ride Cymbal: ride_22/rd
+Source path pattern: Samples/<piece>/<articulation>/<mic>/*_rr1.flac (one mid-high velocity layer, close + overhead mics mixed)
+
+Changes made for the MIDI Field Guide (midi.community): microphone channels mixed down, trimmed (leading silence removed, cut to at most 2.5 s with a short fade-out), converted to mono, level-normalized, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

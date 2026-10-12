@@ -1,0 +1,27 @@
+Marimba (vcsl-marimba)
+======================
+
+Attribution: Marimba from the Versilian Community Sample Library (VCSL) by Versilian Studios, CC0 1.0
+
+Source:   Versilian Community Sample Library (VCSL)
+          https://github.com/sgossner/VCSL
+Credit:   Versilian Studios LLC
+License:  Creative Commons CC0 1.0 Universal (public domain dedication) (CC0-1.0)
+          https://creativecommons.org/publicdomain/zero/1.0/
+          License file in the source repository: https://github.com/sgossner/VCSL/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  41.mp3  <- Marimba_hit_Outrigger_F1_med_01.wav
+  48.mp3  <- Marimba_hit_Outrigger_C2_med_01.wav
+  55.mp3  <- Marimba_hit_Outrigger_G2_med_01.wav
+  65.mp3  <- Marimba_hit_Outrigger_F3_med_01.wav
+  72.mp3  <- Marimba_hit_Outrigger_C4_med_01.wav
+  79.mp3  <- Marimba_hit_Outrigger_G4_med_01.wav
+  89.mp3  <- Marimba_hit_Outrigger_F5_med_01.wav
+  96.mp3  <- Marimba_hit_Outrigger_C6_med_01.wav
+Source path pattern: Idiophones/Struck Idiophones/Marimba/Marimba_hit_Outrigger_<note>_med_01.wav
+Note naming: the source names notes with C3 = middle C (MIDI 60), so e.g. a source file named C4 is MIDI 72 here (verified by pitch analysis).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed, cut to at most 3 s with a short fade-out), converted to mono, level-normalized, and MP3-encoded (96 kbps, 44.1 kHz).
+
+The original work is dedicated to the public domain under CC0 1.0; these derived files are offered under the same terms. Credit is given as a courtesy.

@@ -1,0 +1,101 @@
+---
+import Community from '../../layouts/Community.astro';
+import Callout from '../../components/Callout.astro';
+import files from '../../../data/midi-files.json';
+
+const groupOrder = [
+  { title: 'Public-domain & free archives', blurb: 'Collections with a clear license for every file. The safest place to start.' },
+  { title: 'Datasets', blurb: 'Large collections built for research and machine learning. Read the license and the paper before training on or redistributing them.' },
+  { title: 'Other sources', blurb: 'Popular sites whose files are free to download but not openly licensed. Fine for personal study; check the terms before anything else.' },
+];
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const groups = groupOrder.map((g) => ({ ...g, id: slugify(g.title), items: files.filter((f) => f.group === g.title) })).filter((g) => g.items.length);
+const commercial: Record<string, string> = { yes: 'Commercial use OK', no: 'Non-commercial', varies: 'Varies by file', unclear: 'Commercial use unclear' };
+const host = (url: string) => new URL(url).host.replace(/^www\./, '');
+---
+
+<Community
+  title="Getting MIDI files"
+  page="midi-files"
+  description="Where to find MIDI files legally: public-domain archives like Mutopia and IMSLP, research datasets (Lakh, MAESTRO, GigaMIDI, Slakh, GiantMIDI, POP909) with license notes, and copyright caveats."
+>
+  <header>
+    <p class="eyebrow">Resources</p>
+    <h1>Getting MIDI files</h1>
+    <p class="lede">
+      Archives and datasets of MIDI files, with what their licenses actually allow. Open any file in the
+      <a href="/reader/">MIDI Reader</a> to see what's inside.
+    </p>
+  </header>
+
+  <Callout title="Copyright: the short version" type="warn">
+    <ul>
+      <li>
+        <strong>The composition and the MIDI file are separate works.</strong> A file of a public-domain piece can still
+        be copyrighted by whoever sequenced it. Look for an explicit license on the file itself.
+      </li>
+      <li>
+        <strong>MIDI arrangements of copyrighted songs are not free</strong>, even when a site offers them for free
+        download: the song is still protected. Most pop, film and game music falls in this category, including much of
+        what's in large web-scraped collections.
+      </li>
+      <li>
+        <strong>Datasets have their own licenses.</strong> Several popular ones are non-commercial (NC) or gated, and a
+        permissive dataset license doesn't clear the rights in songs it contains.
+      </li>
+      <li>
+        <strong>Site terms apply too.</strong> Some sites forbid redistribution, bulk downloading, or use for AI training.
+      </li>
+    </ul>
+    <p>This is general information, not legal advice. When in doubt, ask the rights holder.</p>
+  </Callout>
+
+  <nav class="toc" aria-label="Source groups">
+    {groups.map((g, i) => <>{i > 0 && <span aria-hidden="true">·</span>}<a href={`#${g.id}`}>{g.title} ({g.items.length})</a></>)}
+  </nav>
+
+  {
+    groups.map((g) => (
+      <section>
+        <h2 id={g.id}>{g.title}</h2>
+        <p>{g.blurb}</p>
+        <ul class="c-list">
+          {g.items.map((f) => (
+            <li>
+              <div class="c-top">
+                <a class="c-title" href={f.url}>{f.title}</a>
+                <span class={`badge ${f.commercialUse}`}>{commercial[f.commercialUse]}</span>
+              </div>
+              <p class="c-desc">{f.description}</p>
+              <p class="c-note">
+                <strong>License:</strong> {f.license}. {f.licenseNote}
+              </p>
+              {(f.size || f.paper) && (
+                <p class="c-note">
+                  {f.size && <>Size: {f.size}.</>} {f.paper && <a href={f.paper}>Paper</a>}
+                </p>
+              )}
+              <p class="c-host">{host(f.url)}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+
+  <h2 id="tools">Working with the files</h2>
+  <p>
+    Parse and clean files with <a href="/libraries/?cat=smf">SMF libraries</a> such as mido, pretty_midi or symusic;
+    for machine learning, see the <a href="/libraries/?cat=ml">ML</a> and <a href="/libraries/?cat=datasets">dataset tooling</a>
+    sections of the catalog. The <a href="/docs/smf/">Standard MIDI Files</a> chapter explains the format byte by byte.
+  </p>
+</Community>
+
+<style>
+  .toc span {
+    color: var(--muted);
+  }
+  :global(.callout ul) {
+    padding-left: 1.2rem;
+  }
+</style>

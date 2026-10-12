@@ -1,0 +1,1519 @@
+---
+/**
+ * MIDI Reader: drop a Standard MIDI File and get every part of it explained, a piano roll,
+ * playback with the sampled instruments, and an annotated event list linked to a hex view.
+ */
+const demos = [
+  { file: 'prelude.mid', label: 'Bach Prelude', note: 'format 1 · 4 tracks · running status · tempo changes' },
+  { file: 'ode-to-joy.mid', label: 'Ode to Joy', note: 'format 0 · SysEx · lyrics · CCs · pitch bend' },
+  { file: 'drum-loop.mid', label: 'Drum loop', note: 'format 0 · SMPTE timing · XG SysEx' },
+];
+---
+
+<div class="rd" data-reader>
+  <section class="rd-load" aria-labelledby="rd-load-title">
+    <h2 id="rd-load-title" class="visually-hidden">Open a file</h2>
+    <div class="rd-drop" data-drop>
+      <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M12 15V4m0 0L8 8m4-4 4 4M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"></path></svg>
+      <p class="rd-drop-main"><strong>Drop a .mid file here</strong><span class="rd-replace"> to replace it</span></p>
+      <label class="btn btn-primary rd-pick">
+        Choose a file
+        <input type="file" accept=".mid,.midi,.rmi,.kar,.smf,audio/midi,audio/x-midi" class="visually-hidden" data-file />
+      </label>
+      <p class="rd-privacy">Read in your browser. Nothing is uploaded.</p>
+    </div>
+    <div class="rd-demos">
+      <p class="rd-demos-title" id="rd-demos-label">Or open a demo file</p>
+      <ul aria-labelledby="rd-demos-label">
+        {
+          demos.map((d) => (
+            <li>
+              <button type="button" class="rd-demo" data-demo={d.file}>
+                <strong>{d.label}</strong>
+                <span>{d.note}</span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <p class="rd-status" role="status" aria-live="polite" data-status></p>
+
+  <div data-result hidden>
+    <section class="rd-sec" aria-labelledby="rd-overview">
+      <h2 id="rd-overview">Overview</h2>
+      <dl class="rd-summary" data-summary></dl>
+      <div data-warnings></div>
+      <h3>The header chunk, byte by byte</h3>
+      <p class="rd-explain">
+        Every Standard MIDI File starts with a 14-byte <code>MThd</code> chunk. It says how the tracks relate (the
+        format), how many track chunks follow, and how to turn ticks into time (the division).
+      </p>
+      <div class="rd-anno" data-header-anno></div>
+    </section>
+
+    <div class="rd-transport" role="group" aria-label="Playback">
+      <button type="button" class="btn btn-primary rd-play" data-play>
+        <svg class="i-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9.5-5.5z"></path></svg>
+        <svg class="i-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zm6 0h3v11h-3z"></path></svg>
+        <span data-play-label>Play</span>
+      </button>
+      <button type="button" class="btn rd-stop" data-stop aria-label="Stop and rewind">
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M3 3h10v10H3z"></path></svg>
+      </button>
+      <div class="rd-seek">
+        <input type="range" min="0" max="1000" step="1" value="0" data-seek aria-label="Position" />
+        <span class="rd-time" data-time>0:00 / 0:00</span>
+      </div>
+      <label class="rd-inline">
+        <span>Sound</span>
+        <select data-output>
+          <option value="samples" selected>Sampled instruments</option>
+          <option value="synth">Simple synth</option>
+          <option value="connect">Web MIDI output…</option>
+        </select>
+      </label>
+      <label class="rd-inline">
+        <span>Speed</span>
+        <select data-rate>
+          <option value="0.5">0.5×</option>
+          <option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option>
+          <option value="1.25">1.25×</option>
+          <option value="1.5">1.5×</option>
+          <option value="2">2×</option>
+        </select>
+      </label>
+    </div>
+
+    <section class="rd-sec" aria-labelledby="rd-roll">
+      <div class="rd-head">
+        <h2 id="rd-roll">Piano roll</h2>
+        <div class="rd-tools">
+          <div class="seg" role="group" aria-label="Piano roll view">
+            <button type="button" class="chip" data-view="combined" aria-pressed="true">Combined</button>
+            <button type="button" class="chip" data-view="lanes" aria-pressed="false" data-lanes-label>Per track</button>
+          </div>
+          <div class="seg" role="group" aria-label="Zoom">
+            <button type="button" class="chip" data-zoom="out" aria-label="Zoom out">−</button>
+            <button type="button" class="chip" data-zoom="fit">Fit</button>
+            <button type="button" class="chip" data-zoom="in" aria-label="Zoom in">+</button>
+          </div>
+        </div>
+      </div>
+      <div class="rd-roll" data-roll>
+        <canvas data-canvas role="img" aria-label="Piano roll"></canvas>
+      </div>
+      <p class="rd-explain">Each bar is a note: height is pitch, length is duration, brightness is velocity. Drums (channel 10) sit in the strip at the bottom. Click to jump there.</p>
+    </section>
+
+    <section class="rd-sec" aria-labelledby="rd-tracks">
+      <h2 id="rd-tracks">Tracks</h2>
+      <p class="rd-explain" data-tracks-explain></p>
+      <div class="table-wrap"><table data-tracks></table></div>
+    </section>
+
+    <section class="rd-sec" aria-labelledby="rd-tempo">
+      <h2 id="rd-tempo">Tempo, meter &amp; key</h2>
+      <p class="rd-explain" data-tempo-explain></p>
+      <div class="table-wrap"><table data-tempo></table></div>
+    </section>
+
+    <section class="rd-sec" aria-labelledby="rd-meta">
+      <h2 id="rd-meta">Meta events</h2>
+      <p class="rd-explain">
+        Meta events (<code>FF type length data</code>) live only in files: names, lyrics, markers, tempo and signatures.
+        They are never sent to instruments.
+      </p>
+      <ul class="rd-counts" data-meta-counts></ul>
+      <div class="table-wrap" data-text-wrap><table data-texts></table></div>
+    </section>
+
+    <section class="rd-sec" aria-labelledby="rd-cc">
+      <h2 id="rd-cc">Controllers &amp; pitch bend</h2>
+      <p class="rd-explain">Every continuous control stream in the file, per channel, with how often it changes and the range of values it covers.</p>
+      <div data-cc></div>
+    </section>
+
+    <section class="rd-sec" aria-labelledby="rd-sysex">
+      <h2 id="rd-sysex">System Exclusive</h2>
+      <p class="rd-explain">
+        SysEx events carry manufacturer-specific data, such as GM/GS/XG resets and patch settings. In a file they are stored
+        as <code>F0 length data</code>; the length is not sent.
+      </p>
+      <div data-sysex></div>
+    </section>
+
+    <section class="rd-sec" aria-labelledby="rd-events">
+      <div class="rd-head">
+        <h2 id="rd-events">Events &amp; bytes</h2>
+        <div class="rd-tools">
+          <label class="rd-inline"><span>Track</span><select data-ev-track></select></label>
+          <label class="rd-inline">
+            <span>Type</span>
+            <select data-ev-type>
+              <option value="all">All events</option>
+              <option value="note">Notes</option>
+              <option value="cc">Controllers</option>
+              <option value="program">Program changes</option>
+              <option value="bend">Pitch bend &amp; pressure</option>
+              <option value="meta">Meta events</option>
+              <option value="sysex">SysEx</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <p class="rd-explain">Select an event to see exactly which bytes encode it, or click any byte in the hex view to find its event.</p>
+      <div class="rd-split">
+        <div class="rd-events-col">
+          <div class="table-wrap rd-events-wrap" data-events-wrap><table class="rd-events" data-events></table></div>
+          <p class="rd-more"><button type="button" class="btn" data-more hidden>Show more</button> <span data-ev-count></span></p>
+        </div>
+        <div class="rd-bytes-col">
+          <div class="rd-selected" data-selected aria-live="polite">
+            <p class="rd-explain">No event selected.</p>
+          </div>
+          <div class="rd-legend" data-legend></div>
+          <div class="rd-hex" data-hex tabindex="0" role="region" aria-label="Hex view of the file">
+            <div class="rd-hex-spacer" data-hex-spacer></div>
+            <div class="rd-hex-rows" data-hex-rows></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  import { parseSmf, buildTempoMap, extractNotes, signatures, barBeat, describeEvent, decodeText, type SmfFile, type SmfEvent, type Note, type TempoMap } from '../lib/smf';
+  import { trackStats, controllerUsage, sysexList, metaSummary, textEvents, byteRoles, eventAt, annotateEvent, annotateHeader, roleNames, Role, type Annotation } from '../lib/smf-analysis';
+  import { GmSynth, Player, timeline, midiOutputSink, type Sink } from '../lib/synth';
+  import { SampledSink, type Instrument } from '../lib/sampler';
+  import { hexBytes, noteName, hex } from '../lib/midi';
+  import instruments from '../../data/samples.json';
+
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  const fmtSec = (s: number) => `${fmtTime(s)}.${String(Math.floor((s % 1) * 1000)).padStart(3, '0')}`;
+  const fmtBytes = (n: number) => (n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(2)} MB`);
+  const plural = (n: number, w: string) => `${n.toLocaleString()} ${w}${n === 1 ? '' : 's'}`;
+  const round = (n: number) => (Math.round(n * 100) / 100).toString();
+  // Track colors: mid-lightness hues that read on both the light and dark backgrounds.
+  const HUES = [18, 172, 262, 42, 330, 120, 205, 0, 285, 85, 150, 230];
+  const color = (i: number, a = 1) => `hsl(${HUES[i % HUES.length]} 62% 50% / ${a})`;
+  const PAGE = 300;
+  const ROW_H = 22;
+  const ROLE_CLASS: Record<number, string> = {
+    [Role.ChunkId]: 'r-chunk', [Role.ChunkLength]: 'r-chunk', [Role.HeaderField]: 'r-head', [Role.Delta]: 'r-delta', [Role.Status]: 'r-status',
+    [Role.Data]: 'r-data', [Role.MetaHead]: 'r-meta', [Role.MetaData]: 'r-meta', [Role.SysexHead]: 'r-sysex', [Role.SysexData]: 'r-sysex',
+  };
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-reader]')) {
+    const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
+    const drop = $('[data-drop]');
+    const fileInput = $<HTMLInputElement>('[data-file]');
+    const status = $('[data-status]');
+    const result = $('[data-result]');
+    const playBtn = $<HTMLButtonElement>('[data-play]');
+    const seek = $<HTMLInputElement>('[data-seek]');
+    const timeEl = $('[data-time]');
+    const outSel = $<HTMLSelectElement>('[data-output]');
+    const rollBox = $('[data-roll]');
+    const canvas = $<HTMLCanvasElement>('[data-canvas]');
+    const evTrack = $<HTMLSelectElement>('[data-ev-track]');
+    const evType = $<HTMLSelectElement>('[data-ev-type]');
+    const evTable = $('[data-events]');
+    const evWrap = $('[data-events-wrap]');
+    const moreBtn = $<HTMLButtonElement>('[data-more]');
+    const hexBox = $('[data-hex]');
+    const hexRows = $('[data-hex-rows]');
+
+    let file = new Uint8Array();
+    let smf: SmfFile | undefined;
+    let tempo: TempoMap | undefined;
+    let notes: Note[] = [];
+    let duration = 0;
+    let ppq = 480;
+    let timeSigs: ReturnType<typeof signatures>['time'] = [];
+    let index: ReturnType<typeof byteRoles> | undefined;
+    let eventId = new Map<SmfEvent, number>();
+    let filtered: SmfEvent[] = [];
+    let shown = 0;
+    let selected: { start: number; end: number; event?: SmfEvent } | undefined;
+    const muted = new Set<number>();
+    let view: 'combined' | 'lanes' = 'combined';
+    /** Color and lane notes by track, or by channel when all notes live in one track (format 0). */
+    let byChannel = false;
+    const keyOf = (n: Note) => (byChannel ? n.channel : n.track);
+    let pxPerSec = 0;
+    let raf = 0;
+
+    /* ---------- Audio ---------- */
+    let ctx: AudioContext | undefined;
+    let player: Player | undefined;
+    let synth: GmSynth | undefined;
+    let sampled: SampledSink | undefined;
+    let midiAccess: MIDIAccess | undefined;
+
+    const audio = () => {
+      if (!ctx) {
+        ctx = new AudioContext();
+        synth = new GmSynth(ctx);
+        sampled = new SampledSink(ctx, instruments as Instrument[]);
+        player = new Player(ctx, outSel.value === 'synth' ? synth : sampled);
+        player.muted = muted;
+        player.onEnd = () => syncPlay();
+        if (smf && tempo) player.load(timeline(smf, tempo), duration);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return player!;
+    };
+
+    /** Program in use per channel at any point in the file, to preload only the instruments needed. */
+    const channelPrograms = () => {
+      const uses = new Map<string, { channel: number; program: number }>();
+      const current = new Array(16).fill(0);
+      for (const e of index?.events ?? []) {
+        if (e.kind !== 'channel') continue;
+        if (e.type === 'programChange') current[e.channel] = e.data1;
+        if (e.type === 'noteOn') uses.set(`${e.channel}:${current[e.channel]}`, { channel: e.channel, program: current[e.channel] });
+      }
+      return [...uses.values()];
+    };
+
+    async function ensureSamples() {
+      if (!sampled || outSel.value !== 'samples') return true;
+      const need = sampled.needed(channelPrograms());
+      if (!need.length) return true;
+      const kb = Math.round(need.reduce((n, i) => n + i.bytes, 0) / 1024);
+      status.textContent = `Loading ${need.map((i) => i.name).join(', ')} (${kb} KB)…`;
+      try {
+        await sampled.load(need, (d, t) => (status.textContent = `Loading samples ${d}/${t}…`));
+        status.textContent = `Playing with ${need.map((i) => i.name).join(', ')}.`;
+        return true;
+      } catch (e) {
+        status.innerHTML = `<span class="err">Couldn't load samples (${esc((e as Error).message)}). Switched to the simple synth.</span>`;
+        outSel.value = 'synth';
+        player!.sink = synth!;
+        return true;
+      }
+    }
+
+    const syncPlay = () => {
+      const on = player?.playing ?? false;
+      playBtn.classList.toggle('is-playing', on);
+      $('[data-play-label]').textContent = on ? 'Pause' : 'Play';
+      if (on && !raf) raf = requestAnimationFrame(frame);
+    };
+
+    const updateTime = () => {
+      const pos = player?.position ?? 0;
+      timeEl.textContent = `${fmtTime(pos)} / ${fmtTime(duration)}`;
+      if (document.activeElement !== seek) seek.value = String(duration ? Math.round((pos / duration) * 1000) : 0);
+      seek.setAttribute('aria-valuetext', `${fmtTime(pos)} of ${fmtTime(duration)}`);
+    };
+
+    function frame() {
+      raf = 0;
+      updateTime();
+      drawRoll();
+      if (player?.playing) {
+        const x = (player.position * rollWidth()) / Math.max(duration, 0.001);
+        if (x > rollBox.scrollLeft + rollBox.clientWidth * 0.85 || x < rollBox.scrollLeft) rollBox.scrollLeft = x - rollBox.clientWidth * 0.15;
+        raf = requestAnimationFrame(frame);
+      }
+    }
+
+    const seekTo = (s: number) => {
+      audio().seek(s);
+      updateTime();
+      drawRoll();
+    };
+
+    /* ---------- Loading ---------- */
+
+    function load(bytes: Uint8Array, name: string) {
+      player?.stop();
+      syncPlay();
+      try {
+        smf = parseSmf(bytes);
+      } catch (e) {
+        smf = undefined;
+        result.hidden = true;
+        drop.classList.remove('is-compact');
+        status.innerHTML = `<span class="err">Couldn't read “${esc(name)}”: ${esc((e as Error).message)}</span>`;
+        return;
+      }
+      file = bytes;
+      tempo = buildTempoMap(smf);
+      notes = extractNotes(smf, tempo);
+      const sig = signatures(smf);
+      timeSigs = sig.time;
+      ppq = smf.header.ppq ?? 480;
+      index = byteRoles(smf);
+      eventId = new Map(index.events.map((e, i) => [e, i]));
+      const lastTick = smf.tracks.reduce((m, t) => Math.max(m, t.endTick), 0);
+      duration = notes.reduce((m, n) => Math.max(m, n.end), tempo.tickToSeconds(lastTick));
+      muted.clear();
+      byChannel = new Set(notes.map((n) => n.track)).size <= 1 && new Set(notes.map((n) => n.channel)).size > 1;
+      selected = undefined;
+      pxPerSec = 0;
+      status.textContent = `Opened ${name}.`;
+      drop.classList.add('is-compact');
+      result.hidden = false;
+      $('[data-lanes-label]').textContent = byChannel ? 'Per channel' : 'Per track';
+      renderOverview(name, sig);
+      renderTracks();
+      renderTempo(sig);
+      renderMeta();
+      renderControllers();
+      renderSysex();
+      evTrack.innerHTML = `<option value="all">All tracks</option>` + smf.tracks.map((t) => `<option value="${t.index}">${t.index + 1}${t.name ? ` · ${esc(t.name)}` : ''}</option>`).join('');
+      evType.value = 'all';
+      renderEvents();
+      renderLegend();
+      hexBox.scrollTop = 0;
+      renderHex();
+      showSelected();
+      if (player) player.load(timeline(smf, tempo), duration);
+      invalidate();
+      updateTime();
+      drawRoll();
+    }
+
+    async function loadFile(f: File) {
+      if (f.size > 20 * 1024 * 1024) {
+        status.innerHTML = `<span class="err">That file is ${fmtBytes(f.size)}; the reader opens files up to 20 MB.</span>`;
+        return;
+      }
+      status.textContent = `Reading ${f.name}…`;
+      load(new Uint8Array(await f.arrayBuffer()), f.name);
+    }
+
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files?.[0];
+      if (f) loadFile(f);
+      fileInput.value = '';
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-demo]').forEach((b) =>
+      b.addEventListener('click', async () => {
+        status.textContent = 'Loading demo…';
+        try {
+          const res = await fetch(`/demos/${b.dataset.demo}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          load(new Uint8Array(await res.arrayBuffer()), b.dataset.demo!);
+        } catch (e) {
+          status.innerHTML = `<span class="err">Couldn't load the demo: ${esc((e as Error).message)}</span>`;
+        }
+      }),
+    );
+    // Accept drops anywhere on the reader, not just the drop zone.
+    for (const ev of ['dragenter', 'dragover']) root.addEventListener(ev, (e) => {
+      if (!(e as DragEvent).dataTransfer?.types.includes('Files')) return;
+      e.preventDefault();
+      drop.classList.add('is-over');
+    });
+    root.addEventListener('dragleave', (e) => {
+      if (!root.contains((e as DragEvent).relatedTarget as Node)) drop.classList.remove('is-over');
+    });
+    root.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('is-over');
+      const f = (e as DragEvent).dataTransfer?.files?.[0];
+      if (f) loadFile(f);
+    });
+
+    /* ---------- Overview ---------- */
+
+    const pos = (tick: number) => (smf?.header.smpte ? `${tick}` : barBeat(tick, ppq, timeSigs));
+
+    function renderOverview(name: string, sig: ReturnType<typeof signatures>) {
+      const s = smf!;
+      const h = s.header;
+      const channels = [...new Set(notes.map((n) => n.channel))].sort((a, b) => a - b);
+      const bpms = tempo!.points.map((p) => p.bpm);
+      const hasTempo = index!.events.some((e) => e.kind === 'meta' && e.metaType === 0x51);
+      const pitched = notes.filter((n) => n.channel !== 9);
+      let lo = 127, hi = 0;
+      for (const n of pitched) { lo = Math.min(lo, n.pitch); hi = Math.max(hi, n.pitch); }
+      const rows: [string, string][] = [
+        ['File', `${esc(name)}${s.rmid ? ' <span class="pill">RMID</span>' : ''}`],
+        ['Size', fmtBytes(s.byteLength)],
+        ['Format', `${h.format} · ${['single track', 'multi-track, played together', 'independent patterns'][h.format] ?? 'unknown'}`],
+        ['Tracks', String(s.tracks.length)],
+        ['Division', h.smpte ? `SMPTE ${h.smpte.fps} fps × ${h.smpte.ticksPerFrame} ticks/frame` : `${h.ppq} ticks per quarter note`],
+        ['Duration', `${fmtTime(duration)} (${duration.toFixed(2)} s)`],
+        ['Tempo', h.smpte ? 'n/a (SMPTE timing)' : bpms.length > 1 ? `${round(bpms[0])} BPM, ${round(Math.min(...bpms))}–${round(Math.max(...bpms))} over ${bpms.length} changes` : `${round(bpms[0] ?? 120)} BPM${hasTempo ? '' : ' (default)'}`],
+        ['Time signature', sig.time.length ? `${sig.time[0].numerator}/${sig.time[0].denominator}${sig.time.length > 1 ? ` + ${plural(sig.time.length - 1, 'change')}` : ''}` : '4/4 (assumed)'],
+        ['Key', sig.key.length ? esc(sig.key[0].name) + (sig.key.length > 1 ? ` + ${plural(sig.key.length - 1, 'change')}` : '') : 'not specified'],
+        ['Notes', `${notes.length.toLocaleString()}${lo <= hi ? ` · ${noteName(lo)}–${noteName(hi)}` : ''}`],
+        ['Channels', channels.length ? channels.map((c) => (c === 9 ? '10 (drums)' : String(c + 1))).join(', ') : 'none'],
+        ['Events', index!.events.length.toLocaleString()],
+      ];
+      $('[data-summary]').innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+      const w = s.warnings;
+      const other = s.otherChunks.map((c) => `Non-standard chunk “${esc(c.id)}” (${c.length} bytes) at byte ${c.offset}; players skip it.`);
+      const all = [...w.map(esc), ...other];
+      $('[data-warnings]').innerHTML = all.length
+        ? `<div class="callout warn" role="note"><p class="callout-title">${plural(all.length, 'problem')} found</p><ul>${all.slice(0, 20).map((x) => `<li>${x}</li>`).join('')}${all.length > 20 ? `<li>…and ${all.length - 20} more</li>` : ''}</ul></div>`
+        : `<p class="rd-ok">✓ Well-formed: every chunk and event parsed cleanly.</p>`;
+      $('[data-header-anno]').innerHTML = annoRows(annotateHeader(s), true);
+    }
+
+    function annoRows(list: Annotation[], clickable = false) {
+      return list
+        .map((a) => {
+          const bytes = a.end > a.start ? hexBytes(file.subarray(a.start, Math.min(a.end, a.start + 12))) + (a.end - a.start > 12 ? ' …' : '') : '—';
+          const attr = clickable ? ` data-range="${a.start}:${a.end}"` : '';
+          return `<div class="anno-row"${attr}><code class="anno-bytes">${bytes}</code><div><strong>${esc(a.label)}</strong> <span>${esc(a.detail)}</span></div></div>`;
+        })
+        .join('');
+    }
+
+    $('[data-header-anno]').addEventListener('click', (e) => {
+      const r = (e.target as HTMLElement).closest<HTMLElement>('[data-range]');
+      if (!r) return;
+      const [s, en] = r.dataset.range!.split(':').map(Number);
+      select({ start: s, end: en }, { hex: true });
+    });
+
+    /* ---------- Tracks ---------- */
+
+    function renderTracks() {
+      const s = smf!;
+      const stats = trackStats(s, notes);
+      const fmt = s.header.format;
+      $('[data-tracks-explain]').textContent =
+        fmt === 0
+          ? 'Format 0 puts everything in one track; the channel number on each event separates the parts.'
+          : fmt === 1
+            ? 'In format 1, all tracks play at once. Track 1 conventionally holds tempo, time signature and markers (the “conductor” track).'
+            : 'In format 2, each track is an independent pattern with its own timing.';
+      const rows = stats.map((t) => {
+        const prog = t.programs.length ? t.programs.map((p) => esc(p.name)).slice(0, 3).join('<br>') + (t.programs.length > 3 ? `<br><small class="muted">+${t.programs.length - 3} more</small>` : '') : t.channels.includes(9) ? 'Drums' : t.channels.length ? '<span class="muted">1 · Acoustic Grand Piano (default)</span>' : '';
+        const range = t.lowest !== undefined ? `${noteName(t.lowest)}–${noteName(t.highest!)}` : t.notes ? 'drums' : '';
+        const active = t.firstNote !== undefined ? `${fmtTime(t.firstNote)}–${fmtTime(t.lastNote!)}` : '';
+        return `<tr>
+          <td><span class="swatch" style="background:${color(t.index)}"></span>${t.index + 1}</td>
+          <td>${t.name ? esc(t.name) : '<span class="muted">untitled</span>'}${t.instrumentName ? `<br><small class="muted">${esc(t.instrumentName)}</small>` : ''}</td>
+          <td>${t.channels.map((c) => c + 1).join(', ') || '<span class="muted">none</span>'}</td>
+          <td>${prog}</td>
+          <td class="num">${t.notes.toLocaleString()}</td>
+          <td>${range}</td>
+          <td>${active}</td>
+          <td class="num">${t.events.toLocaleString()}</td>
+          <td class="num">${t.bytes.toLocaleString()}</td>
+          <td>${t.notes ? `<label class="mute"><input type="checkbox" data-mute="${t.index}" checked /> <span class="visually-hidden">Play track ${t.index + 1}</span></label>` : ''}</td>
+        </tr>`;
+      });
+      $('[data-tracks]').innerHTML = `<caption class="visually-hidden">Tracks</caption><thead><tr><th>#</th><th>Name</th><th>Ch</th><th>Program (GM)</th><th class="num">Notes</th><th>Range</th><th>Active</th><th class="num">Events</th><th class="num">Bytes</th><th>Play</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+    }
+
+    root.addEventListener('change', (e) => {
+      const el = e.target as HTMLInputElement;
+      if (el.dataset.mute === undefined) return;
+      const i = Number(el.dataset.mute);
+      if (el.checked) muted.delete(i);
+      else muted.add(i);
+      invalidate();
+      drawRoll();
+    });
+
+    /* ---------- Tempo, meta, controllers, SysEx ---------- */
+
+    const timeButton = (tick: number) => {
+      const t = tempo!.tickToSeconds(tick);
+      return `<button type="button" class="linkish" data-seek-to="${t}" aria-label="Jump to ${fmtSec(t)}">${fmtSec(t)}</button>`;
+    };
+    const eventButton = (e: SmfEvent, label: string) => `<button type="button" class="linkish" data-ev-id="${eventId.get(e)}">${label}</button>`;
+
+    function renderTempo(sig: ReturnType<typeof signatures>) {
+      const s = smf!;
+      $('[data-tempo-explain]').textContent = s.header.smpte
+        ? `This file uses SMPTE timing: ${Math.round(s.header.smpte.fps * s.header.smpte.ticksPerFrame)} ticks per second, so tempo events don't change playback speed.`
+        : `Positions are bar:beat:tick at ${ppq} ticks per quarter note. Set Tempo events store microseconds per quarter note; BPM = 60,000,000 ÷ that.`;
+      const rows: { tick: number; kind: string; value: string; e?: SmfEvent }[] = [];
+      const tempoEvents = index!.events.filter((e) => e.kind === 'meta' && e.metaType === 0x51);
+      if (!s.header.smpte) {
+        if (!tempoEvents.length) rows.push({ tick: 0, kind: 'Tempo', value: '120 BPM (default; the file has no tempo event)' });
+        for (const e of tempoEvents) rows.push({ tick: e.tick, kind: 'Tempo', value: describeEvent(e).detail, e });
+      }
+      for (const e of index!.events) {
+        if (e.kind === 'meta' && (e.metaType === 0x58 || e.metaType === 0x59 || e.metaType === 0x54)) rows.push({ tick: e.tick, kind: describeEvent(e).name, value: describeEvent(e).detail, e });
+      }
+      if (!sig.time.length && !s.header.smpte) rows.push({ tick: 0, kind: 'Time Signature', value: '4/4 (assumed; none in the file)' });
+      rows.sort((a, b) => a.tick - b.tick);
+      const list = rows.slice(0, 300);
+      $('[data-tempo]').innerHTML = `<caption class="visually-hidden">Tempo, time signature and key signature changes</caption><thead><tr><th>Position</th><th>Time</th><th>Event</th><th>Value</th></tr></thead><tbody>${list
+        .map((r) => `<tr><td><code>${pos(r.tick)}</code></td><td>${timeButton(r.tick)}</td><td>${r.e ? eventButton(r.e, r.kind) : r.kind}</td><td>${esc(r.value)}</td></tr>`)
+        .join('')}${rows.length > list.length ? `<tr><td colspan="4" class="muted">…${rows.length - list.length} more</td></tr>` : ''}</tbody>`;
+    }
+
+    function renderMeta() {
+      const s = smf!;
+      const counts = metaSummary(s);
+      $('[data-meta-counts]').innerHTML = counts.length ? counts.map((m) => `<li><code>FF ${hex(m.type)}</code> ${esc(m.name)} <strong>${m.count}</strong></li>`).join('') : '<li>No meta events.</li>';
+      const texts = textEvents(s);
+      const list = texts.slice(0, 200);
+      $('[data-text-wrap]').hidden = !texts.length;
+      $('[data-texts]').innerHTML = `<caption class="visually-hidden">Text meta events</caption><thead><tr><th>Time</th><th>Trk</th><th>Type</th><th>Text</th></tr></thead><tbody>${list
+        .map((t) => `<tr><td>${timeButton(t.event.tick)}</td><td><span class="swatch" style="background:${color(t.event.track)}"></span>${t.event.track + 1}</td><td>${eventButton(t.event, esc(t.name))}</td><td>${esc(t.text)}</td></tr>`)
+        .join('')}${texts.length > list.length ? `<tr><td colspan="4" class="muted">…${texts.length - list.length} more</td></tr>` : ''}</tbody>`;
+    }
+
+    function renderControllers() {
+      const use = controllerUsage(smf!);
+      $('[data-cc]').innerHTML = use.length
+        ? `<div class="table-wrap"><table><caption class="visually-hidden">Controller usage</caption><thead><tr><th>Ch</th><th>Control</th><th class="num">Messages</th><th>Values</th></tr></thead><tbody>${use
+            .map((u) => {
+              const range = u.control === 'bend'
+                ? `${u.min >= 0 ? '+' : ''}${u.min} to ${u.max >= 0 ? '+' : ''}${u.max} (${round((u.min / 8192) * 2)} to ${round((u.max / 8192) * 2)} semitones at ±2)`
+                : u.min === u.max ? String(u.min) : `${u.min}–${u.max}`;
+              return `<tr><td>${u.channel + 1}</td><td>${esc(u.label)}</td><td class="num">${u.count.toLocaleString()}</td><td>${range}</td></tr>`;
+            })
+            .join('')}</tbody></table></div>`
+        : '<p class="muted">No controllers, pitch bend or pressure in this file.</p>';
+    }
+
+    function renderSysex() {
+      const list = sysexList(smf!);
+      $('[data-sysex]').innerHTML = list.length
+        ? `<div class="table-wrap"><table><caption class="visually-hidden">SysEx events</caption><thead><tr><th>Time</th><th>Trk</th><th>Manufacturer</th><th>Message</th><th class="num">Bytes</th></tr></thead><tbody>${list
+            .map((x) => `<tr><td>${timeButton(x.event.tick)}</td><td>${x.event.track + 1}</td><td>${x.manufacturerId ? `<code>${hexBytes(x.manufacturerId)}</code> ` : ''}${esc(x.manufacturer ?? (x.manufacturerId ? 'Unknown' : ''))}</td><td>${eventButton(x.event, esc(x.description ?? 'Manufacturer-specific data'))}${x.complete ? '' : ' <span class="pill">no F7</span>'}</td><td class="num">${x.event.data.length}</td></tr>`)
+            .join('')}</tbody></table></div>`
+        : '<p class="muted">No SysEx in this file.</p>';
+    }
+
+    /* ---------- Events table ---------- */
+
+    const matches = (e: SmfEvent, type: string) => {
+      switch (type) {
+        case 'note': return e.kind === 'channel' && (e.type === 'noteOn' || e.type === 'noteOff');
+        case 'cc': return e.kind === 'channel' && e.type === 'controlChange';
+        case 'program': return e.kind === 'channel' && e.type === 'programChange';
+        case 'bend': return e.kind === 'channel' && (e.type === 'pitchBend' || e.type === 'channelPressure' || e.type === 'polyPressure');
+        case 'meta': return e.kind === 'meta';
+        case 'sysex': return e.kind === 'sysex';
+        default: return true;
+      }
+    };
+
+    function renderEvents() {
+      const tr = evTrack.value;
+      const type = evType.value;
+      const pool = tr === 'all' ? [...index!.events].sort((a, b) => a.tick - b.tick || a.track - b.track || a.offset - b.offset) : smf!.tracks[Number(tr)]?.events ?? [];
+      filtered = pool.filter((e) => matches(e, type));
+      shown = 0;
+      evTable.innerHTML = `<caption class="visually-hidden">Events</caption><thead><tr><th>Position</th><th>Time</th><th>Trk</th><th>Ch</th><th>Event</th><th>Details</th><th class="col-wide">Bytes</th></tr></thead><tbody></tbody>`;
+      evWrap.scrollTop = 0;
+      appendEvents();
+    }
+
+    function appendEvents(upTo = 0) {
+      const body = evTable.querySelector('tbody')!;
+      const target = Math.max(shown + PAGE, upTo + 1);
+      const slice = filtered.slice(shown, target);
+      body.insertAdjacentHTML(
+        'beforeend',
+        slice
+          .map((e) => {
+            const d = describeEvent(e);
+            const id = eventId.get(e)!;
+            const cls = e.kind === 'meta' ? 'ev-meta' : e.kind === 'sysex' ? 'ev-sysex' : '';
+            const raw = file.subarray(e.offset + e.deltaLength, e.offset + e.length);
+            const bytes = raw.length > 8 ? `${hexBytes(raw.subarray(0, 8))} …` : hexBytes(raw);
+            const sel = selected?.event === e ? ' aria-current="true"' : '';
+            return `<tr class="${cls}" data-row="${id}"${sel}><td><button type="button" class="linkish pos" data-ev-id="${id}" aria-label="Show bytes of event at ${pos(e.tick)}">${pos(e.tick)}</button></td><td>${fmtSec(tempo!.tickToSeconds(e.tick))}</td><td><span class="swatch" style="background:${color(e.track)}"></span>${e.track + 1}</td><td>${e.kind === 'channel' ? e.channel + 1 : ''}</td><td>${esc(d.name)}${e.kind === 'channel' && e.runningStatus ? ' <span class="pill" title="Running status: no status byte stored">RS</span>' : ''}</td><td>${esc(d.detail)}</td><td class="col-wide"><code>${bytes}</code></td></tr>`;
+          })
+          .join(''),
+      );
+      shown += slice.length;
+      moreBtn.hidden = shown >= filtered.length;
+      moreBtn.textContent = `Show ${Math.min(PAGE, filtered.length - shown).toLocaleString()} more`;
+      $('[data-ev-count]').textContent = filtered.length ? `Showing ${shown.toLocaleString()} of ${plural(filtered.length, 'event')}` : 'No events match.';
+    }
+    moreBtn.addEventListener('click', () => appendEvents());
+    evTrack.addEventListener('change', renderEvents);
+    evType.addEventListener('change', renderEvents);
+
+    /* ---------- Selection: event ↔ bytes ---------- */
+
+    function select(range: { start: number; end: number; event?: SmfEvent }, opts: { hex?: boolean; row?: boolean } = {}) {
+      selected = range;
+      evTable.querySelectorAll('[aria-current]').forEach((r) => r.removeAttribute('aria-current'));
+      if (range.event) {
+        const e = range.event;
+        let i = filtered.indexOf(e);
+        if (i < 0 && opts.row) {
+          // Filtered out: show everything so the row can be found.
+          evTrack.value = 'all';
+          evType.value = 'all';
+          renderEvents();
+          i = filtered.indexOf(e);
+        }
+        if (i >= shown) appendEvents(i);
+        const row = evTable.querySelector<HTMLElement>(`[data-row="${eventId.get(e)}"]`);
+        if (row) {
+          row.setAttribute('aria-current', 'true');
+          if (opts.row) evWrap.scrollTop = row.offsetTop - evWrap.clientHeight / 2;
+        }
+      }
+      showSelected();
+      if (opts.hex) {
+        const rowTop = Math.floor(range.start / 16) * ROW_H;
+        if (rowTop < hexBox.scrollTop || rowTop > hexBox.scrollTop + hexBox.clientHeight - ROW_H * 2) hexBox.scrollTop = rowTop - hexBox.clientHeight / 3;
+      }
+      renderHex();
+    }
+
+    function showSelected() {
+      const box = $('[data-selected]');
+      if (!selected) {
+        box.innerHTML = `<p class="rd-explain">No event selected. Pick one from the list or click a byte.</p>`;
+        return;
+      }
+      const e = selected.event;
+      if (!e) {
+        const inHeader = selected.start < smf!.headerOffset + 8 + smf!.headerLength;
+        if (inHeader) {
+          box.innerHTML = `<p class="sel-title">Header chunk <span class="muted">bytes ${smf!.headerOffset}–${smf!.headerOffset + 13}</span></p><div class="rd-anno">${annoRows(annotateHeader(smf!))}</div>`;
+          return;
+        }
+        const t = smf!.tracks.find((x) => selected!.start >= x.offset && selected!.start < x.offset + 8);
+        if (t) {
+          box.innerHTML = `<p class="sel-title">Track ${t.index + 1} chunk header <span class="muted">byte ${t.offset}</span></p><div class="rd-anno">${annoRows([
+            { start: t.offset, end: t.offset + 4, label: 'Chunk ID', detail: '"MTrk": a track chunk' },
+            { start: t.offset + 4, end: t.offset + 8, label: 'Length', detail: `${t.length.toLocaleString()} bytes of events follow` },
+          ])}</div>`;
+          return;
+        }
+        box.innerHTML = `<p class="rd-explain">Bytes ${selected.start}–${selected.end - 1}: not part of a parsed event.</p>`;
+        return;
+      }
+      const d = describeEvent(e);
+      box.innerHTML = `<p class="sel-title"><span class="swatch" style="background:${color(e.track)}"></span>${esc(d.name)} <span class="muted">track ${e.track + 1} · ${pos(e.tick)} · bytes ${e.offset}–${e.offset + e.length - 1}</span></p><p class="sel-detail">${esc(d.detail)}</p><div class="rd-anno">${annoRows(annotateEvent(e, file))}</div><p class="sel-actions"><button type="button" class="linkish" data-seek-to="${tempo!.tickToSeconds(e.tick)}">Jump playback here</button></p>`;
+    }
+
+    root.addEventListener('click', (ev) => {
+      const t = ev.target as HTMLElement;
+      const seekBtn = t.closest<HTMLElement>('[data-seek-to]');
+      if (seekBtn) return seekTo(Number(seekBtn.dataset.seekTo));
+      const evBtn = t.closest<HTMLElement>('[data-ev-id]');
+      if (evBtn) {
+        const e = index!.events[Number(evBtn.dataset.evId)];
+        const inTable = evTable.contains(evBtn);
+        select({ start: e.offset, end: e.offset + e.length, event: e }, { hex: true, row: !inTable });
+        if (!inTable) $('#rd-events').scrollIntoView({ block: 'start', behavior: 'smooth' });
+        return;
+      }
+      const byte = t.closest<HTMLElement>('[data-o]');
+      if (byte && hexBox.contains(byte)) {
+        const o = Number(byte.dataset.o);
+        const e = eventAt(index!, o);
+        if (e) select({ start: e.offset, end: e.offset + e.length, event: e }, { row: true });
+        else {
+          const h = smf!.headerOffset;
+          if (o >= h && o < h + 8 + smf!.headerLength) select({ start: h, end: h + 8 + smf!.headerLength });
+          else {
+            const tr = smf!.tracks.find((x) => o >= x.offset && o < x.offset + 8);
+            select(tr ? { start: tr.offset, end: tr.offset + 8 } : { start: o, end: o + 1 });
+          }
+        }
+      }
+    });
+
+    /* ---------- Hex view (virtualized) ---------- */
+
+    function renderLegend() {
+      const used = [Role.ChunkId, Role.HeaderField, Role.Delta, Role.Status, Role.Data, Role.MetaHead, Role.SysexHead];
+      $('[data-legend]').innerHTML = used.map((r) => `<span><i class="${ROLE_CLASS[r]}"></i>${r === Role.ChunkId ? 'Chunk ID & length' : r === Role.MetaHead ? 'Meta event' : r === Role.SysexHead ? 'SysEx' : roleNames[r]}</span>`).join('');
+    }
+
+    function renderHex() {
+      if (!index) return;
+      const total = Math.ceil(file.length / 16);
+      $('[data-hex-spacer]').style.height = `${total * ROW_H}px`;
+      const first = Math.max(0, Math.floor(hexBox.scrollTop / ROW_H) - 8);
+      const last = Math.min(total, Math.ceil((hexBox.scrollTop + hexBox.clientHeight) / ROW_H) + 8);
+      const roles = index.roles;
+      const sel = selected;
+      let html = '';
+      for (let r = first; r < last; r++) {
+        const base = r * 16;
+        let bytes = '';
+        let ascii = '';
+        for (let k = 0; k < 16; k++) {
+          const o = base + k;
+          if (o >= file.length) break;
+          const b = file[o];
+          const inSel = sel && o >= sel.start && o < sel.end ? ' sel' : '';
+          bytes += `<span data-o="${o}" class="${ROLE_CLASS[roles[o]] ?? ''}${inSel}">${hex(b)}</span>`;
+          ascii += b >= 0x20 && b < 0x7f ? esc(String.fromCharCode(b)) : '·';
+        }
+        html += `<div class="hx-row" style="top:${r * ROW_H}px"><span class="hx-off">${base.toString(16).toUpperCase().padStart(6, '0')}</span><span class="hx-bytes">${bytes}</span><span class="hx-ascii">${ascii}</span></div>`;
+      }
+      hexRows.innerHTML = html;
+    }
+    let hexRaf = 0;
+    hexBox.addEventListener('scroll', () => {
+      if (!hexRaf) hexRaf = requestAnimationFrame(() => ((hexRaf = 0), renderHex()));
+    });
+
+    /* ---------- Piano roll ---------- */
+
+    let staticLayer: HTMLCanvasElement | undefined;
+    let staticKey = '';
+    const invalidate = () => (staticKey = '');
+    const lanes = () => [...new Set(notes.map(keyOf))].sort((a, b) => a - b);
+    const rollHeight = () => (view === 'lanes' ? Math.max(200, lanes().length * 56) : rollBox.clientWidth < 600 ? 240 : 300);
+    const rollWidth = () => (pxPerSec ? Math.max(rollBox.clientWidth, Math.min(30000, duration * pxPerSec)) : rollBox.clientWidth);
+
+    function drawNotes(g: CanvasRenderingContext2D, list: Note[], x0: number, y0: number, w: number, h: number, cs: CSSStyleDeclaration) {
+      const pitched = list.filter((n) => n.channel !== 9);
+      let lo = 127, hi = 0;
+      for (const n of pitched) { lo = Math.min(lo, n.pitch); hi = Math.max(hi, n.pitch); }
+      if (lo > hi) { lo = 48; hi = 84; }
+      lo = Math.max(0, lo - 1);
+      hi = Math.min(127, hi + 1);
+      const drumH = list.some((n) => n.channel === 9) ? (pitched.length ? Math.min(36, h * 0.25) : h) : 0;
+      const pitchH = h - drumH;
+      const rowH = pitchH / (hi - lo + 1);
+      const xs = w / Math.max(duration, 0.001);
+      if (pitchH > 0 && rowH > 1.5) {
+        g.fillStyle = cs.getPropertyValue('--surface-2');
+        for (let p = lo; p <= hi; p++) if ([1, 3, 6, 8, 10].includes(p % 12)) g.fillRect(x0, y0 + pitchH - (p - lo + 1) * rowH, w, rowH);
+      }
+      for (const n of list) {
+        g.fillStyle = color(keyOf(n), muted.has(n.track) ? 0.15 : 0.35 + (n.velocity / 127) * 0.65);
+        const x = x0 + n.start * xs;
+        if (n.channel === 9) g.fillRect(x, y0 + pitchH + 3 + ((Math.min(Math.max(n.pitch, 35), 82) - 35) / 47) * Math.max(1, drumH - 8), 3, 3);
+        else g.fillRect(x, y0 + pitchH - (n.pitch - lo + 1) * rowH, Math.max(1.5, (n.end - n.start) * xs - 0.5), Math.max(1, rowH - (rowH > 3 ? 1 : 0)));
+      }
+      if (drumH && pitchH > 0) {
+        g.fillStyle = cs.getPropertyValue('--line');
+        g.fillRect(x0, y0 + pitchH, w, 1);
+      }
+    }
+
+    function renderStatic(w: number, h: number, dpr: number) {
+      const key = [w, h, dpr, view, [...muted].join(','), document.documentElement.dataset.theme ?? ''].join('|');
+      if (staticLayer && key === staticKey) return staticLayer;
+      staticKey = key;
+      staticLayer ??= document.createElement('canvas');
+      staticLayer.width = Math.round(w * dpr);
+      staticLayer.height = Math.round(h * dpr);
+      const g = staticLayer.getContext('2d')!;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, w, h);
+      const cs = getComputedStyle(root);
+      // Bar lines, following time signature changes.
+      g.fillStyle = cs.getPropertyValue('--line');
+      if (!smf!.header.smpte) {
+        const ts = timeSigs.length ? timeSigs : [{ tick: 0, numerator: 4, denominator: 4 }];
+        const last = smf!.tracks.reduce((m, t) => Math.max(m, t.endTick), 0);
+        let k = 0;
+        for (let tick = 0, guard = 0; tick <= last && guard < 5000; guard++) {
+          while (k + 1 < ts.length && ts[k + 1].tick <= tick) k++;
+          g.fillRect(Math.round(tempo!.tickToSeconds(tick) * (w / Math.max(duration, 0.001))), 0, 1, h);
+          tick += (ppq * 4 * ts[k].numerator) / ts[k].denominator;
+        }
+      }
+      if (view === 'combined') drawNotes(g, notes, 0, 0, w, h, cs);
+      else {
+        const ls = lanes();
+        const lh = h / Math.max(1, ls.length);
+        ls.forEach((ti, i) => {
+          const y = i * lh;
+          drawNotes(g, notes.filter((n) => keyOf(n) === ti), 0, y + 14, w, lh - 18, cs);
+          g.fillStyle = cs.getPropertyValue('--line-strong');
+          if (i) g.fillRect(0, y, w, 1);
+          g.font = `600 11px ${cs.getPropertyValue('--font-text')}`;
+          g.fillStyle = cs.getPropertyValue('--ink-2');
+          const t = smf!.tracks[ti];
+          const label = byChannel ? `Channel ${ti + 1}${ti === 9 ? ' (drums)' : ''}` : `Track ${ti + 1}${t?.name ? ` · ${t.name}` : ''}`;
+          g.fillText(label, (rollBox.scrollLeft || 0) + 6, y + 11);
+        });
+      }
+      return staticLayer;
+    }
+
+    function drawRoll() {
+      if (!smf) return;
+      const w = rollWidth();
+      const h = rollHeight();
+      rollBox.style.height = `${h + (pxPerSec ? 14 : 2)}px`;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+      }
+      const g = canvas.getContext('2d')!;
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, canvas.width, canvas.height);
+      g.drawImage(renderStatic(w, h, dpr), 0, 0);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.fillStyle = getComputedStyle(root).getPropertyValue('--accent');
+      g.fillRect(Math.round(((player?.position ?? 0) * w) / Math.max(duration, 0.001)) - 1, 0, 2, h);
+      canvas.setAttribute('aria-label', `Piano roll${view === 'lanes' ? `, one lane per ${byChannel ? 'channel' : 'track'}` : ''}: ${plural(notes.length, 'note')} over ${fmtTime(duration)}. Use the position slider to seek.`);
+    }
+
+    canvas.addEventListener('click', (e) => {
+      if (!duration) return;
+      const r = canvas.getBoundingClientRect();
+      seekTo(((e.clientX - r.left) / r.width) * duration);
+    });
+    root.querySelectorAll<HTMLButtonElement>('[data-zoom]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const fit = rollBox.clientWidth / Math.max(duration, 0.001);
+        const cur = pxPerSec || fit;
+        pxPerSec = b.dataset.zoom === 'fit' ? 0 : Math.max(fit, Math.min(400, b.dataset.zoom === 'in' ? cur * 1.6 : cur / 1.6));
+        if (pxPerSec <= fit * 1.01) pxPerSec = 0;
+        drawRoll();
+      }),
+    );
+    root.querySelectorAll<HTMLButtonElement>('[data-view]').forEach((b) =>
+      b.addEventListener('click', () => {
+        view = b.dataset.view as typeof view;
+        root.querySelectorAll('[data-view]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        drawRoll();
+      }),
+    );
+    rollBox.addEventListener('scroll', () => {
+      if (view === 'lanes') (invalidate(), drawRoll());
+    });
+    new ResizeObserver(() => {
+      drawRoll();
+      renderHex();
+    }).observe(rollBox);
+    new MutationObserver(() => (invalidate(), drawRoll())).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    /* ---------- Transport ---------- */
+
+    playBtn.addEventListener('click', async () => {
+      if (!smf) return;
+      const p = audio();
+      if (p.playing) {
+        p.pause();
+        syncPlay();
+        return;
+      }
+      playBtn.disabled = true;
+      await ensureSamples();
+      playBtn.disabled = false;
+      p.play();
+      syncPlay();
+      updateTime();
+    });
+    $('[data-stop]').addEventListener('click', () => {
+      player?.stop();
+      syncPlay();
+      updateTime();
+      drawRoll();
+      rollBox.scrollLeft = 0;
+    });
+    seek.addEventListener('input', () => seekTo((Number(seek.value) / 1000) * duration));
+    $<HTMLSelectElement>('[data-rate]').addEventListener('change', (e) => audio().setRate(Number((e.target as HTMLSelectElement).value)));
+
+    outSel.addEventListener('change', async () => {
+      const p = audio();
+      const v = outSel.value;
+      if (v === 'connect') {
+        if (!navigator.requestMIDIAccess) {
+          status.innerHTML = `<span class="err">This browser doesn't support Web MIDI. Try Chrome, Edge, Firefox or Opera on desktop.</span>`;
+          outSel.value = 'samples';
+          return;
+        }
+        try {
+          midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+        } catch {
+          status.innerHTML = `<span class="err">MIDI access was blocked. Allow it in the site settings to play to a device.</span>`;
+          outSel.value = 'samples';
+          return;
+        }
+        const fill = () => {
+          const current = outSel.value;
+          const outs = [...midiAccess!.outputs.values()];
+          outSel.innerHTML = `<option value="samples">Sampled instruments</option><option value="synth">Simple synth</option>` + outs.map((o) => `<option value="out:${esc(o.id)}">${esc(o.name ?? o.id)}</option>`).join('');
+          outSel.value = [...outSel.options].some((o) => o.value === current) ? current : 'samples';
+        };
+        midiAccess.onstatechange = fill;
+        fill();
+        status.textContent = midiAccess.outputs.size ? `Found ${plural(midiAccess.outputs.size, 'MIDI output')}; pick one under Sound.` : 'No MIDI outputs found. Connect a device or start a virtual port.';
+        return;
+      }
+      const was = p.playing;
+      p.pause();
+      let sink: Sink = v === 'synth' ? synth! : sampled!;
+      if (v.startsWith('out:')) {
+        const out = midiAccess?.outputs.get(v.slice(4));
+        if (out) sink = midiOutputSink(ctx!, out);
+      }
+      p.sink = sink;
+      if (was) {
+        await ensureSamples();
+        p.play();
+      }
+      syncPlay();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && player?.playing) {
+        // Timers are throttled in background tabs; pause rather than stutter.
+        player.pause();
+        syncPlay();
+      }
+    });
+  }
+</script>
+
+<style>
+  .rd-load {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .rd-drop {
+    border: 2px dashed var(--control);
+    border-radius: var(--radius);
+    padding: 1.6rem 1rem;
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.6rem;
+    text-align: center;
+    color: var(--ink-2);
+    background: var(--surface);
+    transition: border-color 120ms, background 120ms;
+  }
+  .rd-drop.is-over {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .rd-drop p {
+    margin: 0;
+  }
+  .rd-replace {
+    display: none;
+    font-weight: 400;
+  }
+  .rd-drop.is-compact .rd-replace {
+    display: inline;
+  }
+  .rd-pick:focus-within {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  .rd-privacy {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .rd-demos-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+  }
+  .rd-demos ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .rd-demo {
+    display: grid;
+    gap: 0.1rem;
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    padding: 0.55rem 0.8rem;
+    cursor: pointer;
+    min-height: 2.75rem;
+  }
+  .rd-demo:hover {
+    border-color: var(--accent);
+  }
+  .rd-demo span {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .rd-status {
+    min-height: 1.5em;
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .rd-status :global(.err) {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .rd-sec {
+    margin-top: 2.5rem;
+  }
+  .rd-sec h2 {
+    font-size: 1.35rem;
+    margin: 0 0 0.6rem;
+  }
+  .rd-sec h3 {
+    font-size: 1rem;
+    margin: 1.5rem 0 0.4rem;
+  }
+  .rd-explain {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    max-width: 75ch;
+  }
+  .rd-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 0.6rem;
+  }
+  .rd-head h2 {
+    margin: 0;
+  }
+  .rd-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+  .seg {
+    display: flex;
+    gap: 0.35rem;
+  }
+  .seg .chip {
+    min-width: 2.5rem;
+  }
+  .rd-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(180px, 42%), 1fr));
+    gap: 0.6rem 1.2rem;
+    margin: 0 0 1rem;
+  }
+  .rd-summary :global(div) {
+    border-top: 1px solid var(--line);
+    padding-top: 0.4rem;
+    min-width: 0;
+  }
+  .rd-summary :global(dt) {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .rd-summary :global(dd) {
+    margin: 0.1rem 0 0;
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+  }
+  :global(.rd-ok) {
+    color: var(--data);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .rd-sec :global(.callout ul) {
+    margin: 0;
+    padding-left: 1.2rem;
+    font-size: 0.9rem;
+  }
+  :global(.pill) {
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 4px;
+    padding: 0.05rem 0.35rem;
+    background: var(--meta-soft);
+    color: var(--meta);
+    white-space: nowrap;
+  }
+  .rd-anno :global(.anno-row) {
+    display: grid;
+    grid-template-columns: minmax(7rem, max-content) minmax(0, 1fr);
+    gap: 0.25rem 0.9rem;
+    align-items: baseline;
+    padding: 0.45rem 0;
+    border-top: 1px solid var(--line);
+    font-size: 0.9rem;
+  }
+  .rd-anno :global(.anno-row[data-range]) {
+    cursor: pointer;
+  }
+  .rd-anno :global(.anno-row[data-range]:hover) {
+    background: var(--surface-2);
+  }
+  .rd-anno :global(.anno-bytes) {
+    color: var(--accent);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .rd-anno :global(span) {
+    color: var(--ink-2);
+  }
+  .rd-transport {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem 0.75rem;
+    padding: 0.7rem 0.75rem;
+    margin: 2rem 0 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 4.2rem;
+    z-index: 5;
+  }
+  .rd-play {
+    min-width: 6.2rem;
+    justify-content: center;
+  }
+  .rd-play .i-pause,
+  .rd-play:global(.is-playing) .i-play {
+    display: none;
+  }
+  .rd-play:global(.is-playing) .i-pause {
+    display: inline;
+  }
+  .rd-stop {
+    padding-inline: 0.85rem;
+  }
+  .rd-seek {
+    flex: 1 1 200px;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+  .rd-seek input {
+    flex: 1;
+    min-width: 0;
+    accent-color: var(--accent);
+    height: 2.5rem;
+  }
+  .rd-time {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .rd-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .rd-inline select {
+    width: auto;
+    max-width: 13rem;
+  }
+  .rd-roll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+  }
+  .rd-roll canvas {
+    display: block;
+    cursor: crosshair;
+  }
+  .rd-sec :global(td) {
+    vertical-align: middle;
+  }
+  :global(.swatch) {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 2px;
+    margin-right: 0.4rem;
+    vertical-align: -0.05em;
+  }
+  .rd-sec :global(.mute) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    cursor: pointer;
+  }
+  .rd-sec :global(.mute input) {
+    width: 1.15rem;
+    height: 1.15rem;
+    accent-color: var(--accent);
+  }
+  .rd-counts {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .rd-counts :global(li) {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.84rem;
+    background: var(--surface);
+  }
+  [data-text-wrap] {
+    max-height: 22rem;
+    overflow: auto;
+  }
+  .rd-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+  .rd-split .rd-events :global(.col-wide) {
+    display: none;
+  }
+  .rd-events :global(td:nth-child(6)) {
+    min-width: 12rem;
+  }
+  .rd-events-wrap {
+    max-height: 36rem;
+    overflow: auto;
+    margin-top: 0;
+  }
+  .rd-events :global(thead th) {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .rd-events :global(td) {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    font-size: 0.84rem;
+  }
+  .rd-events :global(tr[aria-current]) {
+    background: var(--accent-soft);
+  }
+  .rd-events :global(.ev-meta td:nth-child(5)) {
+    color: var(--meta);
+    font-weight: 600;
+  }
+  .rd-events :global(.ev-sysex td:nth-child(5)) {
+    color: var(--data);
+    font-weight: 600;
+  }
+  :global(.linkish) {
+    font: inherit;
+    border: 0;
+    background: none;
+    padding: 0.2rem 0;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    text-align: left;
+  }
+  .rd-events :global(.linkish.pos) {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+  .rd-more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .rd-bytes-col {
+    position: sticky;
+    top: 9rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .rd-selected {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 0.75rem 0.9rem;
+    max-height: 22rem;
+    overflow: auto;
+  }
+  .rd-selected :global(.sel-title) {
+    font-weight: 700;
+    margin: 0 0 0.2rem;
+  }
+  .rd-selected :global(.sel-title .muted) {
+    font-weight: 400;
+    font-size: 0.85rem;
+  }
+  .rd-selected :global(.sel-detail) {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+  }
+  .rd-selected :global(.sel-actions) {
+    margin: 0.4rem 0 0;
+    font-size: 0.88rem;
+  }
+  .rd-selected :global(.rd-explain) {
+    margin: 0;
+  }
+  .rd-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+  }
+  .rd-legend :global(i) {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 2px;
+    margin-right: 0.3rem;
+    vertical-align: -0.1em;
+  }
+  .rd-hex {
+    position: relative;
+    height: 22rem;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  .rd-hex-rows {
+    position: absolute;
+    inset: 0 auto auto 0;
+  }
+  .rd-hex :global(.hx-row) {
+    position: absolute;
+    left: 0;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0 0.6rem;
+    white-space: nowrap;
+  }
+  .rd-hex :global(.hx-off) {
+    color: var(--muted);
+  }
+  .rd-hex :global(.hx-bytes) {
+    display: inline-flex;
+    gap: 0.22em;
+  }
+  .rd-hex :global(.hx-bytes span) {
+    cursor: pointer;
+    padding: 0 0.1em;
+    border-radius: 2px;
+  }
+  .rd-hex :global(.hx-ascii) {
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  :global(.r-chunk) {
+    color: var(--meta);
+    font-weight: 700;
+  }
+  :global(.r-head) {
+    color: var(--meta);
+  }
+  :global(.r-delta) {
+    color: var(--muted);
+  }
+  :global(.r-status) {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  :global(.r-data) {
+    color: var(--data);
+  }
+  :global(.r-meta) {
+    color: var(--warn);
+  }
+  :global(.r-sysex) {
+    color: var(--ink);
+    text-decoration: underline dotted;
+  }
+  .rd-legend :global(i.r-chunk),
+  .rd-legend :global(i.r-head) {
+    background: var(--meta);
+  }
+  .rd-legend :global(i.r-delta) {
+    background: var(--muted);
+  }
+  .rd-legend :global(i.r-status) {
+    background: var(--accent);
+  }
+  .rd-legend :global(i.r-data) {
+    background: var(--data);
+  }
+  .rd-legend :global(i.r-meta) {
+    background: var(--warn);
+  }
+  .rd-legend :global(i.r-sysex) {
+    background: var(--ink);
+  }
+  .rd-hex :global(.hx-bytes span.sel) {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  @media (max-width: 1000px) {
+    .rd-split {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .rd-split .rd-events :global(.col-wide) {
+      display: table-cell;
+    }
+    .rd-bytes-col {
+      position: static;
+    }
+  }
+  @media (max-width: 720px) {
+    .rd-load {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    /* Too tall to stay pinned on a phone; it would cover what you're reading. */
+    .rd-transport {
+      position: static;
+      gap: 0.5rem;
+    }
+    .rd-seek {
+      order: 5;
+      flex-basis: 100%;
+    }
+    .rd-inline select {
+      max-width: 10.5rem;
+    }
+    .rd-split .rd-events :global(.col-wide) {
+      display: none;
+    }
+    .rd-drop.is-compact {
+      padding: 0.8rem;
+    }
+    .rd-drop.is-compact svg,
+    .rd-drop.is-compact .rd-privacy {
+      display: none;
+    }
+    .rd-anno :global(.anno-row) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .rd-hex {
+      font-size: 0.72rem;
+    }
+    .rd-hex :global(.hx-ascii) {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,29 @@
+Grand Piano (salamander-grand-piano)
+====================================
+
+Attribution: Salamander Grand Piano by Alexander Holm, CC BY 3.0
+
+Source:   Salamander Grand Piano
+          https://github.com/sfzinstruments/SalamanderGrandPiano
+Credit:   Alexander Holm (Yamaha C5 recording); SFZ remap by kinwie / SFZ Instruments
+License:  Creative Commons Attribution 3.0 Unported (CC-BY-3.0)
+          https://creativecommons.org/licenses/by/3.0/
+          License file in the source repository: https://github.com/sfzinstruments/SalamanderGrandPiano/blob/master/LICENSE
+
+Files (file name = MIDI note number; C4 = 60):
+  21.mp3  <- A0v10.flac
+  30.mp3  <- F#1v10.flac
+  39.mp3  <- D#2v10.flac
+  48.mp3  <- C3v10.flac
+  57.mp3  <- A3v10.flac
+  66.mp3  <- F#4v10.flac
+  75.mp3  <- D#5v10.flac
+  84.mp3  <- C6v10.flac
+  93.mp3  <- A6v10.flac
+  102.mp3  <- F#7v10.flac
+Source path pattern: Samples/<note>v10.flac (velocity layer 10 of 16, MIDI velocity 73-80)
+Note naming: the source names notes with C4 = middle C (MIDI 60), as its SFZ mapping confirms (C4 -> pitch_keycenter=60).
+
+Changes made for the MIDI Field Guide (midi.community): trimmed (leading silence removed, cut to at most 4 s with a short fade-out), converted to mono, level-normalized, and MP3-encoded (96 kbps, 44.1 kHz).
+
+These modified files are distributed under the same CC BY 3.0 license. No endorsement by the original author is implied.

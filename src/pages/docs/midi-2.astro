@@ -190,14 +190,14 @@ function scaleUp(srcVal, srcBits, dstBits) {'{'}
   const scaleBits = dstBits - srcBits;
   let out = srcVal &lt;&lt; scaleBits;               // plain shift
   const center = 1 &lt;&lt; (srcBits - 1);
-  if (srcVal &lt;= center) return out;            // min .. center: done
+  if (srcVal &lt;= center) return out &gt;&gt;&gt; 0;      // min .. center: done
   const repeatBits = srcBits - 1;
   let repeat = srcVal &amp; ((1 &lt;&lt; repeatBits) - 1);  // bits below the top bit
   repeat = scaleBits &gt; repeatBits
     ? repeat &lt;&lt; (scaleBits - repeatBits)
     : repeat &gt;&gt; (repeatBits - scaleBits);
   while (repeat) {'{'} out |= repeat; repeat &gt;&gt;= repeatBits; {'}'}
-  return out;
+  return out &gt;&gt;&gt; 0;  // JS bitwise ops are signed 32-bit
 {'}'}</code></pre>
   <div class="table-wrap">
     <table>

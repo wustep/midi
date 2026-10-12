@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { docGroups, docsFlat } from '../../lib/docs-nav';
 import { tools } from '../../lib/tools';
 
-const path = ['messages', 'notes', 'control-change', 'smf'].map((s) => docsFlat.find((d) => d.slug === s)!);
+const path = ['intro', 'messages', 'notes', 'control-change'].map((s) => docsFlat.find((d) => d.slug === s)!);
 const gid = (t: string) => `g-${t.replace(/\W+/g, '-').toLowerCase()}`;
 ---
 

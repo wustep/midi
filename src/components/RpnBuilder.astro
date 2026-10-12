@@ -91,6 +91,7 @@ const groups = [...new Set(RPNS.map((r) => r.source))];
       let html = '';
       switch (d?.unit) {
         case 'semitones+cents': html = field('Semitones', `min="0" max="127" value="${d.lsb === 0 ? 2 : 0}" data-a`) + field('Cents', 'min="0" max="127" value="0" data-b'); break;
+        case 'semitones+128ths': html = field('Semitones', 'min="0" max="127" value="0" data-a') + field('Fine, in 128ths of a semitone', 'min="0" max="127" value="64" data-b'); break;
         case 'cents14': html = field('Cents (−100 to +99.99)', 'min="-100" max="99.99" step="0.01" value="0" data-a'); break;
         case 'semitones-centered': html = field('Semitones (−64 to +63)', 'min="-64" max="63" value="0" data-a'); break;
         case 'program': html = field('Number (0–127)', 'min="0" max="127" value="0" data-a'); break;

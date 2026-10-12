@@ -23,6 +23,18 @@ libs.forEach((l, i) => {
   if (!l.verifiedAt) errors.push(`${at}: not verified yet; run \`npm run verify\``);
 });
 
+// Starter picks must point at catalog entries that aren't archived.
+const picks = JSON.parse(await readFile(new URL('data/picks.json', root), 'utf8'));
+const byRepo = new Map(libs.map((l) => [l.repo.toLowerCase(), l]));
+for (const group of picks) {
+  for (const p of group.picks) {
+    const lib = byRepo.get(p.repo.toLowerCase());
+    if (!lib) errors.push(`picks.json: ${p.repo} is not in libraries.json`);
+    else if (lib.archived) errors.push(`picks.json: ${p.repo} is archived; pick something maintained`);
+    if (!p.task || !p.why || !/[.]$/.test(p.why)) errors.push(`picks.json: ${p.repo} needs a task and a one-sentence "why" ending with a period`);
+  }
+}
+
 if (errors.length) {
   console.error(`data/libraries.json has ${errors.length} problem(s):`);
   for (const e of errors) console.error(`  ✗ ${e}`);

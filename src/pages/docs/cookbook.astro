@@ -471,7 +471,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
       {
         lang: 'js', lib: '@tonejs/midi', libQuery: 'tonejs/midi',
         code: String.raw`// Node.js. In the browser, pass an ArrayBuffer from fetch() instead.
-const { Midi } = require('@tonejs/midi'); // CommonJS package: no named ESM import in Node
+const { Midi } = require('@tonejs/midi'); // Node: the main entry is CommonJS (bundlers get an ESM build)
 const { readFileSync } = require('node:fs');
 
 const midi = new Midi(readFileSync('song.mid'));

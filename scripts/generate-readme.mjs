@@ -13,6 +13,18 @@ const esc = (s) => s.replace(/\|/g, '\\|');
 const verifiedAt = libs.map((l) => l.verifiedAt).filter(Boolean).sort().at(-1) ?? 'n/a';
 
 const resources = JSON.parse(await readFile(new URL('data/resources.json', root), 'utf8'));
+const load = async (f) => JSON.parse(await readFile(new URL(`data/${f}`, root), 'utf8'));
+const picks = await load('picks.json');
+const community = await load('community.json');
+const midiFiles = await load('midi-files.json');
+const sampleSources = await load('sample-sources.json');
+const instruments = await load('samples.json');
+const byRepo = new Map(libs.map((l) => [l.repo.toLowerCase(), l]));
+// Counts that aren't in data files, read from the site source so they never drift.
+const docsNav = await readFile(new URL('src/lib/docs-nav.ts', root), 'utf8');
+const docCount = (docsNav.match(/\{ slug: '/g) ?? []).length;
+const toolsSrc = await readFile(new URL('src/lib/tools.ts', root), 'utf8');
+const toolCount = (toolsSrc.match(/^    slug: '/gm) ?? []).length;
 const SITE = 'https://midi.community';
 const archivedCount = libs.filter((l) => l.archived).length;
 
@@ -46,6 +58,7 @@ Every project below is checked against the GitHub API: it must exist and be publ
 ## Contents
 
 - [On the website](#on-the-website)
+- [Where to start](#where-to-start)
 - [Libraries and tools](#libraries-and-tools)
 ${cats.map((c) => `  - [${c.title}](#${slug(c.title)}) (${libs.filter((l) => l.category === c.id).length})`).join('\n')}
 - [Browse by language](#browse-by-language)
@@ -55,15 +68,33 @@ ${cats.map((c) => `  - [${c.title}](#${slug(c.title)}) (${libs.filter((l) => l.c
 
 ## On the website
 
-The catalog is one part of **[midi.community](${SITE})**, an open reference for people building instruments, plugins, firmware and tools:
+The catalog is one part of **[midi.community](${SITE})**, an open reference for people learning MIDI and building instruments, plugins, firmware and tools. Everything runs in the browser; nothing is uploaded.
 
-- 📖 **[Protocol docs](${SITE}/docs/)**: messages and running status, notes and pitch, Control Change, RPN/NRPN, SysEx, timing (clock, SPP, MTC), Standard MIDI Files, General MIDI, MPE, MIDI 2.0 and UMP, MIDI-CI, transports (DIN, TRS, USB, BLE, RTP)
-- 🍳 **[Cookbook](${SITE}/docs/cookbook/)**: tested snippets in JavaScript (Web MIDI), Python (mido), C++ (RtMidi) and Rust (midir, midly)
+<p align="center">
+  <a href="${SITE}"><img src=".github/readme/home.jpg" alt="Home page: a live MIDI byte stream with playable keys" width="49%"></a>
+  <a href="${SITE}/reader/"><img src=".github/readme/reader.jpg" alt="MIDI Reader: tracks, piano roll and an annotated hex view of a .mid file" width="49%"></a>
+  <a href="${SITE}/docs/smf/"><img src=".github/readme/docs.jpg" alt="Docs: the Standard MIDI File chunk diagram" width="49%"></a>
+  <a href="${SITE}/tools/"><img src=".github/readme/tools.jpg" alt="Tools hub grouped by task" width="49%"></a>
+</p>
+
+- 📖 **[Docs](${SITE}/docs/)**: ${docCount} chapters, from [MIDI in five minutes](${SITE}/docs/intro/) to messages and running status, notes and pitch, Control Change, RPN/NRPN, SysEx, timing (clock, SPP, MTC), transports (DIN, TRS, USB, BLE, RTP), Standard MIDI Files, General MIDI, MPE, MIDI 2.0 and UMP, and MIDI-CI, with diagrams and runnable [cookbook](${SITE}/docs/cookbook/) recipes in JavaScript, Python, C++ and Rust
 - 🔍 **[MIDI Reader](${SITE}/reader/)**: open a \`.mid\` file and see every track, tempo change, controller and SysEx explained, with a piano roll, sampled playback, an annotated hex view, and export to edited .mid, CSV or JSON
-- 🧰 **[Tools](${SITE}/tools/)**: [CC map](${SITE}/tools/cc/), [chords & scales](${SITE}/tools/chords/), [clock & latency tester](${SITE}/tools/clock/), [MPE playground](${SITE}/tools/mpe/), [RPN/NRPN builder](${SITE}/tools/rpn/), SysEx builder, message decoder, VLQ encoder, tempo calculator, note table, and a live [Web MIDI monitor](${SITE}/tools/monitor/)
-- 🎹 **[Samples](${SITE}/samples/)**: play openly licensed instruments in the browser, plus SoundFont, SFZ and multisample sources with license notes
-- 💬 **[Community](${SITE}/community/)**: forums, subreddits, Discord servers and mailing lists, and [where to get MIDI files](${SITE}/community/midi-files/) with license and copyright notes
-- 📜 **[Glossary](${SITE}/docs/glossary/)**, **[History of MIDI](${SITE}/docs/history/)**, **[Specs & resources](${SITE}/docs/resources/)**
+- 🧰 **[${toolCount} tools](${SITE}/tools/)**: [Web MIDI monitor](${SITE}/tools/monitor/), [message decoder](${SITE}/tools/decoder/), [clock & latency tester](${SITE}/tools/clock/), [SysEx builder](${SITE}/tools/sysex/), [RPN & NRPN builder](${SITE}/tools/rpn/), [MPE playground](${SITE}/tools/mpe/), [CC map](${SITE}/tools/cc/), [chords & scales](${SITE}/tools/chords/), note table, tempo calculator and VLQ encoder
+- 🎹 **[Samples](${SITE}/samples/)**: play ${instruments.length} openly licensed instruments with a mouse, touch screen, computer keyboard or MIDI controller, plus ${sampleSources.length} SoundFont, SFZ and multisample libraries with license notes
+- 💬 **[Community](${SITE}/community/)**: ${community.length} forums, subreddits, Discord servers and mailing lists, and [${midiFiles.length} sources of MIDI files](${SITE}/community/midi-files/) with license and copyright notes
+- 📜 **[Glossary](${SITE}/docs/glossary/)**, **[History of MIDI](${SITE}/docs/history/)**, **[${resources.length} specs & references](${SITE}/docs/resources/)**, and site-wide search (press <kbd>⌘K</kbd> or <kbd>/</kbd>)
+
+[↑ back to contents](#contents)
+
+## Where to start
+
+Dependable first choices by language. Everything else is in the full list below.
+
+| Language | Library | For | Why |
+|---|---|---|---|
+${picks.flatMap((g) => g.picks.map((p, i) => { const l = byRepo.get(p.repo.toLowerCase()); return `| ${i === 0 ? g.language : ''} | [${esc(l.name)}](https://github.com/${l.repo}) | ${esc(p.task)} | ${esc(p.why)} |`; })).join('\n')}
+
+[↑ back to contents](#contents)
 
 ## Libraries and tools
 
@@ -109,14 +140,21 @@ Contributions are welcome: new libraries, corrections to the docs, and improveme
 
 \`\`\`sh
 npm install
-npm run dev        # http://localhost:4321
-npm run verify     # re-check every repo via the GitHub API (needs the gh CLI)
-npm run build      # validate data, regenerate README, build, check internal links
+npm run dev               # http://localhost:4321
+npm test                  # unit tests (Node 22.18+)
+npm run verify            # re-check every repo via the GitHub API (needs the gh CLI)
+npm run verify:resources  # check every external link in the community, MIDI-file and spec lists
+npm run verify:samples    # check sample sources, bundled sounds and their licenses
+npm run build             # validate data, regenerate README, build, check internal links
 \`\`\`
+
+A weekly GitHub Action runs the same checks and opens a pull request with refreshed library metadata.
 
 ## License
 
-Site code is [MIT](LICENSE). The catalog data and documentation text are dedicated to the public domain under [CC0 1.0](LICENSE-CC0).
+Site code is [MIT](LICENSE). The catalog data, documentation text and demo MIDI files are dedicated to the public domain under [CC0 1.0](LICENSE-CC0).
+
+Third-party assets keep their own licenses: the instrument samples in \`public/sounds/\` are CC0 or CC BY (each folder has a \`LICENSE.txt\` with attribution), and the fonts are under the SIL Open Font License.
 
 MIDI is a trademark of the MIDI Manufacturers Association. This project is independent and not affiliated with the MMA or AMEI.
 `;

@@ -5,6 +5,14 @@
   "description": "The field guide to MIDI: protocol docs, interactive tools, and a curated catalog of open-source MIDI libraries.",
   "type": "module",
   "license": "MIT",
+  "homepage": "https://midi.community",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wustep/midi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wustep/midi/issues"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "node scripts/validate-data.mjs && node scripts/generate-readme.mjs && astro build && node scripts/check-links.mjs",
@@ -25,6 +33,6 @@
     "astro": "^7.3.8"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.18"
   }
 }

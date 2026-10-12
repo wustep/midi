@@ -8,6 +8,7 @@ import categories from '../../data/categories.json';
 
 /** Docs chapter → tools to try it with, and library categories with code for it. */
 export const DOC_RELATIONS: Record<string, { tools: string[]; libs: string[] }> = {
+  intro: { tools: ['monitor', 'reader'], libs: [] },
   messages: { tools: ['decoder', 'monitor'], libs: ['realtime', 'utilities'] },
   notes: { tools: ['notes', 'chords'], libs: ['notation'] },
   'control-change': { tools: ['cc', 'rpn'], libs: ['hardware', 'realtime'] },

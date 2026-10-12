@@ -101,7 +101,8 @@ const manufacturers = [
   <pre><code><span class="b b-s">F0</span> <span class="b b-m">7E|7F</span> <span class="b b-d">dev</span> <span class="b b-d">sub-id#1</span> <span class="b b-d">sub-id#2</span> <span class="b b-d">data …</span> <span class="b b-s">F7</span></code></pre>
   <p>
     <code>dev</code> is the <strong>device ID</strong> (often called the SysEx channel), <code>00</code>–<code>7F</code>.
-    Devices usually default to <code>7F</code> or to a user-set value. <code>7F</code> in a message means "all call":
+    Each device has its own device ID, usually user-settable; the factory default varies by maker (Roland, for
+    example, uses <code>10</code>). <code>7F</code> in a message means "all call":
     every device should respond.
   </p>
 

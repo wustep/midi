@@ -23,7 +23,7 @@ const quickRef = [
 const libCount = libraries.length;
 const libRounded = Math.floor(libCount / 10) * 10;
 const languages = new Set(libraries.map((l) => l.language)).size;
-const startHere = ['messages', 'notes', 'control-change', 'smf', 'mpe', 'midi-2'].map((s) => docsFlat.find((d) => d.slug === s)!);
+const startHere = ['intro', 'messages', 'notes', 'control-change', 'smf', 'midi-2'].map((s) => docsFlat.find((d) => d.slug === s)!);
 const featured = ['reader', 'monitor', 'cc'].map(toolBySlug);
 const topCats = [...categories]
   .map((c) => ({ ...c, n: libraries.filter((l) => l.category === c.id).length, top: libraries.filter((l) => l.category === c.id && !l.archived).sort((a, b) => b.stars - a.stars).slice(0, 3) }))
@@ -45,6 +45,7 @@ const topCats = [...categories]
         <a class="btn" href="/reader/">Open a MIDI file</a>
         <a class="btn" href="/libraries/">Browse {libRounded}+ libraries</a>
       </div>
+      <p class="newbie">New to MIDI? Start with <a href="/docs/intro/">MIDI in five minutes →</a></p>
     </div>
 
     <HeroStream />
@@ -199,6 +200,11 @@ const topCats = [...categories]
   }
   .hl {
     color: var(--accent);
+  }
+  .newbie {
+    margin: var(--s-4) 0 0;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
   }
   .cta {
     display: flex;

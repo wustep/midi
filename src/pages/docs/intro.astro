@@ -1,0 +1,89 @@
+---
+import Doc from '../../layouts/Doc.astro';
+import Callout from '../../components/Callout.astro';
+---
+
+<Doc title="MIDI in five minutes" slug="intro" eyebrow="Start here" specs={[{ label: 'MIDI Association specifications', href: 'https://midi.org/specs' }]}>
+  <p class="lede">
+    MIDI is how musical instruments and computers tell each other what to play. It doesn't carry sound: it carries
+    instructions, like “press middle C, fairly hard” and “let go of it now”.
+  </p>
+
+  <h2 id="what">What MIDI is, and isn't</h2>
+  <p>
+    MIDI (Musical Instrument Digital Interface) is a standard from 1983 that lets keyboards, drum machines, synths,
+    computers and apps from any maker work together. A MIDI connection sends short <strong>messages</strong> describing
+    a performance: which key went down, how hard it was struck, when it was released, which knob moved and where to.
+  </p>
+  <p>
+    Because MIDI is instructions, not audio, the sound comes from whatever receives it. The same MIDI notes can play a
+    grand piano in one app and a drum kit in another. That's also why MIDI files are tiny: a whole song is a few
+    kilobytes of “play this note now” rather than megabytes of recorded sound.
+  </p>
+
+  <h2 id="messages">What travels down the cable</h2>
+  <p>Most of what you'll ever see is a handful of message types, each a few bytes long:</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Message</th><th>What it says</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Note On / Note Off</td><td>A key went down or came up, with its note number and how hard (velocity, 1–127).</td><td>Middle C is note 60</td></tr>
+        <tr><td>Control Change</td><td>A knob, slider, wheel or pedal moved to a value from 0 to 127.</td><td>Sustain pedal is controller 64</td></tr>
+        <tr><td>Program Change</td><td>Switch to a different sound or preset.</td><td>Program 1 is “Acoustic Grand Piano” in General MIDI</td></tr>
+        <tr><td>Pitch Bend</td><td>The pitch wheel moved, with fine resolution.</td><td>Centered is “no bend”</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Each message is sent on one of <strong>16 channels</strong>, so one cable can drive 16 different sounds at once:
+    piano on channel 1, bass on channel 2, and so on. Notes are numbered 0 to 127, a little over ten octaves.
+    <a href="/docs/messages/">Messages</a> shows exactly how these are encoded, byte by byte.
+  </p>
+
+  <h2 id="connecting">How gear connects</h2>
+  <ul>
+    <li><strong>USB</strong> is the most common today. Most controllers are “class compliant”: plug them into a computer, phone or tablet and they work without a driver.</li>
+    <li><strong>5-pin DIN cables</strong> are the classic MIDI connection, still on most synths and drum machines. Smaller gear often uses <strong>3.5 mm TRS jacks</strong> with an adapter to DIN. Data flows one way per cable: OUT on one device to IN on the next.</li>
+    <li><strong>Bluetooth (BLE-MIDI)</strong> and <strong>network MIDI</strong> carry the same messages wirelessly or over Ethernet and Wi-Fi.</li>
+  </ul>
+  <p>See <a href="/docs/transports/">Transports</a> for the details of each.</p>
+
+  <h2 id="setups">Three common setups</h2>
+  <ol>
+    <li><strong>Controller → computer.</strong> A USB keyboard or pad controller makes no sound itself; a DAW or software instrument on the computer turns its notes into audio.</li>
+    <li><strong>Keyboard → synth.</strong> One instrument's MIDI OUT plays another's MIDI IN, so you can play the synth's sounds from a better keyboard.</li>
+    <li><strong>Computer → hardware.</strong> A sequencer or DAW sends notes and clock to drum machines and synths, so they play back parts in time.</li>
+  </ol>
+
+  <h2 id="files">MIDI files</h2>
+  <p>
+    A <code>.mid</code> file stores timed MIDI messages, usually one track per instrument. To hear one, something has to
+    play the notes: a software synth, a DAW, or the <a href="/reader/">MIDI Reader</a> on this site. Most files are
+    written for <a href="/docs/general-midi/">General MIDI</a>, a shared map of 128 instrument sounds plus drums on
+    channel 10, so they sound roughly right on any compatible player.
+  </p>
+
+  <h2 id="midi-2">What about MIDI 2.0?</h2>
+  <p>
+    MIDI 2.0, published in 2020, adds much finer resolution, more channels, per-note control and devices that can
+    describe their own capabilities. It is designed to work alongside MIDI 1.0, which remains what almost all gear speaks
+    today. Start with MIDI 1.0; <a href="/docs/midi-2/">MIDI 2.0 &amp; UMP</a> covers the new format when you need it.
+  </p>
+
+  <Callout title="Two common misconceptions">
+    <ul>
+      <li><strong>“MIDI sounds cheap.”</strong> MIDI has no sound of its own. It sounds as good as the instrument that plays it.</li>
+      <li><strong>“MIDI is obsolete.”</strong> It's in nearly every keyboard, controller, DAW and phone music app, and its 1983 messages still work unchanged.</li>
+    </ul>
+  </Callout>
+
+  <h2 id="next">Try it now</h2>
+  <ul>
+    <li>Plug in a controller and watch its messages in the <a href="/tools/monitor/">Web MIDI monitor</a> (Chrome, Edge, Firefox or Opera on a computer).</li>
+    <li>Open a <code>.mid</code> file, or one of the demos, in the <a href="/reader/">MIDI Reader</a> and see every note and byte.</li>
+    <li>Play free instruments on the <a href="/samples/">Samples</a> page with your mouse, keyboard or controller.</li>
+    <li>Then read <a href="/docs/messages/">Messages</a>, <a href="/docs/notes/">Notes &amp; Pitch</a> and <a href="/docs/control-change/">Control Change</a>, in that order.</li>
+  </ul>
+</Doc>

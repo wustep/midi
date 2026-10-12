@@ -1,6 +1,13 @@
-The documentation text (src/pages/docs/) and catalog data (data/) of MIDI Field Guide
-are dedicated to the public domain under CC0 1.0 Universal. The site source code is
-licensed separately under the MIT License (see LICENSE).
+The documentation text (src/pages/docs/), catalog data (data/) and demo MIDI files
+(public/demos/) of MIDI Field Guide are dedicated to the public domain under CC0 1.0
+Universal. The site source code is licensed separately under the MIT License (see LICENSE).
+
+Third-party assets keep their own licenses and are NOT covered by this dedication:
+  - public/sounds/<instrument>/  instrument samples, CC0 or CC BY; each folder has a
+                                 LICENSE.txt with the source, attribution and changes made.
+  - public/fonts/                Archivo (subset), SIL Open Font License 1.1; see
+                                 public/fonts/Archivo-OFL.txt. Other fonts are installed from
+                                 npm (@fontsource-variable/*, OFL-1.1).
 
 Creative Commons Legal Code
 

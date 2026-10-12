@@ -1,0 +1,81 @@
+# Weekly data check: refresh every library against the GitHub API, regenerate the README,
+# check every external link, and open a pull request if anything changed.
+name: Weekly verify
+
+on:
+  schedule:
+    - cron: '17 6 * * 1' # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: weekly-verify
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Refresh libraries (stars, license, archived, renames)
+        run: npm run verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Validate data and regenerate README
+        run: |
+          npm run check:data
+          npm run readme
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Check external links (resources, community, MIDI files)
+        id: resources
+        continue-on-error: true
+        run: npm run verify:resources
+
+      - name: Check sample sources and bundled sounds
+        id: samples
+        continue-on-error: true
+        run: npm run verify:samples
+
+      - name: Build and check internal links
+        run: npm run build
+
+      - name: Open a pull request with refreshed data
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/weekly-verify
+          delete-branch: true
+          commit-message: 'Weekly verify: refresh library metadata and README'
+          title: 'Weekly verify: refreshed library metadata'
+          body: |
+            Automated weekly check.
+
+            - Libraries re-verified against the GitHub API (stars, license, last push, archived, renames; 404s removed).
+            - README regenerated.
+            - External link check: **${{ steps.resources.outcome }}** · sample sources: **${{ steps.samples.outcome }}** (see the workflow log for any failures).
+
+            Review removals and renames before merging.
+          add-paths: |
+            data/libraries.json
+            README.md
+
+      - name: Fail if external links are broken
+        if: steps.resources.outcome == 'failure' || steps.samples.outcome == 'failure'
+        run: |
+          echo "::warning::Some external links failed. See the 'Check external links' and 'Check sample sources' steps."
+          exit 1

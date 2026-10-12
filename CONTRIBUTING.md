@@ -14,7 +14,7 @@ npm run dev      # http://localhost:4321
 npm run build    # validates data, regenerates README.md, builds dist/, then checks every internal link
 ```
 
-Node 20+ is required. Verifying the catalog requires the [GitHub CLI](https://cli.github.com/) (`gh auth login`).
+Node 22.18+ is required (the tests run TypeScript directly). Verifying the catalog requires the [GitHub CLI](https://cli.github.com/) (`gh auth login`).
 
 ## Adding a library
 
@@ -53,6 +53,10 @@ Commit `data/libraries.json` **and** the regenerated `README.md`. Never edit `RE
 - Useful to others: documented, installable or buildable, and not a homework-sized experiment.
 - Archived projects may stay if they remain widely used or historically important; they're flagged in the UI and README.
 
+### Starter picks
+
+[`data/picks.json`](data/picks.json) lists a few dependable first choices per language, shown at the top of the catalog and in the README. Every pick must be a non-archived entry in \`libraries.json\` with a one-sentence reason (\`npm run check:data\` enforces this). Keep it short: a pick should be the library most people in that language would recommend first.
+
 ## Specs, community and MIDI-file links
 
 - [`data/resources.json`](data/resources.json): official specs and references (Specs & Resources page).
@@ -70,6 +74,14 @@ Run `npm run verify:resources` to check every URL (redirects followed; hosts kno
 - **Page shells:** every page uses the shared `.page` shell and `.page-head` header (eyebrow = section name), with cards from `.card-grid`/`.card` and directory lists from `.link-rows` in [`src/styles/global.css`](src/styles/global.css). Use the spacing (`--s-*`) and type (`--t-*`) tokens rather than new values.
 - **Cross-links:** how docs, tools and library categories relate lives in one place, [`src/lib/related.ts`](src/lib/related.ts). Docs pages show "Try it / Code" links from it, tool pages show Background and Libraries links, and the catalog shows "Read first" for a category. Add relations there, not as hand-written callouts.
 - **Search:** the ⌘K palette and `/search/` use an index built at build time by [`src/pages/search.json.ts`](src/pages/search.json.ts) from the docs headings, tools, glossary, CC table and every data file. New data shows up automatically.
+
+## Automation
+
+A weekly GitHub Action ([\`.github/workflows/verify.yml\`](.github/workflows/verify.yml)) re-verifies every library, regenerates the README, runs the tests and the external-link checks, and opens a pull request with any metadata changes. Review removals and renames before merging; a 403 from a site that blocks bots is reported as a warning, not a failure.
+
+## README screenshots
+
+The images in \`.github/readme/\` are screenshots of the live site (home, Reader, a docs page with a diagram, tools hub) at 1440 px, resized to 1200 px wide JPEGs (about 100–200 KB each). Retake them when the pages change noticeably.
 
 ## Social images and fonts
 

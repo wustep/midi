@@ -12,6 +12,12 @@ export interface DocGroup {
 
 export const docGroups: DocGroup[] = [
   {
+    title: 'Start here',
+    items: [
+      { slug: 'intro', title: 'MIDI in five minutes', summary: 'What MIDI is (and isn’t), what travels down the cable, how gear connects, and where to go next.' },
+    ],
+  },
+  {
     title: 'MIDI 1.0',
     items: [
       { slug: 'messages', title: 'Messages', summary: 'Status and data bytes, channel voice & mode messages, system common & real-time, running status.' },

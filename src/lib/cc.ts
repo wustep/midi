@@ -25,7 +25,7 @@ export interface CcInfo {
 }
 
 export const KIND_LABELS: Record<CcKind, string> = {
-  msb: 'Continuous (MSB)',
+  msb: 'Continuous',
   lsb: 'LSB of a 14-bit pair',
   switch: 'Switch (on/off)',
   sound: 'Sound controller',

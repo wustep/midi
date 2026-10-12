@@ -136,7 +136,7 @@ const related = relatedForDoc(slug);
 
 <script>
   // Hover anchors on section headings, so any section can be linked.
-  for (const h of document.querySelectorAll<HTMLElement>('.prose :is(h2, h3)[id]')) {
+  for (const h of document.querySelectorAll<HTMLElement>('.prose :is(h2, h3)[id]:not(.widget-title)')) {
     const a = document.createElement('a');
     a.className = 'anchor';
     a.href = `#${h.id}`;

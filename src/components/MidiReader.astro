@@ -42,20 +42,6 @@ const demos = [
   <p class="rd-status" role="status" aria-live="polite" data-status></p>
 
   <div data-result hidden>
-    <section class="rd-sec" aria-labelledby="rd-overview">
-      <h2 id="rd-overview">Overview</h2>
-      <dl class="rd-summary" data-summary></dl>
-      <div data-warnings></div>
-      <details class="rd-fold sub" data-fold open>
-        <summary><h3>The header chunk, byte by byte</h3><span class="rd-count">14 bytes</span></summary>
-        <p class="rd-explain">
-          Every Standard MIDI File starts with a 14-byte <code>MThd</code> chunk. It says how the tracks relate (the
-          format), how many track chunks follow, and how to turn ticks into time (the division).
-        </p>
-        <div class="rd-anno" data-header-anno></div>
-      </details>
-    </section>
-
     <button type="button" class="rd-fab" data-fab aria-label="Play" hidden>
       <svg class="i-play" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9.5-5.5z"></path></svg>
       <svg class="i-pause" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zm6 0h3v11h-3z"></path></svg>
@@ -94,6 +80,20 @@ const demos = [
         </select>
       </label>
     </div>
+
+    <section class="rd-sec" aria-labelledby="rd-overview">
+      <h2 id="rd-overview">Overview</h2>
+      <dl class="rd-summary" data-summary></dl>
+      <div data-warnings></div>
+      <details class="rd-fold sub" data-fold open>
+        <summary><h3>The header chunk, byte by byte</h3><span class="rd-count">14 bytes</span></summary>
+        <p class="rd-explain">
+          Every Standard MIDI File starts with a 14-byte <code>MThd</code> chunk. It says how the tracks relate (the
+          format), how many track chunks follow, and how to turn ticks into time (the division).
+        </p>
+        <div class="rd-anno" data-header-anno></div>
+      </details>
+    </section>
 
     <section class="rd-sec" aria-labelledby="rd-roll">
       <div class="rd-head">
@@ -417,6 +417,8 @@ const demos = [
       selected = undefined;
       pxPerSec = 0;
       status.textContent = `Opened ${name}.`;
+      // On phones, bring the play controls into view; the rest of the file reads below them.
+      if (matchMedia('(max-width: 720px)').matches) requestAnimationFrame(() => $('[data-transport]').scrollIntoView({ block: 'start', behavior: 'smooth' }));
       drop.classList.add('is-compact');
       result.hidden = false;
       $('[data-lanes-label]').textContent = byChannel ? 'Per channel' : 'Per track';
@@ -1440,7 +1442,7 @@ const demos = [
     align-items: center;
     gap: 0.6rem 0.75rem;
     padding: 0.7rem 0.75rem;
-    margin: 2rem 0 0;
+    margin: var(--s-2) 0 0;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: color-mix(in srgb, var(--surface) 94%, transparent);

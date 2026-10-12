@@ -9,7 +9,7 @@ export interface RpnDef {
   lsb: number;
   name: string;
   /** How the 14-bit data value is interpreted. */
-  unit: 'semitones+cents' | 'cents14' | 'semitones-centered' | 'program' | 'members' | 'raw';
+  unit: 'semitones+cents' | 'semitones+128ths' | 'cents14' | 'semitones-centered' | 'program' | 'members' | 'raw';
   source: string;
   detail: string;
 }
@@ -20,7 +20,7 @@ export const RPNS: RpnDef[] = [
   { msb: 0, lsb: 2, name: 'Channel Coarse Tuning', unit: 'semitones-centered', source: 'MIDI 1.0', detail: 'Data MSB only: 64 = no change, each step is one semitone (−64 to +63). LSB is ignored.' },
   { msb: 0, lsb: 3, name: 'Tuning Program Change', unit: 'program', source: 'MIDI Tuning Standard', detail: 'Data MSB selects a tuning program (0–127) in the current tuning bank.' },
   { msb: 0, lsb: 4, name: 'Tuning Bank Select', unit: 'program', source: 'MIDI Tuning Standard', detail: 'Data MSB selects a tuning bank (0–127).' },
-  { msb: 0, lsb: 5, name: 'Modulation Depth Range', unit: 'semitones+cents', source: 'GM2 (CA-026)', detail: 'How far the modulation wheel can push vibrato: MSB semitones, LSB cents in 100/128 steps.' },
+  { msb: 0, lsb: 5, name: 'Modulation Depth Range', unit: 'semitones+128ths', source: 'GM2 (CA-026)', detail: 'How far the modulation wheel can push vibrato: data MSB = semitones, data LSB = 128ths of a semitone (100/128 ≈ 0.78 cent per step, so LSB 64 = 50 cents). The builder’s second field is that raw LSB, not cents.' },
   { msb: 0, lsb: 6, name: 'MPE Configuration Message', unit: 'members', source: 'MPE', detail: 'Sent on channel 1 (lower zone) or 16 (upper zone); data MSB = number of member channels (0 turns the zone off).' },
   { msb: 0x3d, lsb: 0, name: 'Azimuth Angle', unit: 'raw', source: '3D Sound Controllers (RP-049)', detail: 'Direction of the sound source in the horizontal plane.' },
   { msb: 0x3d, lsb: 1, name: 'Elevation Angle', unit: 'raw', source: '3D Sound Controllers (RP-049)', detail: 'Direction of the sound source above or below the horizontal plane.' },
@@ -86,7 +86,8 @@ export function flatten(msgs: number[][], runningStatus = false): number[] {
 /** Turn friendly units into the 14-bit data value, and back. */
 export function encodeValue(def: Pick<RpnDef, 'unit'>, a: number, b = 0): number {
   switch (def.unit) {
-    case 'semitones+cents': return (Math.max(0, Math.min(127, Math.round(a))) << 7) | Math.max(0, Math.min(127, Math.round(b)));
+    case 'semitones+cents':
+    case 'semitones+128ths': return (Math.max(0, Math.min(127, Math.round(a))) << 7) | Math.max(0, Math.min(127, Math.round(b)));
     case 'cents14': return Math.max(0, Math.min(16383, Math.round(8192 + (a / 100) * 8192)));
     case 'semitones-centered': return Math.max(0, Math.min(127, Math.round(64 + a))) << 7;
     case 'program':
@@ -100,6 +101,7 @@ export function describeValue(def: Pick<RpnDef, 'unit'> | undefined, v: number):
   const lsb = v & 0x7f;
   switch (def?.unit) {
     case 'semitones+cents': return `${msb} semitone${msb === 1 ? '' : 's'}${lsb ? ` ${lsb} cent${lsb === 1 ? '' : 's'}` : ''}`;
+    case 'semitones+128ths': return `${msb} semitone${msb === 1 ? '' : 's'}${lsb ? ` + ${lsb}/128 (${((lsb * 100) / 128).toFixed(1)} cents)` : ''}`;
     case 'cents14': {
       const c = ((v - 8192) / 8192) * 100;
       return `${c >= 0 ? '+' : ''}${c.toFixed(2)} cents`;

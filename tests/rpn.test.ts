@@ -56,3 +56,10 @@ test('decodes the parameter state machine like a receiver', () => {
 test('splits running-status byte streams', () => {
   assert.deepEqual(splitMessages([0xb0, 101, 0, 100, 0, 0xf8, 6, 12, 0xc0, 5]), [[0xb0, 101, 0], [0xb0, 100, 0], [0xb0, 6, 12], [0xc0, 5]]);
 });
+
+test('modulation depth range uses 128ths of a semitone', () => {
+  const d = findRpn(0, 5)!;
+  assert.equal(d.unit, 'semitones+128ths');
+  assert.equal(encodeValue(d, 0, 64), 64);
+  assert.equal(describeValue(d, 64), '0 semitones + 64/128 (50.0 cents)');
+});

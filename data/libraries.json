@@ -1013,7 +1013,7 @@
     "category": "hardware",
     "description": "Embedded USB host/device stack with class-compliant USB-MIDI support.",
     "license": "MIT",
-    "stars": 7192,
+    "stars": 7193,
     "pushedAt": "2026-10-12",
     "archived": false,
     "homepage": "https://www.tinyusb.org",
@@ -4981,7 +4981,7 @@
     "description": "VST3/AU plugin that transcribes audio to MIDI with a neural network and exports the result by drag and drop.",
     "license": "Apache-2.0",
     "stars": 3101,
-    "pushedAt": "2026-10-09",
+    "pushedAt": "2026-10-12",
     "archived": false,
     "homepage": "https://damrsn.github.io/NeuralNote/",
     "verifiedAt": "2026-10-12"

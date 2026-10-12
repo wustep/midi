@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import libraries from '../../data/libraries.json';
 import categories from '../../data/categories.json';
 import { docsForCategory, toolsForCategory } from '../lib/related';
+import picks from '../../data/picks.json';
 
 type Lib = (typeof libraries)[number];
 
@@ -17,6 +18,8 @@ const languages = [...langCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].l
 const catTitle = Object.fromEntries(categories.map((c) => [c.id, c.short]));
 const fmtStars = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
 const verifiedAt = libraries.map((l) => l.verifiedAt).sort().at(-1);
+const pickRepos = new Set(picks.flatMap((g) => g.picks.map((p) => p.repo.toLowerCase())));
+const libByRepo = new Map(libraries.map((l) => [l.repo.toLowerCase(), l]));
 const year = (d: string | null) => (d ? d.slice(0, 4) : '');
 // "Stale" relative to the last verification, so the label doesn't drift as the data ages.
 const stale = (d: string | null) => Boolean(d && verifiedAt && Number(verifiedAt.slice(0, 4)) - Number(d.slice(0, 4)) >= 2);
@@ -36,6 +39,30 @@ const context = Object.fromEntries(
         Also available as a plain <a href="https://github.com/wustep/midi#readme">awesome list on GitHub</a>.
       </p>
     </header>
+
+    <details class="starters" open data-fold-phone>
+      <summary><h2>Where to start</h2><span>Dependable first choices by language. Everything else is below.</span></summary>
+      <div class="starter-grid">
+        {
+          picks.map((g) => (
+            <section>
+              <h3>{g.language}</h3>
+              <ul>
+                {g.picks.map((p) => {
+                  const lib = libByRepo.get(p.repo.toLowerCase())!;
+                  return (
+                    <li>
+                      <a href={`https://github.com/${lib.repo}`}>{lib.name}</a> <span class="task">{p.task}</span>
+                      <p>{p.why}</p>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+    </details>
 
     <form class="filters" role="search" aria-label="Filter libraries" onsubmit="return false">
       <div class="f-search">
@@ -105,6 +132,7 @@ const context = Object.fromEntries(
             <p class="repo">{l.repo}</p>
             <p class="desc">{l.description}</p>
             <div class="meta">
+              {pickRepos.has(l.repo.toLowerCase()) && <span class="tag tag-pick">Starter pick</span>}
               <span class="tag tag-cat">{catTitle[l.category]}</span>
               <span class="tag">{l.language}</span>
               {l.license && <span class="tag tag-quiet">{l.license}</span>}
@@ -237,6 +265,71 @@ const context = Object.fromEntries(
   .more-wrap {
     text-align: center;
     margin: var(--s-5) 0 0;
+  }
+  .tag-pick {
+    background: var(--data-soft);
+    color: var(--data);
+    font-weight: 700;
+  }
+  .starters {
+    margin: 0 0 var(--s-6);
+    padding: var(--s-4) var(--s-5);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .starters > summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--s-1) var(--s-4);
+    cursor: pointer;
+    list-style: none;
+    min-height: 2.5rem;
+  }
+  .starters > summary::-webkit-details-marker {
+    display: none;
+  }
+  .starters > summary h2 {
+    font-size: var(--t-lg);
+    margin: 0;
+  }
+  .starters > summary span {
+    font-size: var(--t-sm);
+    color: var(--muted);
+  }
+  .starter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
+    gap: var(--s-4) var(--s-6);
+    margin-top: var(--s-3);
+  }
+  .starter-grid h3 {
+    font-size: var(--t-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 var(--s-2);
+  }
+  .starter-grid ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: var(--s-2);
+  }
+  .starter-grid li a {
+    font-weight: 700;
+  }
+  .starter-grid .task {
+    font-size: var(--t-xs);
+    color: var(--muted);
+  }
+  .starter-grid p {
+    margin: 0.1rem 0 0;
+    font-size: var(--t-sm);
+    color: var(--ink-2);
+    line-height: 1.45;
   }
   .tag-stale {
     background: var(--warn-soft);

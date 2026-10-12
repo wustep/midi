@@ -3,7 +3,7 @@
 /** [term, definition HTML]. Definitions may link to docs pages; every anchor used here exists. */
 export const terms: [string, string][] = [
   ['14-bit controller', 'A controller value split across two Control Change messages, an MSB on CC 0–31 and an LSB on CC 32–63, giving 16,384 steps. See <a href="/docs/control-change/#fourteen-bit">14-bit pairs</a>.'],
-  ['Active Sensing', 'System real-time message <code>FE</code>. Once a receiver has seen one, it expects another at least every 300 ms and silences its voices if the stream stops. See <a href="/docs/timing/#active-sensing">Timing</a>.'],
+  ['Active Sensing', 'System real-time message <code>FE</code>. Once a receiver has seen one, it expects some message at least every 300 ms and silences its voices if the stream goes quiet. See <a href="/docs/timing/#active-sensing">Timing</a>.'],
   ['Aftertouch', 'Pressure applied to keys after they are down. <em>Channel pressure</em> (<code>Dn</code>) sends one value for the whole channel; <em>polyphonic key pressure</em> (<code>An</code>) sends one per note.'],
   ['AMEI', 'Association of Musical Electronics Industry, the Japanese body that co-develops and co-publishes the MIDI specifications with the MIDI Association. It grew out of the Japan MIDI Standards Committee (JMSC).'],
   ['Bank Select', 'CC 0 (MSB) and CC 32 (LSB), sent before a Program Change to reach more than 128 sounds. The new bank takes effect on the next Program Change. See <a href="/docs/general-midi/#gm2-banks">GM2 banks</a>.'],

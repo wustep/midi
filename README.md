@@ -21,6 +21,7 @@ Every project below is checked against the GitHub API: it must exist and be publ
 ## Contents
 
 - [On the website](#on-the-website)
+- [Where to start](#where-to-start)
 - [Libraries and tools](#libraries-and-tools)
   - [Parsing & Standard MIDI Files](#parsing--standard-midi-files) (36)
   - [Realtime I/O](#realtime-io) (37)
@@ -42,15 +43,47 @@ Every project below is checked against the GitHub API: it must exist and be publ
 
 ## On the website
 
-The catalog is one part of **[midi.community](https://midi.community)**, an open reference for people building instruments, plugins, firmware and tools:
+The catalog is one part of **[midi.community](https://midi.community)**, an open reference for people learning MIDI and building instruments, plugins, firmware and tools. Everything runs in the browser; nothing is uploaded.
 
-- 📖 **[Protocol docs](https://midi.community/docs/)**: messages and running status, notes and pitch, Control Change, RPN/NRPN, SysEx, timing (clock, SPP, MTC), Standard MIDI Files, General MIDI, MPE, MIDI 2.0 and UMP, MIDI-CI, transports (DIN, TRS, USB, BLE, RTP)
-- 🍳 **[Cookbook](https://midi.community/docs/cookbook/)**: tested snippets in JavaScript (Web MIDI), Python (mido), C++ (RtMidi) and Rust (midir, midly)
+<p align="center">
+  <a href="https://midi.community"><img src=".github/readme/home.jpg" alt="Home page: a live MIDI byte stream with playable keys" width="49%"></a>
+  <a href="https://midi.community/reader/"><img src=".github/readme/reader.jpg" alt="MIDI Reader: tracks, piano roll and an annotated hex view of a .mid file" width="49%"></a>
+  <a href="https://midi.community/docs/smf/"><img src=".github/readme/docs.jpg" alt="Docs: the Standard MIDI File chunk diagram" width="49%"></a>
+  <a href="https://midi.community/tools/"><img src=".github/readme/tools.jpg" alt="Tools hub grouped by task" width="49%"></a>
+</p>
+
+- 📖 **[Docs](https://midi.community/docs/)**: 17 chapters, from [MIDI in five minutes](https://midi.community/docs/intro/) to messages and running status, notes and pitch, Control Change, RPN/NRPN, SysEx, timing (clock, SPP, MTC), transports (DIN, TRS, USB, BLE, RTP), Standard MIDI Files, General MIDI, MPE, MIDI 2.0 and UMP, and MIDI-CI, with diagrams and runnable [cookbook](https://midi.community/docs/cookbook/) recipes in JavaScript, Python, C++ and Rust
 - 🔍 **[MIDI Reader](https://midi.community/reader/)**: open a `.mid` file and see every track, tempo change, controller and SysEx explained, with a piano roll, sampled playback, an annotated hex view, and export to edited .mid, CSV or JSON
-- 🧰 **[Tools](https://midi.community/tools/)**: [CC map](https://midi.community/tools/cc/), [chords & scales](https://midi.community/tools/chords/), [clock & latency tester](https://midi.community/tools/clock/), [MPE playground](https://midi.community/tools/mpe/), [RPN/NRPN builder](https://midi.community/tools/rpn/), SysEx builder, message decoder, VLQ encoder, tempo calculator, note table, and a live [Web MIDI monitor](https://midi.community/tools/monitor/)
-- 🎹 **[Samples](https://midi.community/samples/)**: play openly licensed instruments in the browser, plus SoundFont, SFZ and multisample sources with license notes
-- 💬 **[Community](https://midi.community/community/)**: forums, subreddits, Discord servers and mailing lists, and [where to get MIDI files](https://midi.community/community/midi-files/) with license and copyright notes
-- 📜 **[Glossary](https://midi.community/docs/glossary/)**, **[History of MIDI](https://midi.community/docs/history/)**, **[Specs & resources](https://midi.community/docs/resources/)**
+- 🧰 **[12 tools](https://midi.community/tools/)**: [Web MIDI monitor](https://midi.community/tools/monitor/), [message decoder](https://midi.community/tools/decoder/), [clock & latency tester](https://midi.community/tools/clock/), [SysEx builder](https://midi.community/tools/sysex/), [RPN & NRPN builder](https://midi.community/tools/rpn/), [MPE playground](https://midi.community/tools/mpe/), [CC map](https://midi.community/tools/cc/), [chords & scales](https://midi.community/tools/chords/), note table, tempo calculator and VLQ encoder
+- 🎹 **[Samples](https://midi.community/samples/)**: play 12 openly licensed instruments with a mouse, touch screen, computer keyboard or MIDI controller, plus 36 SoundFont, SFZ and multisample libraries with license notes
+- 💬 **[Community](https://midi.community/community/)**: 98 forums, subreddits, Discord servers and mailing lists, and [40 sources of MIDI files](https://midi.community/community/midi-files/) with license and copyright notes
+- 📜 **[Glossary](https://midi.community/docs/glossary/)**, **[History of MIDI](https://midi.community/docs/history/)**, **[65 specs & references](https://midi.community/docs/resources/)**, and site-wide search (press <kbd>⌘K</kbd> or <kbd>/</kbd>)
+
+[↑ back to contents](#contents)
+
+## Where to start
+
+Dependable first choices by language. Everything else is in the full list below.
+
+| Language | Library | For | Why |
+|---|---|---|---|
+| Python | [mido](https://github.com/mido/mido) | Messages, ports and files | The standard choice: a clean message API plus .mid reading and writing. |
+|  | [python-rtmidi](https://github.com/SpotlightKid/python-rtmidi) | Realtime I/O | Fast, cross-platform ports; mido can use it as its backend. |
+|  | [pretty_midi](https://github.com/craffel/pretty-midi) | Analysis | Notes, instruments and piano rolls for analysis and machine learning. |
+| JavaScript / TypeScript | [WEBMIDI.js](https://github.com/djipco/webmidi) | Web MIDI | A friendly layer over the Web MIDI API, with events and note names. |
+|  | [@tonejs/midi](https://github.com/Tonejs/Midi) | Files | Parses .mid into JSON tracks and notes, and writes them back, in browsers and Node. |
+| C++ | [RtMidi](https://github.com/thestk/rtmidi) | Realtime I/O | Small, long-standing, cross-platform port access with a simple API. |
+|  | [libremidi](https://github.com/celtera/libremidi) | Realtime I/O and MIDI 2.0 | A modern C++20 take with UMP and more backends. |
+|  | [JUCE](https://github.com/juce-framework/JUCE) | Plugins and apps | Full audio-app framework with MIDI devices, files and messages built in. |
+| Rust | [midir](https://github.com/Boddlnagg/midir) | Realtime I/O | Cross-platform ports, including Web MIDI through WebAssembly. |
+|  | [midly](https://github.com/kovaxis/midly) | Files | Fast, zero-copy Standard MIDI File parsing and writing. |
+| C# | [DryWetMIDI](https://github.com/melanchall/drywetmidi) | Files and devices | Comprehensive: files, devices, playback and recording in one library. |
+| Go | [gomidi](https://github.com/gomidi/midi) | Files and I/O | Messages, SMF and pluggable drivers for realtime ports. |
+| Swift | [MIDIKit](https://github.com/orchetect/swift-midi) | Core MIDI | A modern Swift layer over Core MIDI with MIDI 2.0 support. |
+| Hardware | [Arduino MIDI Library](https://github.com/FortySevenEffects/arduino_midi_library) | Arduino (serial / DIN) | The standard MIDI library for Arduino boards. |
+|  | [TinyUSB](https://github.com/hathach/tinyusb) | USB-MIDI devices | Class-compliant USB MIDI on RP2040, ESP32-S2/S3, STM32 and more. |
+
+[↑ back to contents](#contents)
 
 ## Libraries and tools
 
@@ -714,13 +747,20 @@ Contributions are welcome: new libraries, corrections to the docs, and improveme
 
 ```sh
 npm install
-npm run dev        # http://localhost:4321
-npm run verify     # re-check every repo via the GitHub API (needs the gh CLI)
-npm run build      # validate data, regenerate README, build, check internal links
+npm run dev               # http://localhost:4321
+npm test                  # unit tests (Node 22.18+)
+npm run verify            # re-check every repo via the GitHub API (needs the gh CLI)
+npm run verify:resources  # check every external link in the community, MIDI-file and spec lists
+npm run verify:samples    # check sample sources, bundled sounds and their licenses
+npm run build             # validate data, regenerate README, build, check internal links
 ```
+
+A weekly GitHub Action runs the same checks and opens a pull request with refreshed library metadata.
 
 ## License
 
-Site code is [MIT](LICENSE). The catalog data and documentation text are dedicated to the public domain under [CC0 1.0](LICENSE-CC0).
+Site code is [MIT](LICENSE). The catalog data, documentation text and demo MIDI files are dedicated to the public domain under [CC0 1.0](LICENSE-CC0).
+
+Third-party assets keep their own licenses: the instrument samples in `public/sounds/` are CC0 or CC BY (each folder has a `LICENSE.txt` with attribution), and the fonts are under the SIL Open Font License.
 
 MIDI is a trademark of the MIDI Manufacturers Association. This project is independent and not affiliated with the MMA or AMEI.

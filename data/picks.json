@@ -1,0 +1,57 @@
+[
+  {
+    "language": "Python",
+    "picks": [
+      { "repo": "mido/mido", "task": "Messages, ports and files", "why": "The standard choice: a clean message API plus .mid reading and writing." },
+      { "repo": "SpotlightKid/python-rtmidi", "task": "Realtime I/O", "why": "Fast, cross-platform ports; mido can use it as its backend." },
+      { "repo": "craffel/pretty-midi", "task": "Analysis", "why": "Notes, instruments and piano rolls for analysis and machine learning." }
+    ]
+  },
+  {
+    "language": "JavaScript / TypeScript",
+    "picks": [
+      { "repo": "djipco/webmidi", "task": "Web MIDI", "why": "A friendly layer over the Web MIDI API, with events and note names." },
+      { "repo": "Tonejs/Midi", "task": "Files", "why": "Parses .mid into JSON tracks and notes, and writes them back, in browsers and Node." }
+    ]
+  },
+  {
+    "language": "C++",
+    "picks": [
+      { "repo": "thestk/rtmidi", "task": "Realtime I/O", "why": "Small, long-standing, cross-platform port access with a simple API." },
+      { "repo": "celtera/libremidi", "task": "Realtime I/O and MIDI 2.0", "why": "A modern C++20 take with UMP and more backends." },
+      { "repo": "juce-framework/JUCE", "task": "Plugins and apps", "why": "Full audio-app framework with MIDI devices, files and messages built in." }
+    ]
+  },
+  {
+    "language": "Rust",
+    "picks": [
+      { "repo": "Boddlnagg/midir", "task": "Realtime I/O", "why": "Cross-platform ports, including Web MIDI through WebAssembly." },
+      { "repo": "kovaxis/midly", "task": "Files", "why": "Fast, zero-copy Standard MIDI File parsing and writing." }
+    ]
+  },
+  {
+    "language": "C#",
+    "picks": [
+      { "repo": "melanchall/drywetmidi", "task": "Files and devices", "why": "Comprehensive: files, devices, playback and recording in one library." }
+    ]
+  },
+  {
+    "language": "Go",
+    "picks": [
+      { "repo": "gomidi/midi", "task": "Files and I/O", "why": "Messages, SMF and pluggable drivers for realtime ports." }
+    ]
+  },
+  {
+    "language": "Swift",
+    "picks": [
+      { "repo": "orchetect/swift-midi", "task": "Core MIDI", "why": "A modern Swift layer over Core MIDI with MIDI 2.0 support." }
+    ]
+  },
+  {
+    "language": "Hardware",
+    "picks": [
+      { "repo": "FortySevenEffects/arduino_midi_library", "task": "Arduino (serial / DIN)", "why": "The standard MIDI library for Arduino boards." },
+      { "repo": "hathach/tinyusb", "task": "USB-MIDI devices", "why": "Class-compliant USB MIDI on RP2040, ESP32-S2/S3, STM32 and more." }
+    ]
+  }
+]

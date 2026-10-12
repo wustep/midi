@@ -27,7 +27,7 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
       <p class="lede">
         {libraries.length} projects across {categories.length} categories. Every entry is checked against the GitHub API
         for existence, stars, license, and activity{verifiedAt && <> (last checked <time datetime={verifiedAt}>{verifiedAt}</time>)</>}.
-        Also available as a plain <a href="https://github.com/wustep/midi-new#readme">awesome list on GitHub</a>.
+        Also available as a plain <a href="https://github.com/wustep/midi#readme">awesome list on GitHub</a>.
       </p>
     </header>
 
@@ -111,7 +111,7 @@ const year = (d: string | null) => (d ? d.slice(0, 4) : '');
         ))
       }
     </ul>
-    <p class="empty" id="empty" hidden>No libraries match. Try clearing a filter, or <a href="https://github.com/wustep/midi-new/blob/main/CONTRIBUTING.md">suggest one</a>.</p>
+    <p class="empty" id="empty" hidden>No libraries match. Try clearing a filter, or <a href="https://github.com/wustep/midi/blob/main/CONTRIBUTING.md">suggest one</a>.</p>
   </div>
 </Base>
 

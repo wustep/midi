@@ -339,7 +339,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
   }
   .cs-symbol :global(strong) {
     font-family: var(--font-display);
-    font-stretch: 112%;
+    font-stretch: var(--heading-stretch);
     font-size: var(--t-2xl);
   }
   .cs-symbol :global(span) {
@@ -349,9 +349,12 @@ const pitched = instruments.filter((i) => !i.drumMap);
     margin: var(--s-2) 0 var(--s-4);
   }
   .cs-notes :global(th) {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
     width: 5.5rem;
     background: var(--surface-2);
@@ -369,7 +372,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
   .cs-keys :global(.key) {
     position: absolute;
     top: 0;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--key-edge);
     border-radius: 0 0 var(--r-xs) var(--r-xs);
     display: flex;
     align-items: flex-end;
@@ -391,11 +394,12 @@ const pitched = instruments.filter((i) => !i.drumMap);
     color: var(--key-w);
   }
   .cs-keys :global(.white.on) {
-    background: var(--accent-soft);
+    background: var(--key-on);
     box-shadow: inset 0 -5px 0 var(--accent);
   }
   .cs-keys :global(.black.on) {
     background: var(--accent);
+    color: var(--on-accent);
   }
   .cs-keys :global(.held) {
     outline: 3px solid var(--data);

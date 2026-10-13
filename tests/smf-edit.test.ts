@@ -102,7 +102,7 @@ test('CSV follows midicsv record formats', () => {
 test('JSON has header, tempos and readable events', () => {
   const j = toJson(demo('ode-to-joy.mid'));
   assert.equal(j.header.format, 0);
-  assert.equal(j.header.ticksPerQuarter, 480);
+  assert.equal('ticksPerQuarter' in j.header && j.header.ticksPerQuarter, 480);
   assert.equal(j.tempos[0].bpm, 100);
   const ev = j.tracks[0].events;
   assert.ok(ev.some((e) => e.type === 'meta' && e.name === 'Lyric' && e.text === 'Freu'));

@@ -298,9 +298,12 @@ const context = Object.fromEntries(
     margin-top: var(--s-3);
   }
   .starter-grid h3 {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
     color: var(--muted);
     margin: 0 0 var(--s-2);
   }
@@ -411,7 +414,7 @@ const context = Object.fromEntries(
   .card-title {
     font-size: var(--t-base);
     margin: 0;
-    font-stretch: 108%;
+    font-stretch: var(--heading-stretch);
   }
   .card-title a {
     color: var(--ink);

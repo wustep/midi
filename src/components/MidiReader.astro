@@ -270,7 +270,7 @@ const demos = [
     const hexBox = $('[data-hex]');
     const hexRows = $('[data-hex-rows]');
 
-    let file = new Uint8Array();
+    let file: Uint8Array = new Uint8Array();
     let smf: SmfFile | undefined;
     let tempo: TempoMap | undefined;
     let notes: Note[] = [];
@@ -651,7 +651,7 @@ const demos = [
             status.textContent = `Opened ${outName} (edited in your browser).${note}`;
             $('#rd-overview').scrollIntoView({ behavior: 'smooth' });
           } else {
-            download(r.bytes, 'audio/midi', outName);
+            download(r.bytes as Uint8Array<ArrayBuffer>, 'audio/midi', outName);
             exStatus.textContent = `Saved ${outName}: format ${r.format}, ${plural(r.tracks, 'track')}, ${fmtBytes(r.bytes.length)}.${note}`;
           }
         } catch (e) {
@@ -1032,7 +1032,7 @@ const demos = [
       drawRoll();
       renderHex();
     }).observe(rollBox);
-    new MutationObserver(() => (invalidate(), drawRoll())).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    new MutationObserver(() => (invalidate(), drawRoll())).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-mode'] });
 
     /* ---------- Transport ---------- */
 
@@ -1169,10 +1169,12 @@ const demos = [
     color: var(--muted);
   }
   .rd-demos-title {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-sm);
-    font-weight: 700;
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
     color: var(--muted);
     margin: 0 0 var(--s-2);
   }
@@ -1259,10 +1261,12 @@ const demos = [
     min-width: 0;
   }
   .rd-summary :global(dt) {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
   }
   .rd-summary :global(dd) {
@@ -1792,8 +1796,20 @@ const demos = [
       order: 5;
       flex-basis: 100%;
     }
-    .rd-inline select {
-      max-width: 10.5rem;
+    /* The sound picker gets a row of its own, so "Sampled instruments" isn't clipped; Export moves
+       down next to Speed. */
+    .rd-inline:has([data-output]) {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .rd-export-btn {
+      order: 4;
+      margin-left: auto;
+    }
+    .rd-inline [data-output] {
+      flex: 1;
+      min-width: 0;
+      max-width: none;
     }
     .rd-split .rd-events :global(.col-wide) {
       display: none;

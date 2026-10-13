@@ -439,11 +439,13 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
     margin-bottom: var(--s-3);
   }
   .panel-title {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-sm);
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
     margin: 0;
-    font-stretch: 115%;
   }
   .panel-tag {
     font-family: var(--font-mono);
@@ -451,13 +453,14 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
     color: var(--muted);
   }
   .sub {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    font-family: var(--font-text);
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
     margin: var(--s-4) 0 var(--s-2);
-    font-weight: 600;
   }
   .sub:first-of-type {
     margin-top: 0;
@@ -475,10 +478,10 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
     height: 96px;
     display: grid;
     grid-template-columns: repeat(var(--whites), 1fr);
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--key-edge);
     border-radius: var(--r-xs);
     overflow: hidden;
-    background: var(--line-strong);
+    background: var(--key-edge);
     gap: 1px;
   }
   .key.white {
@@ -604,9 +607,12 @@ const whiteCount = keys.filter((k) => !isBlack(k)).length;
     margin: 0;
   }
   .stats dt {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
   }
   .stats dd {

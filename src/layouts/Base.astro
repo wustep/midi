@@ -1,10 +1,10 @@
 ---
-import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
-import '@fontsource-variable/atkinson-hyperlegible-next/wght-italic.css';
-import '@fontsource-variable/atkinson-hyperlegible-mono/wght.css';
 import '../styles/global.css';
 import SearchPalette from '../components/SearchPalette.astro';
+import ThemePicker from '../components/ThemePicker.astro';
 import Icon from '../components/Icon.astro';
+import { DEFAULT_THEME } from '../themes/registry.ts';
+import { bootScript, themeCss } from '../themes/css.ts';
 
 interface Props {
   title: string;
@@ -35,17 +35,46 @@ const nav = [
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content={(DEFAULT_THEME.light ?? DEFAULT_THEME.dark)!.bg} />
+    <!-- Picks the theme and mode before first paint (no flash) and preloads its fonts. src/themes/css.ts -->
+    <script is:inline set:html={bootScript()} />
+    <!--
+      Settles two things as the page is parsed, before anything paints (a deferred script would let them
+      paint first and then jump): long grouped lists (<details data-fold-phone open>) start folded on
+      phones, and the search shortcut reads Ctrl K outside Apple platforms.
+    -->
+    <script is:inline>
+      (function () {
+        var fold = matchMedia('(max-width: 720px)').matches,
+          ctrl = !/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+        if (!fold && !ctrl) return;
+        var settle = function () {
+          if (fold) document.querySelectorAll('details[data-fold-phone]:not([data-settled])').forEach(function (d) {
+            d.open = false;
+            d.setAttribute('data-settled', '');
+          });
+          if (ctrl) document.querySelectorAll('[data-mod]:not([data-settled])').forEach(function (k) {
+            k.textContent = 'Ctrl K';
+            k.setAttribute('data-settled', '');
+          });
+        };
+        var watch = new MutationObserver(settle);
+        watch.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', function () {
+          settle();
+          watch.disconnect();
+        });
+      })();
+    </script>
+    <Fragment set:html={`<style data-themes>${themeCss()}</style>`} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="preload" href="/fonts/archivo-display.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <meta name="theme-color" content="#f2efe6" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#11110f" media="(prefers-color-scheme: dark)" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -59,19 +88,17 @@ const nav = [
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
-    <script is:inline>
-      try {
-        const t = localStorage.getItem('theme');
-        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
-      } catch {}
-    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="site-header-inner">
         <a class="wordmark" href="/" aria-label="MIDI Field Guide, home">
-          <Icon name="din" size={30} class="din" />
+          <span class="din-wrap">
+            <Icon name="din" size={30} class="din" />
+            <!-- The MIDI IN light: blinks when a note plays or a message arrives (src/lib/activity.ts). -->
+            <span class="act-led" aria-hidden="true"><span></span></span>
+          </span>
           <span class="wordmark-text">MIDI<span class="wordmark-sub">Field Guide</span></span>
         </a>
         <button class="icon-btn menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
@@ -104,10 +131,7 @@ const nav = [
           <a class="icon-btn" href="https://github.com/wustep/midi" aria-label="Source on GitHub" title="Source on GitHub">
             <Icon name="code" size={20} />
           </a>
-          <button class="icon-btn theme-toggle" type="button" aria-label="Toggle color theme">
-            <Icon name="sun" size={20} class="i-sun" />
-            <Icon name="moon" size={20} class="i-moon" />
-          </button>
+          <ThemePicker />
         </div>
       </div>
     </header>
@@ -119,10 +143,12 @@ const nav = [
 
     <footer class="site-footer">
       <div class="site-footer-inner">
-        <p>
-          <strong>MIDI Field Guide</strong> is an open, community-maintained reference. Code
+        <div class="rule-beats" aria-hidden="true"></div>
+        <p class="foot-about">
+          <Icon name="din" size={20} class="foot-din" />
+          <span><strong>MIDI Field Guide</strong> is an open, community-maintained reference. Code
           <a href="https://github.com/wustep/midi/blob/main/LICENSE">MIT</a>, content and data
-          <a href="https://github.com/wustep/midi/blob/main/LICENSE-CC0">CC0</a>.
+          <a href="https://github.com/wustep/midi/blob/main/LICENSE-CC0">CC0</a>.</span>
         </p>
         <nav class="footer-links" aria-label="Site">
           <a href="/search/">Search</a>
@@ -139,15 +165,14 @@ const nav = [
     </footer>
 
     <script>
-      const btn = document.querySelector<HTMLButtonElement>('.theme-toggle');
       const root = document.documentElement;
-      const current = () =>
-        root.dataset.theme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      const sync = () => btn?.setAttribute('aria-pressed', String(current() === 'dark'));
-      sync();
 
-      // Show Ctrl K instead of ⌘K outside Apple platforms.
-      if (!/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) document.querySelectorAll('[data-mod]').forEach((k) => (k.textContent = 'Ctrl K'));
+      // The MIDI IN light. Opacity only, so it still blinks with reduced motion.
+      const led = document.querySelector<HTMLElement>('.act-led > span');
+      addEventListener('midi:activity', () =>
+        led?.animate([{ opacity: 1 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], { duration: 220, easing: 'ease-out' }),
+      );
+
 
       // Phone menu: the primary nav collapses behind a button.
       const menuBtn = document.querySelector<HTMLButtonElement>('.menu-btn');
@@ -166,24 +191,11 @@ const nav = [
       document.addEventListener('click', (e) => {
         if (header?.classList.contains('menu-open') && !header.contains(e.target as Node)) setMenu(false);
       });
-      btn?.addEventListener('click', () => {
-        const next = current() === 'dark' ? 'light' : 'dark';
-        root.dataset.theme = next;
-        try {
-          localStorage.setItem('theme', next);
-        } catch {}
-        sync();
-      });
-
       // The header shows its hairline only once content scrolls under it.
       const onScroll = () => root.toggleAttribute('data-scrolled', scrollY > 4);
       addEventListener('scroll', onScroll, { passive: true });
       onScroll();
 
-      // Long grouped lists fold on phones: <details data-fold-phone open> starts closed there.
-      if (matchMedia('(max-width: 720px)').matches) {
-        document.querySelectorAll<HTMLDetailsElement>('details[data-fold-phone]').forEach((d) => (d.open = false));
-      }
       // Opening a #link to something inside a folded group opens the group.
       const openTarget = () => {
         if (!location.hash) return;
@@ -289,10 +301,34 @@ const nav = [
       transform: rotate(-12deg);
     }
   }
+  /* The DIN socket with its MIDI IN light at two o'clock: dim at rest, lit on activity. */
+  .din-wrap {
+    position: relative;
+    display: inline-grid;
+  }
+  .act-led {
+    position: absolute;
+    top: 0;
+    right: -3px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--led) 22%, var(--surface-2));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+  .act-led > span {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--led);
+    box-shadow: 0 0 var(--led-blur) var(--led);
+    opacity: 0;
+  }
   .wordmark-text {
     font-family: var(--font-display);
-    font-weight: var(--w-black);
-    font-stretch: 125%;
+    font-weight: var(--display-weight);
+    font-stretch: var(--display-stretch);
+    text-transform: var(--display-case);
     font-size: var(--t-lg);
     letter-spacing: 0.02em;
     display: inline-flex;
@@ -300,11 +336,12 @@ const nav = [
     gap: var(--s-2);
   }
   .wordmark-sub {
-    font-weight: var(--w-medium);
-    font-stretch: 100%;
-    font-size: var(--t-sm);
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
+    font-family: var(--font-label);
+    font-weight: var(--label-weight);
+    font-stretch: var(--label-stretch);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+    font-size: var(--t-2xs);
     color: var(--muted);
   }
   .site-nav ul {
@@ -331,19 +368,26 @@ const nav = [
       color: var(--ink);
     }
   }
-  /* Active section: ink text plus a short accent bar under the label, not a filled tab. */
+  /* Active section: ink text and a lit LED above the label, like the light over a hardware mode button. */
   .site-nav a[aria-current='page'] {
     color: var(--ink);
   }
-  .site-nav a[aria-current='page']::after {
+  .site-nav a::after {
     content: '';
     position: absolute;
-    left: var(--s-3);
-    right: var(--s-3);
-    bottom: 1px;
-    height: 2px;
-    border-radius: var(--r-pill);
-    background: var(--accent);
+    left: 50%;
+    top: 1px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--led);
+    box-shadow: 0 0 var(--led-blur) var(--led);
+    opacity: 0;
+    transition: opacity var(--d-fast) ease;
+  }
+  .site-nav a[aria-current='page']::after {
+    opacity: 1;
   }
   .header-actions {
     margin-left: auto;
@@ -381,35 +425,10 @@ const nav = [
     margin-left: auto;
     font-size: var(--t-2xs);
   }
-  .theme-toggle :global(.i-moon) {
-    display: none;
-  }
-  :global([data-theme='dark']) .theme-toggle :global(.i-sun) {
-    display: none;
-  }
-  :global([data-theme='dark']) .theme-toggle :global(.i-moon) {
-    display: block;
-  }
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme='light'])) .theme-toggle :global(.i-sun) {
-      display: none;
-    }
-    :global(:root:not([data-theme='light'])) .theme-toggle :global(.i-moon) {
-      display: block;
-    }
-  }
-  /* The theme icon turns as it swaps, so the change reads as one control flipping state. */
-  .theme-toggle :global(svg) {
-    transition: transform var(--d-slow) var(--ease-out);
-  }
-  .theme-toggle[aria-pressed='true'] :global(svg) {
-    transform: rotate(-30deg);
-  }
   main:focus {
     outline: none;
   }
   .site-footer {
-    border-top: 1px solid var(--line);
     margin-top: var(--s-9);
     color: var(--muted);
     font-size: var(--t-md);
@@ -417,9 +436,23 @@ const nav = [
   .site-footer-inner {
     max-width: var(--w-page);
     margin: 0 auto;
-    padding: var(--s-6) var(--gutter) var(--s-7);
+    padding: 0 var(--gutter) var(--s-7);
     display: grid;
     gap: var(--s-2);
+  }
+  .site-footer-inner > .rule-beats {
+    margin-bottom: var(--s-4);
+  }
+  .foot-about {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-2);
+  }
+  .foot-about :global(.foot-din) {
+    --pin: var(--accent);
+    flex-shrink: 0;
+    margin-top: 0.15em;
+    color: var(--ink-2);
   }
   .site-footer p {
     margin: 0;
@@ -530,11 +563,16 @@ const nav = [
       transform: scale(var(--press-scale));
     }
     .site-nav a[aria-current='page'] {
-      border-color: var(--accent);
-      color: var(--accent);
+      border-color: var(--line-strong);
+      color: var(--ink);
     }
-    .site-nav a[aria-current='page']::after {
-      display: none;
+    /* On the pads, the LED sits in the corner. */
+    .site-nav a::after {
+      left: var(--s-2);
+      top: var(--s-2);
+      margin: 0;
+      width: 5px;
+      height: 5px;
     }
   }
 </style>

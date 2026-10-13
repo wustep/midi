@@ -35,6 +35,10 @@ export const ICONS = {
   copy: { body: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>' },
   plug: { body: '<path d="M9 3v4M15 3v4M6 7h12v3a6 6 0 0 1-12 0Z M12 16v5"/>' },
   send: { body: '<path d="M3 12h12M11 7l5 5-5 5M20 4v16"/>' },
+  /** A knob seen from above: the skirt, the cap, and the pointer line. The theme picker. */
+  knob: { body: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 7V3"/>' },
+  /** Shuffle play: two lines that cross (one passes under), each ending in an arrow. The picker's "Surprise me". */
+  shuffle: { body: '<path d="M3 7h3.5c1.6 0 3 .8 3.8 2.1l3.4 5.8c.8 1.3 2.2 2.1 3.8 2.1H21M3 17h3.5c1.6 0 3-.8 3.8-2.1l.5-.8M13.2 9.9l.5-.8c.8-1.3 2.2-2.1 3.8-2.1H21M17.5 3.5 21 7l-3.5 3.5M17.5 13.5 21 17l-3.5 3.5"/>' },
   file: { body: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/>' },
   /** The DIN-5 MIDI socket: ring, key notch at the top, five pins on the lower half-circle (pin 2 marked). */
   din: {

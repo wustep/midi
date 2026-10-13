@@ -5,7 +5,7 @@ interface Props {
   level?: 2 | 3;
 }
 const { initial = '90 3C 64', level = 3 } = Astro.props;
-const Heading = `h${level}`;
+const Heading = `h${level}` as const;
 const presets = [
   { label: 'Note On', bytes: '90 3C 64' },
   { label: 'Running status', bytes: '90 3C 64 40 64 3C 00 40 00' },
@@ -207,9 +207,12 @@ const presets = [
     font-size: var(--t-md);
   }
   .decoder-out :global(dt) {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
   }
   .decoder-out :global(dd) {

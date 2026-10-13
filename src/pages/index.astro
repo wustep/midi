@@ -32,7 +32,7 @@ const topCats = [...categories]
 ---
 
 <Base title="MIDI Field Guide">
-  <section class="hero">
+  <section class="hero textured">
     <div class="hero-inner">
       <p class="eyebrow">An open reference</p>
       <h1><span>The field</span> <span>guide</span> <span>to <span class="hl">MIDI</span>.</span></h1>
@@ -52,8 +52,9 @@ const topCats = [...categories]
   </section>
   <div class="page home">
     <section class="band" aria-labelledby="start-title">
+      <div class="rule-beats" aria-hidden="true"></div>
       <div class="band-head">
-        <h2 id="start-title">Start here</h2>
+        <h2 id="start-title"><span class="ch" aria-hidden="true">Ch 1</span>Start here</h2>
         <p>Short chapters with tables you can scan and worked byte examples. <a href="/docs/">All {docsFlat.length} chapters →</a></p>
       </div>
       <div class="start-grid">
@@ -95,8 +96,9 @@ const topCats = [...categories]
     </section>
 
     <section class="band" aria-labelledby="tools-title">
+      <div class="rule-beats" aria-hidden="true"></div>
       <div class="band-head">
-        <h2 id="tools-title">Tools</h2>
+        <h2 id="tools-title"><span class="ch" aria-hidden="true">Ch 2</span>Tools</h2>
         <p>Everything runs in your browser; files are never uploaded. <a href="/tools/">All {tools.length} tools →</a></p>
       </div>
       <ul class="card-grid feature-cards">
@@ -119,8 +121,9 @@ const topCats = [...categories]
     </section>
 
     <section class="band" aria-labelledby="libraries-title">
+      <div class="rule-beats" aria-hidden="true"></div>
       <div class="band-head">
-        <h2 id="libraries-title">Libraries</h2>
+        <h2 id="libraries-title"><span class="ch" aria-hidden="true">Ch 3</span>Libraries</h2>
         <p>
           {libCount} open-source projects in {languages} languages, each checked against its repository on GitHub or Codeberg.
           <a href="/libraries/">Browse all {categories.length} categories →</a>
@@ -176,7 +179,7 @@ const topCats = [...categories]
 
 <style>
   .hero {
-    max-width: 1280px;
+    max-width: var(--w-page);
     margin: 0 auto;
     padding: clamp(3rem, 8vw, 6.5rem) var(--gutter) clamp(2.5rem, 5vw, 4rem);
     display: grid;
@@ -192,10 +195,12 @@ const topCats = [...categories]
   }
   .hero h1 {
     font-size: var(--t-display);
-    line-height: 0.98;
-    font-stretch: 125%;
-    font-weight: var(--w-black);
-    letter-spacing: -0.035em; /* a notch tighter than --tr-display at weight 900 */
+    line-height: var(--display-leading);
+    font-stretch: var(--display-stretch);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    text-transform: var(--display-case);
+    text-shadow: var(--glow);
     margin-bottom: var(--s-5);
   }
   .hl {
@@ -223,7 +228,7 @@ const topCats = [...categories]
     text-align: left;
     padding: var(--s-3) var(--s-3) var(--s-2);
     font-family: var(--font-display);
-    font-stretch: 112%;
+    font-stretch: var(--heading-stretch);
     font-weight: 700;
   }
   .dim {
@@ -239,13 +244,28 @@ const topCats = [...categories]
     --page-top: 0;
   }
   .band {
-    padding: var(--s-7) 0;
-    border-top: 1px solid var(--line);
+    padding: 0 0 var(--s-7);
+  }
+  .band > .rule-beats {
+    margin-bottom: var(--s-7);
+  }
+  /* Each band is a channel: a small mono tag over the heading, the way a mixer labels its strips. */
+  .ch {
+    display: block;
+    width: fit-content;
+    margin-bottom: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    font-weight: var(--w-regular);
+    font-stretch: 100%;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
   .band-head {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: last baseline;
     justify-content: space-between;
     gap: var(--s-2) var(--s-6);
     margin-bottom: var(--s-5);
@@ -319,8 +339,8 @@ const topCats = [...categories]
     }
   }
   @media (max-width: 600px) {
-    .band {
-      padding-top: var(--s-6);
+    .band > .rule-beats {
+      margin-bottom: var(--s-6);
     }
     .start-cards .card-text,
     .cat-cards .card-meta {

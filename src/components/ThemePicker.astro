@@ -1,9 +1,11 @@
 ---
 /**
  * The theme picker in the header, laid out like a synth's patch browser: numbered programs, each with
- * a swatch drawn in that theme's own colors and display face, a readout describing the focused one,
- * and an Auto / Light / Dark switch. Choosing applies at once and persists (localStorage `theme`,
- * `theme-mode`); the boot script in Base.astro applies it before first paint on the next page.
+ * a swatch drawn in that theme's own colors and display face and a mark for the modes it has (sun, moon),
+ * a readout describing the focused one, Surprise me, and an Auto / Light / Dark switch. Choosing applies
+ * at once and persists (localStorage `theme`, `theme-mode`); the boot script in Base.astro applies it
+ * before first paint on the next page. Surprise me re-rolls the way a first visit does (choose.ts): a
+ * random theme that has the mode the reader wants. A one-mode theme forces its mode and disables the switch.
  *
  * With one registered theme there's nothing to pick: the picker isn't rendered, and a theme with both
  * palettes gets a plain light/dark switch instead.
@@ -47,10 +49,13 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
             <p class="tp-title" id="tp-title">
               Theme <span class="tp-count">{themes.length} programs</span>
             </p>
-            <div class="seg tp-modes" role="radiogroup" aria-label="Light or dark">
-              <button type="button" role="radio" aria-checked="false" data-pref="auto">Auto</button>
-              <button type="button" role="radio" aria-checked="false" data-pref="light">Light</button>
-              <button type="button" role="radio" aria-checked="false" data-pref="dark">Dark</button>
+            <div class="tp-mode">
+              <span class="tp-mode-note" id="tp-mode-note" data-mode-note></span>
+              <div class="seg tp-modes" role="radiogroup" aria-label="Light or dark" aria-describedby="tp-mode-note">
+                <button type="button" role="radio" aria-checked="false" data-pref="auto">Auto</button>
+                <button type="button" role="radio" aria-checked="false" data-pref="light">Light</button>
+                <button type="button" role="radio" aria-checked="false" data-pref="dark">Dark</button>
+              </div>
             </div>
           </div>
           <div class="tp-list" role="radiogroup" aria-labelledby="tp-title">
@@ -60,19 +65,35 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
                   <span class="tp-aa">Aa</span>
                   <span class="tp-dots"><i /><i /><i /></span>
                 </span>
-                <span class="tp-name">
-                  <span class="tp-n" aria-hidden="true">{pad(i + 1)}</span>
-                  {t.name}
+                <span class="tp-text">
+                  <span class="tp-name">
+                    <span class="tp-n" aria-hidden="true">{pad(i + 1)}</span>
+                    {t.name}
+                  </span>
+                  <span class="tp-has" aria-hidden="true">
+                    {t.modes.includes('light') && <Icon name="sun" size={13} />}
+                    {t.modes.includes('dark') && <Icon name="moon" size={13} />}
+                  </span>
                 </span>
                 <span class="visually-hidden">. {t.direction} {modeNote(t.modes)}.</span>
               </button>
             ))}
           </div>
+          <button type="button" class="tp-surprise" data-surprise aria-labelledby="tp-s-name" aria-describedby="tp-s-note">
+            <span class="tp-sw" aria-hidden="true">
+              <Icon name="shuffle" size={20} />
+            </span>
+            <span class="tp-s-text">
+              <span class="tp-s-name" id="tp-s-name">Surprise me</span>
+              <span class="tp-s-note" id="tp-s-note" data-surprise-note></span>
+            </span>
+          </button>
           <p class="tp-readout" aria-hidden="true" data-readout>
             <span class="tp-led" />
             <span class="tp-r-name" data-r-name></span>
             <span class="tp-r-dir" data-r-dir></span>
           </p>
+          <p class="visually-hidden" role="status" data-status></p>
         </div>
       </>
     )
@@ -80,6 +101,8 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
 </div>
 
 <script>
+  import { modeFor, pickRandom, wantedMode } from '../themes/choose.ts';
+
   type Mode = 'light' | 'dark';
   const host = document.querySelector<HTMLElement>('[data-theme-ui]');
   if (host) {
@@ -107,13 +130,11 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
       const p = store.get('theme-mode');
       return p === 'light' || p === 'dark' ? p : null;
     };
-    const resolve = (id: string, p: Mode | null): Mode => {
-      const m = themes[id].m;
-      return m.length < 2 ? m[0] : (p ?? (sys.matches ? 'dark' : 'light'));
-    };
+    // The mode the reader wants: what they picked, or the system's. A one-mode theme overrides it.
+    const want = () => wantedMode(pref(), sys.matches);
 
     function apply(id: string, animate: boolean) {
-      const mode = resolve(id, pref());
+      const mode = modeFor(themes[id].m, want());
       if (root.dataset.theme === id && root.dataset.mode === mode) return sync();
       const run = () => {
         root.dataset.theme = id;
@@ -126,6 +147,7 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
       if (animate && !reduced.matches && 'startViewTransition' in document) document.startViewTransition(run);
       else run();
     }
+    // The system switching light or dark never changes the theme, only a two-mode theme's mode.
     sys.addEventListener('change', () => apply(current(), true));
 
     /* ---------- One theme: the light/dark switch ---------- */
@@ -141,6 +163,10 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
     const prefs = [...host.querySelectorAll<HTMLButtonElement>('[data-pref]')];
     const rName = host.querySelector<HTMLElement>('[data-r-name]');
     const rDir = host.querySelector<HTMLElement>('[data-r-dir]');
+    const modeNote = host.querySelector<HTMLElement>('[data-mode-note]');
+    const surprise = host.querySelector<HTMLButtonElement>('[data-surprise]');
+    const surpriseNote = host.querySelector<HTMLElement>('[data-surprise-note]');
+    const status = host.querySelector<HTMLElement>('[data-status]');
     const readout = (o: HTMLElement | undefined) => {
       if (!o || !rName || !rDir) return;
       rName.textContent = o.dataset.name!;
@@ -157,19 +183,25 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
         o.tabIndex = on ? 0 : -1;
       });
       const modes = themes[id].m;
+      const fixed = modes.length < 2;
+      // A one-mode theme shows its mode as chosen, and the whole switch is unavailable, with a note saying
+      // why. The reader's Auto / Light / Dark is kept for the next two-mode theme.
       prefs.forEach((b) => {
         const v = b.dataset.pref!;
-        const fixed = modes.length < 2;
-        // A one-palette theme shows its only mode as chosen, and the switch is unavailable.
-        const on = fixed ? v === modes[0] : v === (p ?? 'auto');
-        b.setAttribute('aria-checked', String(on));
-        b.disabled = fixed && !on;
+        b.setAttribute('aria-checked', String(fixed ? v === modes[0] : v === (p ?? 'auto')));
+        b.disabled = fixed;
       });
+      if (modeNote) modeNote.textContent = fixed ? (modes[0] === 'dark' ? 'Dark only' : 'Light only') : '';
+      if (surpriseNote) {
+        const w = want();
+        surpriseNote.textContent = Object.values(themes).some((t) => t.m.includes(w)) ? `Another theme with a ${w} mode` : 'Another theme';
+      }
       readout(opts.find((o) => o.dataset.id === id));
     }
 
     opts.forEach((o, i) => {
       o.addEventListener('click', () => {
+        if (status) status.textContent = '';
         store.set('theme', o.dataset.id!);
         apply(o.dataset.id!, true);
       });
@@ -192,6 +224,15 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
         apply(current(), true);
       }),
     );
+    // Re-roll: a random theme with the mode the reader wants (never the one that's on), saved like a pick.
+    surprise?.addEventListener('click', () => {
+      const id = pickRandom(themes, want(), current());
+      store.set('theme', id);
+      apply(id, true);
+      const o = opts.find((x) => x.dataset.id === id);
+      o?.scrollIntoView({ block: 'nearest' });
+      if (status && o) status.textContent = o.dataset.name!;
+    });
     // Opening the picker focuses the chosen theme, so arrow keys work straight away.
     picker?.addEventListener('toggle', (e) => {
       if ((e as ToggleEvent).newState === 'open') opts.find((o) => o.dataset.id === current())?.focus({ preventScroll: true });
@@ -295,9 +336,27 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
     min-height: 1.75rem;
     font-size: var(--t-sm);
   }
+  .tp-mode {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+  }
+  .tp-mode-note {
+    font-size: var(--t-xs);
+    color: var(--muted);
+  }
+  .tp-mode-note:empty {
+    display: none;
+  }
   .tp-modes > button:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tp-modes > button:disabled:not([aria-checked='true']):hover {
+      background: transparent;
+      color: var(--muted);
+    }
   }
   .tp-list {
     display: grid;
@@ -335,12 +394,14 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
     --sw-m: var(--sw-m-d, var(--sw-m-l));
   }
   @media (hover: hover) and (pointer: fine) {
-    .tp-opt:hover {
+    .tp-opt:hover,
+    .tp-surprise:hover {
       background: var(--surface-2);
       color: var(--ink);
     }
   }
-  .tp-opt:active .tp-sw {
+  .tp-opt:active .tp-sw,
+  .tp-surprise:active .tp-sw {
     transform: scale(var(--press-scale));
   }
   .tp-opt[aria-checked='true'] {
@@ -406,6 +467,53 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
     font-weight: var(--w-regular);
     color: var(--muted);
   }
+  .tp-text,
+  .tp-s-text {
+    display: grid;
+    gap: 2px;
+    line-height: 1.25;
+  }
+  /* The modes a theme has, under its name: a sun for light, a moon for dark. */
+  .tp-has {
+    display: flex;
+    gap: 3px;
+    color: var(--muted);
+  }
+  /* Surprise me: a full-width program under the list, with a blank (dashed) swatch. */
+  .tp-surprise {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s-3);
+    width: 100%;
+    min-height: var(--h-lg);
+    margin-top: var(--s-1);
+    padding: var(--s-1);
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--ink-2);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--d-fast) ease, color var(--d-fast) ease;
+  }
+  .tp-surprise .tp-sw {
+    border: 1px dashed var(--line-strong);
+    background: var(--surface-sunken);
+    box-shadow: none;
+    color: var(--ink-2);
+  }
+  .tp-surprise:focus-visible {
+    outline-offset: 0;
+  }
+  .tp-s-name {
+    font-size: var(--t-md);
+    font-weight: var(--w-semibold);
+  }
+  .tp-s-note {
+    font-size: var(--t-sm);
+    color: var(--muted);
+  }
   /* The readout: an LCD line under the programs that names the hovered or chosen theme. */
   .tp-readout {
     display: grid;
@@ -444,7 +552,8 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
       width: auto;
       transform-origin: top center;
     }
-    .tp-opt {
+    .tp-opt,
+    .tp-surprise {
       grid-template-columns: 2.75rem minmax(0, 1fr);
       gap: var(--s-2);
     }

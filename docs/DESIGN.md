@@ -133,6 +133,7 @@ One set, drawn for this site, in [`src/lib/icons.mjs`](../src/lib/icons.mjs). Us
 - **Optical alignment:** arrows and chevrons sit on the centre lines; play is nudged right.
 - **From CSS:** the chevrons used by fold groups, disclosures and selects are `--i-chevron-right`, `--i-chevron-down` and `--i-select` in `tokens.css`, the same paths as the set (a test keeps them equal). Paint them with `mask` and `background: currentColor`.
 - **Knob:** `knob` (skirt, cap, pointer) opens the theme picker, and turns a little while it's open.
+- **Shuffle:** `shuffle` (two crossing lines with arrows, as on a player) is the picker's Surprise me.
 - **Brand:** `din` is the DIN-5 MIDI socket: the ring, the key notch at the top and five pins on the lower half-circle, with pin 2 in `--pin` (the accent in the header). The favicons (SVG, ICO 16/32/48), Apple touch icon and manifest icons are generated from it by `node scripts/make-icons.mjs`. Small sizes use a heavier ring with the pins pulled inward so they stay legible.
 - **Text arrows** (→ in "All 17 chapters →") are typography, not icons, and stay as characters.
 

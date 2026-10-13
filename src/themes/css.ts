@@ -3,9 +3,11 @@
  *   - themeCss():   @font-face for the fonts registered themes use, then one block of custom properties
  *                   per theme and mode, keyed on <html data-theme data-mode>.
  *   - bootScript(): the inline script in <head> that picks the theme before first paint (no flash),
- *                   points <meta name="theme-color"> at it and preloads its fonts.
+ *                   points <meta name="theme-color"> at it and preloads its fonts. How it picks is in
+ *                   choose.ts.
  */
 import { THEMES, DEFAULT_THEME } from './registry.ts';
+import { bootScript as themeBoot } from './choose.ts';
 import { FONTS, fontStack } from './fonts.ts';
 import { FONT_FILES } from './font-files.ts';
 import { iconDocument } from '../lib/icons.mjs';
@@ -124,10 +126,10 @@ export function themeSummary(t: Theme) {
   };
 }
 
+/** The inline boot script for <head>, with this registry's themes (the logic is in choose.ts). */
 export function bootScript(): string {
-  const data = {
-    d: DEFAULT_THEME.id,
-    t: Object.fromEntries(
+  return themeBoot(
+    Object.fromEntries(
       THEMES.map((t) => {
         const modes = modesOf(t);
         // Preload the text and display faces (the first file of each); they paint the first screen.
@@ -135,12 +137,5 @@ export function bootScript(): string {
         return [t.id, { m: modes, c: Object.fromEntries(modes.map((m) => [m, paletteOf(t, m).bg])), f: preload }];
       }),
     ),
-  };
-  return `(function(){var B=${JSON.stringify(data)},r=document.documentElement,id,m;
-try{id=localStorage.getItem('theme');m=localStorage.getItem('theme-mode')}catch(e){}
-if(id==='light'||id==='dark'){m=id;id=null}
-var t=B.t[id]?id:B.d,T=B.t[t],mode=T.m.length<2?T.m[0]:m==='light'||m==='dark'?m:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
-r.setAttribute('data-theme',t);r.setAttribute('data-mode',mode);
-var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute('content',T.c[mode]);
-T.f.forEach(function(u){var l=document.createElement('link');l.rel='preload';l.as='font';l.type='font/woff2';l.crossOrigin='';l.href=u;document.head.appendChild(l)})})();`;
+  );
 }

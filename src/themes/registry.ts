@@ -2,8 +2,9 @@
  * ─────────────────────────────────────────────────────────────────────────────
  *  THE THEME REGISTRY. The one file to edit to add, remove or reorder themes.
  *
- *  - The order here is the order in the picker. The FIRST theme is the default:
- *    what new visitors see, and what anyone whose saved theme was removed falls back to.
+ *  - The order here is the order in the picker. A first visit gets a random theme that has
+ *    the visitor's light or dark mode, and keeps it (src/themes/choose.ts). The FIRST theme is
+ *    the default: what shows without JavaScript, and the colors of the social cards.
  *  - To ship a subset, delete lines from THEMES (and their imports). Fonts, CSS, the
  *    picker, the /design/ page and the contrast tests all follow this list.
  *  - With a single theme the picker hides itself. If that theme has both a light and a

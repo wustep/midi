@@ -116,7 +116,12 @@ const curvePath = (v: string) => {
       <h2 id="themes">Themes</h2>
       <p class="ds-note">
         Each theme is a plain data file in <code>src/themes/</code>: colors for light, dark or both, three or four fonts, and a few
-        type and shape settings. <code>src/themes/registry.ts</code> lists them; the first, {DEFAULT_THEME.name}, is the default.
+        type and shape settings. <code>src/themes/registry.ts</code> lists them.
+        {
+          themes.length > 1
+            ? `A first visit gets one at random from those with the visitor’s light or dark mode, and keeps it; the first, ${DEFAULT_THEME.name}, shows without JavaScript.`
+            : `The first, ${DEFAULT_THEME.name}, is the default.`
+        }
         Every theme and mode is tested for WCAG AA contrast (<code>tests/themes.test.ts</code>).
       </p>
       <ul class="themes">

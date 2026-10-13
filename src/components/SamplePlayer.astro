@@ -439,7 +439,7 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
   .sp-keys :global(.key) {
     position: absolute;
     top: 0;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--key-edge);
     border-radius: 0 0 var(--r-sm) var(--r-sm);
     padding: 0;
     cursor: pointer;
@@ -463,8 +463,11 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     opacity: 0.45;
   }
   .sp-keys :global(.white.on) {
-    background: var(--accent-soft);
+    background: var(--key-on);
     box-shadow: inset 0 -6px 0 var(--accent);
+  }
+  .sp-keys :global(.white.on .lbl) {
+    color: var(--key-on-label);
   }
   .sp-keys :global(.black.on) {
     background: var(--accent);

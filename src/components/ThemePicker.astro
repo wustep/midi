@@ -5,7 +5,8 @@
  * a readout describing the focused one, Surprise me, and an Auto / Light / Dark switch. Choosing applies
  * at once and persists (localStorage `theme`, `theme-mode`); the boot script in Base.astro applies it
  * before first paint on the next page. Surprise me re-rolls the way a first visit does (choose.ts): a
- * random theme that has the mode the reader wants. A one-mode theme forces its mode and disables the switch.
+ * random theme that has the mode the reader wants. A one-mode theme forces its mode: the switch gives way
+ * to a "Dark only" (or "Light only") plate in the same spot, so nothing moves when you pick one.
  *
  * With one registered theme there's nothing to pick: the picker isn't rendered, and a theme with both
  * palettes gets a plain light/dark switch instead.
@@ -49,13 +50,18 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
             <p class="tp-title" id="tp-title">
               Theme <span class="tp-count">{themes.length} programs</span>
             </p>
-            <div class="tp-mode">
-              <span class="tp-mode-note" id="tp-mode-note" data-mode-note></span>
-              <div class="seg tp-modes" role="radiogroup" aria-label="Light or dark" aria-describedby="tp-mode-note">
+            <div class="tp-mode" data-mode-box>
+              <div class="seg tp-modes" role="radiogroup" aria-label="Light or dark">
                 <button type="button" role="radio" aria-checked="false" data-pref="auto">Auto</button>
                 <button type="button" role="radio" aria-checked="false" data-pref="light">Light</button>
                 <button type="button" role="radio" aria-checked="false" data-pref="dark">Dark</button>
               </div>
+              <!-- Stands in for the switch while a one-mode theme is on. -->
+              <p class="tp-lock" data-mode-note>
+                <Icon name="sun" size={14} class="i-sun" />
+                <Icon name="moon" size={14} class="i-moon" />
+                <span data-mode-text></span>
+              </p>
             </div>
           </div>
           <div class="tp-list" role="radiogroup" aria-labelledby="tp-title">
@@ -137,18 +143,33 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
       const mode = modeFor(themes[id].m, want());
       if (root.dataset.theme === id && root.dataset.mode === mode) return sync();
       const run = () => {
+        // Components' own color transitions sit this one out (global.css), so the page changes as one
+        // instead of in a ragged cascade.
+        root.setAttribute('data-theme-switching', '');
         root.dataset.theme = id;
         root.dataset.mode = mode;
         document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themes[id].c[mode] ?? '');
         sync();
         dispatchEvent(new CustomEvent('themechange', { detail: { id, mode } }));
       };
+      const settle = () => requestAnimationFrame(() => requestAnimationFrame(() => root.removeAttribute('data-theme-switching')));
       // A short crossfade, so a whole-page color change doesn't flash (none with reduced motion).
-      if (animate && !reduced.matches && 'startViewTransition' in document) document.startViewTransition(run);
-      else run();
+      if (animate && !reduced.matches && 'startViewTransition' in document) document.startViewTransition(run).finished.finally(settle);
+      else {
+        run();
+        settle();
+      }
     }
     // The system switching light or dark never changes the theme, only a two-mode theme's mode.
     sys.addEventListener('change', () => apply(current(), true));
+    // Catch up with a choice made elsewhere: in another tab, or on another page before this one came back
+    // from the back/forward cache (where the boot script doesn't run again).
+    const catchUp = () => {
+      const saved = store.get('theme');
+      apply(saved && themes[saved] ? saved : current(), false);
+    };
+    addEventListener('storage', (e) => (e.key === null || e.key === 'theme' || e.key === 'theme-mode') && catchUp());
+    addEventListener('pageshow', (e) => e.persisted && catchUp());
 
     /* ---------- One theme: the light/dark switch ---------- */
     const modeSwitch = host.querySelector<HTMLButtonElement>('[data-mode-switch]');
@@ -163,7 +184,8 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
     const prefs = [...host.querySelectorAll<HTMLButtonElement>('[data-pref]')];
     const rName = host.querySelector<HTMLElement>('[data-r-name]');
     const rDir = host.querySelector<HTMLElement>('[data-r-dir]');
-    const modeNote = host.querySelector<HTMLElement>('[data-mode-note]');
+    const modeBox = host.querySelector<HTMLElement>('[data-mode-box]');
+    const modeText = host.querySelector<HTMLElement>('[data-mode-text]');
     const surprise = host.querySelector<HTMLButtonElement>('[data-surprise]');
     const surpriseNote = host.querySelector<HTMLElement>('[data-surprise-note]');
     const status = host.querySelector<HTMLElement>('[data-status]');
@@ -184,14 +206,14 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
       });
       const modes = themes[id].m;
       const fixed = modes.length < 2;
-      // A one-mode theme shows its mode as chosen, and the whole switch is unavailable, with a note saying
-      // why. The reader's Auto / Light / Dark is kept for the next two-mode theme.
-      prefs.forEach((b) => {
-        const v = b.dataset.pref!;
-        b.setAttribute('aria-checked', String(fixed ? v === modes[0] : v === (p ?? 'auto')));
-        b.disabled = fixed;
-      });
-      if (modeNote) modeNote.textContent = fixed ? (modes[0] === 'dark' ? 'Dark only' : 'Light only') : '';
+      // A one-mode theme has nothing to switch: the switch steps aside for a plate that says which mode it
+      // has. The reader's Auto / Light / Dark is kept for the next two-mode theme.
+      prefs.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.pref === (p ?? 'auto'))));
+      if (modeBox) {
+        if (fixed) modeBox.dataset.fixed = modes[0];
+        else delete modeBox.dataset.fixed;
+      }
+      if (modeText) modeText.textContent = fixed ? (modes[0] === 'dark' ? 'Dark only' : 'Light only') : '';
       if (surpriseNote) {
         const w = want();
         surpriseNote.textContent = Object.values(themes).some((t) => t.m.includes(w)) ? `Another theme with a ${w} mode` : 'Another theme';
@@ -336,27 +358,43 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
     min-height: 1.75rem;
     font-size: var(--t-sm);
   }
+  /* The switch and the plate share one cell: a one-mode theme swaps one for the other in place. */
   .tp-mode {
+    display: grid;
+  }
+  .tp-modes,
+  .tp-lock {
+    grid-area: 1 / 1;
+    transition:
+      opacity var(--d-fast) ease,
+      visibility var(--d-fast) allow-discrete;
+  }
+  .tp-lock {
     display: flex;
     align-items: center;
-    gap: var(--s-2);
+    justify-content: center;
+    gap: var(--s-1);
+    margin: 0;
+    padding: 0 var(--s-3);
+    border-radius: calc(var(--r-sm) + 3px);
+    background: var(--surface-sunken);
+    box-shadow: inset 0 0 0 1px var(--line), var(--shadow-inset);
+    color: var(--ink-2);
+    font-size: var(--t-sm);
+    font-weight: var(--w-semibold);
+    white-space: nowrap;
   }
-  .tp-mode-note {
-    font-size: var(--t-xs);
+  .tp-lock :global(svg) {
     color: var(--muted);
   }
-  .tp-mode-note:empty {
+  .tp-mode:not([data-fixed]) .tp-lock,
+  .tp-mode[data-fixed] .tp-modes {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .tp-mode[data-fixed='dark'] .tp-lock :global(.i-sun),
+  .tp-mode[data-fixed='light'] .tp-lock :global(.i-moon) {
     display: none;
-  }
-  .tp-modes > button:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .tp-modes > button:disabled:not([aria-checked='true']):hover {
-      background: transparent;
-      color: var(--muted);
-    }
   }
   .tp-list {
     display: grid;

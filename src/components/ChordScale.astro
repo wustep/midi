@@ -372,7 +372,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
   .cs-keys :global(.key) {
     position: absolute;
     top: 0;
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--key-edge);
     border-radius: 0 0 var(--r-xs) var(--r-xs);
     display: flex;
     align-items: flex-end;
@@ -394,11 +394,12 @@ const pitched = instruments.filter((i) => !i.drumMap);
     color: var(--key-w);
   }
   .cs-keys :global(.white.on) {
-    background: var(--accent-soft);
+    background: var(--key-on);
     box-shadow: inset 0 -5px 0 var(--accent);
   }
   .cs-keys :global(.black.on) {
     background: var(--accent);
+    color: var(--on-accent);
   }
   .cs-keys :global(.held) {
     outline: 3px solid var(--data);

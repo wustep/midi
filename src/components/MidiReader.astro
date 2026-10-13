@@ -270,7 +270,7 @@ const demos = [
     const hexBox = $('[data-hex]');
     const hexRows = $('[data-hex-rows]');
 
-    let file = new Uint8Array();
+    let file: Uint8Array = new Uint8Array();
     let smf: SmfFile | undefined;
     let tempo: TempoMap | undefined;
     let notes: Note[] = [];
@@ -651,7 +651,7 @@ const demos = [
             status.textContent = `Opened ${outName} (edited in your browser).${note}`;
             $('#rd-overview').scrollIntoView({ behavior: 'smooth' });
           } else {
-            download(r.bytes, 'audio/midi', outName);
+            download(r.bytes as Uint8Array<ArrayBuffer>, 'audio/midi', outName);
             exStatus.textContent = `Saved ${outName}: format ${r.format}, ${plural(r.tracks, 'track')}, ${fmtBytes(r.bytes.length)}.${note}`;
           }
         } catch (e) {

@@ -46,8 +46,14 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
-  /* Ease theme changes instead of flashing (avoid abrupt brightness jumps). */
-  transition: background-color var(--d-slow) var(--ease-out), color var(--d-slow) var(--ease-out);
+}
+/* Theme changes: the page crossfades once (a view transition, ThemePicker.astro), and while it does,
+   nothing transitions on its own clock, so colors don't arrive in a ragged cascade. With reduced motion
+   (or no view transitions) the change is instant. */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition: none !important;
 }
 
 img,

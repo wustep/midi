@@ -4,7 +4,7 @@ interface Props {
   level?: 2 | 3;
 }
 const { level = 3 } = Astro.props;
-const Heading = `h${level}`;
+const Heading = `h${level}` as const;
 ---
 
 <section class="widget tempo" data-tempo aria-labelledby="tempo-title">

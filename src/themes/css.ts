@@ -10,6 +10,7 @@ import { THEMES, DEFAULT_THEME } from './registry.ts';
 import { bootScript as themeBoot } from './choose.ts';
 import { FONTS, fontStack } from './fonts.ts';
 import { FONT_FILES } from './font-files.ts';
+import { keyColors } from './derive.ts';
 import { iconDocument } from '../lib/icons.mjs';
 import type { FontKey, Mode, Palette, Theme } from './types.ts';
 
@@ -31,7 +32,7 @@ function fontFaces(): string {
 }
 
 function paletteVars(p: Palette, mode: Mode): string {
-  const vars = Object.entries(p).map(([k, v]) => `--${k}:${v}`);
+  const vars = Object.entries({ ...p, ...keyColors(p, mode) }).map(([k, v]) => `--${k}:${v}`);
   // The select chevron is a background image, so it carries its color: the icon-set chevron in --muted.
   vars.push(`--i-select:${svgUrl(iconDocument('chevron-down', p.muted))}`, `color-scheme:${mode}`);
   return vars.join(';');
@@ -132,8 +133,9 @@ export function bootScript(): string {
     Object.fromEntries(
       THEMES.map((t) => {
         const modes = modesOf(t);
-        // Preload the text and display faces (the first file of each); they paint the first screen.
-        const preload = [...new Set([t.fonts.text, t.fonts.display])].map((k) => FONT_FILES[k][0].src);
+        // Preload every face the first screen uses (the first file of each): text, display, and the mono
+        // and label faces of the header, eyebrows and byte readouts, so none of them swaps in late.
+        const preload = fontsOf(t).map((k) => FONT_FILES[k][0].src);
         return [t.id, { m: modes, c: Object.fromEntries(modes.map((m) => [m, paletteOf(t, m).bg])), f: preload }];
       }),
     ),

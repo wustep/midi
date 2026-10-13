@@ -38,6 +38,34 @@ const nav = [
     <meta name="theme-color" content={(DEFAULT_THEME.light ?? DEFAULT_THEME.dark)!.bg} />
     <!-- Picks the theme and mode before first paint (no flash) and preloads its fonts. src/themes/css.ts -->
     <script is:inline set:html={bootScript()} />
+    <!--
+      Settles two things as the page is parsed, before anything paints (a deferred script would let them
+      paint first and then jump): long grouped lists (<details data-fold-phone open>) start folded on
+      phones, and the search shortcut reads Ctrl K outside Apple platforms.
+    -->
+    <script is:inline>
+      (function () {
+        var fold = matchMedia('(max-width: 720px)').matches,
+          ctrl = !/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+        if (!fold && !ctrl) return;
+        var settle = function () {
+          if (fold) document.querySelectorAll('details[data-fold-phone]:not([data-settled])').forEach(function (d) {
+            d.open = false;
+            d.setAttribute('data-settled', '');
+          });
+          if (ctrl) document.querySelectorAll('[data-mod]:not([data-settled])').forEach(function (k) {
+            k.textContent = 'Ctrl K';
+            k.setAttribute('data-settled', '');
+          });
+        };
+        var watch = new MutationObserver(settle);
+        watch.observe(document.documentElement, { childList: true, subtree: true });
+        document.addEventListener('DOMContentLoaded', function () {
+          settle();
+          watch.disconnect();
+        });
+      })();
+    </script>
     <Fragment set:html={`<style data-themes>${themeCss()}</style>`} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
@@ -145,8 +173,6 @@ const nav = [
         led?.animate([{ opacity: 1 }, { opacity: 1, offset: 0.3 }, { opacity: 0 }], { duration: 220, easing: 'ease-out' }),
       );
 
-      // Show Ctrl K instead of ⌘K outside Apple platforms.
-      if (!/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) document.querySelectorAll('[data-mod]').forEach((k) => (k.textContent = 'Ctrl K'));
 
       // Phone menu: the primary nav collapses behind a button.
       const menuBtn = document.querySelector<HTMLButtonElement>('.menu-btn');
@@ -170,10 +196,6 @@ const nav = [
       addEventListener('scroll', onScroll, { passive: true });
       onScroll();
 
-      // Long grouped lists fold on phones: <details data-fold-phone open> starts closed there.
-      if (matchMedia('(max-width: 720px)').matches) {
-        document.querySelectorAll<HTMLDetailsElement>('details[data-fold-phone]').forEach((d) => (d.open = false));
-      }
       // Opening a #link to something inside a folded group opens the group.
       const openTarget = () => {
         if (!location.hash) return;

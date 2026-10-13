@@ -34,8 +34,9 @@ export default {
     '--texture-at': '78% 30%',
     '--grain': grain,
   },
-  // Pink prints over blue, slightly off: the highlighted word and the big titles carry a ghost.
-  css: `.hero h1 .hl{color:#ff48b0;text-shadow:.035em .025em 0 rgb(29 61 160 / .35)}
+  // Pink prints over blue, slightly off: the highlighted word carries a ghost. The pink is a shade deeper
+  // than the ink's #ff48b0 so the word holds 3:1 on the stock.
+  css: `.hero h1 .hl{color:#f02e9c;text-shadow:.035em .025em 0 rgb(29 61 160 / .35)}
 .rule-beats{height:5px;background:repeating-linear-gradient(90deg,var(--accent) 0 .5rem,transparent 0 .875rem);opacity:.75}`,
   light: {
     bg: '#f3eee2',

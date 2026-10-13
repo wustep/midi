@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { THEMES, DEFAULT_THEME } from '../src/themes/registry.ts';
 import { FONTS } from '../src/themes/fonts.ts';
+import { keyColors } from '../src/themes/derive.ts';
 import type { Palette } from '../src/themes/types.ts';
 
 /** WCAG 2 relative luminance of a #rrggbb color. */
@@ -15,7 +16,8 @@ export function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-type K = keyof Palette;
+// Every palette color but the optional key-edge (checked with the key colors below).
+type K = Exclude<keyof Palette, 'key-edge'>;
 const TEXT = 4.5; // WCAG AA, normal text
 const UI = 3; // WCAG AA, non-text contrast (control borders, focus rings, indicators, chart marks)
 const SURFACES: K[] = ['bg', 'surface', 'surface-2', 'surface-sunken', 'surface-raised'];
@@ -87,6 +89,19 @@ for (const t of THEMES) {
       const failures = PAIRS.filter(([fg, bg, min]) => contrast(p[fg], p[bg]) < min).map(
         ([fg, bg, min]) => `--${fg} ${p[fg]} on --${bg} ${p[bg]}: ${contrast(p[fg], p[bg]).toFixed(2)} < ${min}`,
       );
+      assert.deepEqual(failures, [], `${t.id} ${mode}:\n  ${failures.join('\n  ')}`);
+    });
+    // The worked-out key colors (src/themes/derive.ts): the C4 mark and black keys on a pressed key,
+    // and a line you can see between two white keys.
+    test(`${t.name} (${mode}) piano keys read when pressed`, () => {
+      const k = keyColors(p, mode);
+      if (p['key-edge']) assert.match(p['key-edge'], HEX, `${t.id} ${mode}: --key-edge must be #rrggbb`);
+      const checks: [string, string, string, number][] = [
+        ['key-on-label', k['key-on-label'], k['key-on'], TEXT],
+        ['key-b', p['key-b'], k['key-on'], UI],
+        ['key-edge', k['key-edge'], p['key-w'], 1.5],
+      ];
+      const failures = checks.filter(([, fg, bg, min]) => contrast(fg, bg) < min).map(([n, fg, bg, min]) => `--${n} ${fg} on ${bg}: ${contrast(fg, bg).toFixed(2)} < ${min}`);
       assert.deepEqual(failures, [], `${t.id} ${mode}:\n  ${failures.join('\n  ')}`);
     });
   }

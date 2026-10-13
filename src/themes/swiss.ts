@@ -108,6 +108,8 @@ export default {
     'key-w-hover': '#d4d4d4',
     'key-b': '#0a0a0a',
     'key-label': '#4d4d4d',
+    // line-strong is the white rule, the same as the keys: draw the gaps between them in black instead.
+    'key-edge': '#0a0a0a',
     highlight: 'transparent',
     ...flat('0 0 0 1px #e6e6e6, 0 24px 56px -20px rgb(0 0 0 / 0.8)'),
   },

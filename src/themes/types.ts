@@ -56,6 +56,8 @@ export interface Palette {
   'key-w-hover': string;
   'key-b': string;
   'key-label': string;
+  /** The line between white keys, when `line-strong` is too close to `key-w` to draw it. Optional. */
+  'key-edge'?: string;
   /** Light catching the top edge of raised things (keycaps, buttons). Any CSS color. */
   highlight: string;
   /** Elevation. Any CSS box-shadow. */

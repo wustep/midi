@@ -7,6 +7,11 @@ import Base from '../layouts/Base.astro';
 import Callout from '../components/Callout.astro';
 import Icon from '../components/Icon.astro';
 import { ICONS, iconSvg } from '../lib/icons.mjs';
+import { THEMES, DEFAULT_THEME } from '../themes/registry.ts';
+import { themeSummary } from '../themes/css.ts';
+
+const themes = THEMES.map(themeSummary);
+const pad = (n: number) => String(n).padStart(2, '0');
 
 const surfaces = [
   ['--surface-sunken', 'Sunken', 'Inputs, code, readouts'],
@@ -85,30 +90,78 @@ const curvePath = (v: string) => {
   <div class="page ds">
     <header class="page-head">
       <p class="eyebrow">Design system</p>
-      <h1>Paper, ink and three byte colors</h1>
+      <h1>One system, {themes.length === 1 ? 'one theme' : `${themes.length} themes`}</h1>
       <p class="lede">
-        Every color, size and curve on this site comes from one set of tokens. This page renders them with the same CSS
-        the site uses, so it is always current. Switch the theme in the header to see both.
+        Every color, size and curve on this site comes from one set of tokens, and a theme is only a different set of
+        values for them. This page renders the tokens with the same CSS the site uses, so it is always current.
+        {themes.length > 1 ? 'Change the theme from the knob in the header and watch it follow.' : 'Switch light and dark in the header to see both.'}
       </p>
     </header>
 
     <nav class="ds-toc" aria-label="On this page">
-      {['Principles', 'Color', 'Type', 'Space', 'Radii', 'Elevation', 'Motion', 'Focus', 'Icons', 'Components'].map((s) => <a href={`#${s.toLowerCase()}`}>{s}</a>)}
+      {['Principles', 'Themes', 'Color', 'Type', 'Space', 'Radii', 'Elevation', 'Motion', 'Focus', 'MIDI marks', 'Icons', 'Components'].map((s) => <a href={`#${s.toLowerCase().replace(' ', '-')}`}>{s}</a>)}
     </nav>
 
     <section aria-labelledby="principles">
       <h2 id="principles">Principles</h2>
       <ol class="principles">
-        <li><strong>Color means a byte role.</strong> Ember is a status byte, teal is data, violet is meta. Decoration never borrows them.</li>
-        <li><strong>Paper and ink.</strong> Warm, printed-reference neutrals. Depth comes from three surface levels, not from heavy shadows.</li>
+        <li><strong>Color means a byte role.</strong> In every theme, one hue is a status byte, one is data, one is meta. Decoration never borrows them.</li>
+        <li><strong>Hardware, sparingly.</strong> LEDs for what's on, keycaps that travel, a beat ruler at big breaks, a step grid behind the hero. Cues, never costume.</li>
         <li><strong>Quiet until touched.</strong> Links and controls rest calm, answer on hover with a fine pointer, and always answer on press.</li>
         <li><strong>Fast, honest motion.</strong> Under 300 ms, custom ease-out curves, nothing on keyboard shortcuts, no movement with reduced motion.</li>
       </ol>
     </section>
 
+    <section aria-labelledby="themes">
+      <h2 id="themes">Themes</h2>
+      <p class="ds-note">
+        Each theme is a plain data file in <code>src/themes/</code>: colors for light, dark or both, three or four fonts, and a few
+        type and shape settings. <code>src/themes/registry.ts</code> lists them; the first, {DEFAULT_THEME.name}, is the default.
+        Every theme and mode is tested for WCAG AA contrast (<code>tests/themes.test.ts</code>).
+      </p>
+      <ul class="themes">
+        {
+          themes.map((t, i) => (
+            <li class="theme">
+              <div class="th-specimens">
+                {t.modes.map((m) => {
+                  const w = t.swatch[m]!;
+                  return (
+                    <div class="th-spec" style={`background:${w.bg};color:${w.ink};border-color:${w.line}`} aria-hidden="true">
+                      <span class="th-aa" style={`font-family:${t.displayFont.replace(/'/g, '"')}`}>Aa</span>
+                      <span class="th-bytes" style={`font-family:${t.monoFont.replace(/'/g, '"')}`}>
+                        <span style={`color:${w.accent};background:${w.accentSoft}`}>90</span>
+                        <span style={`color:${w.data};background:${w.dataSoft}`}>3C</span>
+                        <span style={`color:${w.meta};background:${w.metaSoft}`}>FF</span>
+                      </span>
+                      <span class="th-btn" style={`background:${w.primary};color:${w.onPrimary};font-family:${t.textFont.replace(/'/g, '"')}`}>Play</span>
+                      <span class="th-led" style={`background:${w.led};box-shadow:0 0 6px ${w.led}`} />
+                      <span class="th-mode" style={`color:${w.muted}`}>{m}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div class="th-body">
+                <p class="th-name">
+                  <span class="th-n">{pad(i + 1)}</span> {t.name}
+                </p>
+                <p class="th-dir">{t.direction}</p>
+                <p class="th-fonts">{t.fontNames.join(' · ')}</p>
+                {themes.length > 1 && (
+                  <button type="button" class="btn btn-sm" data-use-theme={t.id}>
+                    Use {t.name}
+                  </button>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
     <section aria-labelledby="color">
       <h2 id="color">Color</h2>
-      <p class="ds-note">Semantic tokens point at a primitive palette in <code>tokens.css</code>. Components only use semantic names; dark mode swaps the mapping.</p>
+      <p class="ds-note">The semantic color tokens, as the current theme sets them. Components only use these names; a theme or a mode swaps the values.</p>
 
       <h3>Byte roles</h3>
       <ul class="roles">
@@ -285,6 +338,36 @@ const curvePath = (v: string) => {
         offset <code>--focus-offset</code> from the edge, following the element's own radius. Text fields swap their
         border for the focus color and add a soft halo. Press <kbd>Tab</kbd> through the components below.
       </p>
+    </section>
+
+    <section aria-labelledby="midi-marks">
+      <h2 id="midi-marks">MIDI marks</h2>
+      <p class="ds-note">
+        A few hardware cues, kept small. Each theme recolors them, and none carries meaning on its own: an LED always
+        sits next to a label or a state that says the same thing.
+      </p>
+      <div class="marks">
+        <div class="mark">
+          <div class="mark-demo"><span class="led" /> <span class="led on" /> <span class="led" data-on /></div>
+          <p class="sw-name">LED</p>
+          <p class="sw-use"><code>.led</code>, lit with <code>.on</code>. The MIDI IN light, the current section, the chosen theme. Color <code>--led</code>, bleed <code>--led-blur</code>.</p>
+        </div>
+        <div class="mark">
+          <div class="mark-demo"><button type="button" class="btn">Keycap</button> <button type="button" class="btn btn-primary">Primary</button></div>
+          <p class="sw-name">Keycaps</p>
+          <p class="sw-use">Buttons have a lit top edge and a heavier lip; pressed, they travel down 1px and lose the lip.</p>
+        </div>
+        <div class="mark mark-wide">
+          <div class="mark-demo"><div class="rule-beats" style="width: 100%" /></div>
+          <p class="sw-name">Beat ruler</p>
+          <p class="sw-use"><code>.rule-beats</code>: a timeline's ticks for the big breaks between sections. Themes redraw it: step lights, staves, a heavy rule.</p>
+        </div>
+        <div class="mark mark-wide">
+          <div class="mark-demo mark-texture textured" />
+          <p class="sw-name">Texture</p>
+          <p class="sw-use"><code>.textured</code> draws the theme's <code>--texture</code> (a step grid, a piano roll, staves, dots) behind the hero, faded out from a focal point.</p>
+        </div>
+      </div>
     </section>
 
     <section aria-labelledby="icons">
@@ -479,6 +562,11 @@ const curvePath = (v: string) => {
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refresh);
   addEventListener('resize', refresh);
 
+  // "Use" buttons drive the header picker, so the choice persists and everything stays in sync.
+  document.querySelectorAll<HTMLButtonElement>('[data-use-theme]').forEach((b) =>
+    b.addEventListener('click', () => document.querySelector<HTMLButtonElement>(`.tp-opt[data-id="${b.dataset.useTheme}"]`)?.click()),
+  );
+
   // Motion demos: toggling a class runs (or reverses) a transition.
   document.querySelectorAll<HTMLButtonElement>('[data-play]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -502,6 +590,131 @@ const curvePath = (v: string) => {
 </script>
 
 <style>
+  .themes {
+    list-style: none;
+    padding: 0;
+    margin: var(--s-5) 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: var(--s-4);
+  }
+  .theme {
+    display: grid;
+    align-content: start;
+    gap: var(--s-3);
+    padding: var(--s-3);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+  }
+  .th-specimens {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: var(--s-2);
+  }
+  .th-spec {
+    position: relative;
+    display: grid;
+    align-content: space-between;
+    gap: var(--s-2);
+    min-height: 7.5rem;
+    padding: var(--s-3);
+    border: 1px solid;
+    border-radius: var(--r-md);
+  }
+  .th-aa {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .th-bytes {
+    display: flex;
+    gap: 3px;
+    font-size: var(--t-xs);
+    font-weight: 700;
+  }
+  .th-bytes > span {
+    padding: 0.05em 0.35em;
+    border-radius: 3px;
+  }
+  .th-btn {
+    justify-self: start;
+    padding: 0.2em 0.7em;
+    border-radius: 4px;
+    font-size: var(--t-xs);
+    font-weight: 600;
+  }
+  .th-led {
+    position: absolute;
+    top: var(--s-3);
+    right: var(--s-3);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .th-mode {
+    position: absolute;
+    right: var(--s-3);
+    bottom: var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--t-2xs);
+  }
+  .th-body p {
+    margin: 0;
+  }
+  .th-name {
+    font-family: var(--font-display);
+    font-weight: var(--heading-weight);
+    font-stretch: var(--heading-stretch);
+    font-size: var(--t-lg);
+  }
+  .th-n {
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    font-weight: var(--w-regular);
+    color: var(--muted);
+  }
+  .th-dir {
+    margin-top: var(--s-1) !important;
+    font-size: var(--t-md);
+    color: var(--ink-2);
+    line-height: var(--lh-ui);
+  }
+  .th-fonts {
+    margin: var(--s-2) 0 var(--s-3) !important;
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    color: var(--muted);
+  }
+  .marks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: var(--s-5) var(--s-4);
+    margin-top: var(--s-5);
+  }
+  .mark-wide {
+    grid-column: 1 / -1;
+  }
+  .mark p {
+    margin: 0;
+  }
+  .mark-demo {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-height: 4rem;
+    padding: var(--s-3) var(--s-4);
+    margin-bottom: var(--s-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--bg);
+  }
+  .mark-texture {
+    min-height: 9rem;
+    --texture-at: 50% 50%;
+  }
   .ds section {
     padding-top: var(--s-2);
   }

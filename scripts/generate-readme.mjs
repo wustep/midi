@@ -84,7 +84,7 @@ The catalog is one part of **[midi.community](${SITE})**, an open reference for 
 - 🎹 **[Samples](${SITE}/samples/)**: play ${instruments.length} openly licensed instruments with a mouse, touch screen, computer keyboard or MIDI controller, plus ${sampleSources.length} SoundFont, SFZ and multisample libraries with license notes
 - 💬 **[Community](${SITE}/community/)**: ${community.length} forums, subreddits, Discord servers and mailing lists, and [${midiFiles.length} sources of MIDI files](${SITE}/community/midi-files/) with license and copyright notes
 - 📜 **[Glossary](${SITE}/docs/glossary/)**, **[History of MIDI](${SITE}/docs/history/)**, **[${resources.length} specs & references](${SITE}/docs/resources/)**, and site-wide search (press <kbd>⌘K</kbd> or <kbd>/</kbd>)
-- 🎨 **[Design system](${SITE}/design/)**: the site's tokens, components and icon set, rendered live and written up in [docs/DESIGN.md](docs/DESIGN.md)
+- 🎨 **[Design system](${SITE}/design/)**: the site's tokens, themes, components and icon set, rendered live and written up in [docs/DESIGN.md](docs/DESIGN.md)
 
 [↑ back to contents](#contents)
 

@@ -30,7 +30,7 @@ export default {
     '--r-md': '8px',
     '--r-lg': '12px',
     '--led-blur': '0px',
-    '--texture': 'radial-gradient(circle, rgb(255 72 176 / 0.55) 2.2px, transparent 2.8px) 0 0 / 11px 11px',
+    '--texture': 'radial-gradient(circle, rgb(255 72 176 / 0.4) 2px, transparent 2.6px) 0 0 / 11px 11px',
     '--texture-at': '78% 30%',
     '--grain': grain,
   },

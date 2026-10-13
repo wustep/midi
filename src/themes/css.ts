@@ -66,7 +66,24 @@ export function themeCss(): string {
   return out.join('\n');
 }
 
-/** What the boot script and the picker need to know about each theme. */
+export interface Swatch {
+  bg: string;
+  surface: string;
+  ink: string;
+  muted: string;
+  line: string;
+  accent: string;
+  accentSoft: string;
+  data: string;
+  dataSoft: string;
+  meta: string;
+  metaSoft: string;
+  primary: string;
+  onPrimary: string;
+  led: string;
+}
+
+/** What the picker and /design/ need to know about each theme. */
 export function themeSummary(t: Theme) {
   const modes = modesOf(t);
   return {
@@ -78,10 +95,32 @@ export function themeSummary(t: Theme) {
     swatch: Object.fromEntries(
       modes.map((m) => {
         const p = paletteOf(t, m);
-        return [m, { bg: p.bg, surface: p.surface, ink: p.ink, line: p['line-strong'], accent: p.accent, data: p.data, meta: p.meta, led: p.led }];
+        return [
+          m,
+          {
+            bg: p.bg,
+            surface: p.surface,
+            ink: p.ink,
+            muted: p.muted,
+            line: p['line-strong'],
+            accent: p.accent,
+            accentSoft: p['accent-soft'],
+            data: p.data,
+            dataSoft: p['data-soft'],
+            meta: p.meta,
+            metaSoft: p['meta-soft'],
+            primary: p.primary,
+            onPrimary: p['on-primary'],
+            led: p.led,
+          },
+        ];
       }),
-    ) as Partial<Record<Mode, { bg: string; surface: string; ink: string; line: string; accent: string; data: string; meta: string; led: string }>>,
+    ) as Partial<Record<Mode, Swatch>>,
     displayFont: fontStack(t.fonts.display),
+    textFont: fontStack(t.fonts.text),
+    monoFont: fontStack(t.fonts.mono),
+    /** Family names, for people: "Fraunces, Newsreader, IBM Plex Mono". */
+    fontNames: [...new Set([t.fonts.display, t.fonts.text, t.fonts.mono, t.fonts.label ?? t.fonts.display])].map((k) => FONTS[k].family.replace(/ Variable$/, '')),
   };
 }
 

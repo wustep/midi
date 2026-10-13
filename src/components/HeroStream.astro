@@ -13,6 +13,11 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
 ---
 
 <figure class="hs" data-hs aria-labelledby="hs-cap">
+  <!-- The faceplate: an IN light that blinks with each message, and the wire's speed. -->
+  <div class="hs-plate" aria-hidden="true">
+    <span class="label hs-in"><span class="led" data-led></span>MIDI In</span>
+    <span class="hs-spec">31.25 kbaud · 320 µs a byte</span>
+  </div>
   <div class="hs-bytes" aria-hidden="true">
     <div class="hs-byte status" data-b="0">
       <span class="hexv">90</span>
@@ -53,7 +58,7 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
         })
       }
     </div>
-    <label class="hs-bend" title="Pitch bend: drag, it springs back">
+    <label class="hs-bend" title="Pitch bend: drag, it springs back to center">
       <span class="visually-hidden">Pitch bend</span>
       <input type="range" min="0" max="16383" value="8192" step="1" data-bend aria-label="Pitch bend" />
     </label>
@@ -72,6 +77,7 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
   import { decodeMessage, hex, noteName } from '../lib/midi';
   import { Sampler, type Instrument } from '../lib/sampler';
   import { midiAccess } from '../lib/webmidi';
+  import { activity } from '../lib/activity';
   import samples from '../../data/samples.json';
 
   const piano = (samples as Instrument[]).find((i) => i.id === 'salamander-grand-piano')!;
@@ -82,6 +88,8 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
     const log = $('[data-log]');
     const live = $('[data-live]');
     const bend = $<HTMLInputElement>('[data-bend]');
+    const led = $('[data-led]');
+    let ledOff: ReturnType<typeof setTimeout> | undefined;
     let ctx: AudioContext | undefined;
     let sampler: Sampler | undefined;
     let interacted = false;
@@ -130,7 +138,14 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
       li.innerHTML = `<span class="t">${t}</span><span class="by">${bytes.map((b, i) => `<span class="b ${i === 0 ? 'b-s' : 'b-d'}">${hex(b)}</span>`).join(' ')}</span><span class="m">${d.summary}</span>`;
       log.prepend(li);
       while (log.children.length > 5) log.lastElementChild!.remove();
-      if (fromUser) live.textContent = d.summary;
+      // The faceplate light blinks for every message; the header's MIDI IN light only for the reader's own.
+      led.classList.add('on');
+      clearTimeout(ledOff);
+      ledOff = setTimeout(() => led.classList.remove('on'), 90);
+      if (fromUser) {
+        live.textContent = d.summary;
+        activity();
+      }
     }
 
     /* ---------- Playing ---------- */
@@ -212,12 +227,25 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
       show([0xe0, v & 0x7f, v >> 7], true);
     };
     bend.addEventListener('input', sendBend);
+    // Like a real wheel it travels back (sending bend values on the way) rather than jumping, and
+    // grabbing it mid-return stops it where it is.
+    let springing = 0;
     const spring = () => {
-      if (bend.value === '8192') return;
-      bend.value = '8192';
-      lastBend = -1;
-      sendBend();
+      const from = Number(bend.value);
+      if (from === 8192) return;
+      cancelAnimationFrame(springing);
+      const start = performance.now();
+      const duration = reduced ? 0 : 160;
+      const frame = (now: number) => {
+        const k = duration ? Math.min(1, (now - start) / duration) : 1;
+        bend.value = String(Math.round(from + (8192 - from) * (1 - (1 - k) ** 3)));
+        if (k === 1) lastBend = -1;
+        sendBend();
+        if (k < 1) springing = requestAnimationFrame(frame);
+      };
+      springing = requestAnimationFrame(frame);
     };
+    bend.addEventListener('pointerdown', () => cancelAnimationFrame(springing));
     bend.addEventListener('pointerup', spring);
     bend.addEventListener('keyup', spring);
     bend.addEventListener('blur', spring);
@@ -299,6 +327,33 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
     box-shadow: var(--shadow-2);
     display: grid;
     gap: var(--s-4);
+  }
+  .hs-plate {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    margin: calc(-1 * var(--s-1)) 0 calc(-1 * var(--s-1));
+    color: var(--muted);
+  }
+  .hs-in {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-size: var(--t-2xs);
+    color: var(--ink-2);
+  }
+  /* A blink, not a fade: the light snaps on and lets go quickly, like the real thing. */
+  .hs-in .led {
+    transition: background-color 60ms ease, box-shadow 60ms ease;
+  }
+  .hs-in .led:not(.on) {
+    transition-duration: 220ms;
+  }
+  .hs-spec {
+    font-family: var(--font-mono);
+    font-size: var(--t-2xs);
+    letter-spacing: 0.02em;
   }
   .hs-bytes {
     display: grid;
@@ -392,19 +447,24 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
     transition: background-color var(--d-press) ease, transform var(--d-press) var(--ease-out);
     -webkit-tap-highlight-color: transparent;
   }
+  /* Keys have a little depth: white keys darken toward the front lip, black keys catch light on top. */
   .kw {
     height: 100%;
-    background: var(--key-w);
+    background: linear-gradient(var(--key-w) 70%, color-mix(in srgb, var(--key-w), var(--ink) 6%));
+    box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--key-w), var(--ink) 9%);
     z-index: 1;
   }
   .kb {
     height: 60%;
-    background: var(--key-b);
+    background: linear-gradient(color-mix(in srgb, var(--key-b), #fff 4%), color-mix(in srgb, var(--key-b), #fff 14%) 88%, var(--key-b));
     border-color: var(--key-b);
+    box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--key-b), #fff 9%), 0 2px 3px rgb(0 0 0 / 0.22);
     z-index: 2;
   }
-  .kw:hover {
-    background: var(--key-w-hover);
+  @media (hover: hover) and (pointer: fine) {
+    .kw:hover {
+      background: var(--key-w-hover);
+    }
   }
   .kw.on,
   .kw.ghost {
@@ -429,20 +489,69 @@ const nn = (n: number) => `${names[n % 12]}${Math.floor(n / 12) - 1}`;
     color: var(--key-label);
     pointer-events: none;
   }
+  /* The pitch wheel: a sunken slot with a center detent, and a ribbed wheel you drag. */
   .hs-bend {
+    position: relative;
     display: grid;
     place-items: center;
     border: 1px solid var(--line);
     border-radius: var(--r-sm);
     background: var(--surface-sunken);
+    box-shadow: var(--shadow-inset);
+  }
+  .hs-bend::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    right: 3px;
+    top: 50%;
+    height: 1px;
+    background: var(--line-strong);
   }
   .hs-bend input {
+    -webkit-appearance: none;
+    appearance: none;
     writing-mode: vertical-lr;
     direction: rtl;
-    width: 1.5rem;
-    height: 90%;
-    accent-color: var(--accent);
+    width: 100%;
+    height: 100%;
     margin: 0;
+    background: transparent;
+    cursor: grab;
+  }
+  .hs-bend input:active {
+    cursor: grabbing;
+  }
+  .hs-bend input::-webkit-slider-runnable-track {
+    background: transparent;
+  }
+  .hs-bend input::-moz-range-track {
+    background: transparent;
+  }
+  .hs-bend input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.625rem;
+    height: 1.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-xs);
+    background:
+      linear-gradient(var(--accent), var(--accent)) center / 100% 2px no-repeat,
+      repeating-linear-gradient(var(--key-w) 0 2px, color-mix(in srgb, var(--key-w), var(--ink) 16%) 2px 3px);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  }
+  .hs-bend input::-moz-range-thumb {
+    width: 1.625rem;
+    height: 1.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-xs);
+    background:
+      linear-gradient(var(--accent), var(--accent)) center / 100% 2px no-repeat,
+      repeating-linear-gradient(var(--key-w) 0 2px, color-mix(in srgb, var(--key-w), var(--ink) 16%) 2px 3px);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  }
+  .hs-bend input:focus-visible {
+    outline-offset: 2px;
   }
   .hs-log {
     list-style: none;

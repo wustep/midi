@@ -1306,6 +1306,13 @@ input[type='file']::file-selector-button {
   -webkit-mask-image: radial-gradient(ellipse 60% 70% at var(--texture-at, 70% 45%), #000 10%, transparent 75%);
   mask-image: radial-gradient(ellipse 60% 70% at var(--texture-at, 70% 45%), #000 10%, transparent 75%);
 }
+/* One column: keep the pattern up behind the headline, clear of the body copy. */
+@media (max-width: 900px) {
+  .textured::before {
+    -webkit-mask-image: radial-gradient(ellipse 80% 340px at 90% 0, #000 15%, transparent 75%);
+    mask-image: radial-gradient(ellipse 80% 340px at 90% 0, #000 15%, transparent 75%);
+  }
+}
 
 /* ---------- Grain: printed themes lay a fine noise over the whole page. ---------- */
 body::after {

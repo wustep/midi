@@ -219,9 +219,9 @@ const curvePath = (v: string) => {
     <section aria-labelledby="type">
       <h2 id="type">Type</h2>
       <p class="ds-note">
-        <strong>Archivo</strong> (expanded widths) for display, <strong>Atkinson Hyperlegible Next</strong> for text, and
-        <strong>Atkinson Hyperlegible Mono</strong> for bytes, all variable. Sizes are in rem so they follow the reader's
-        text size. Tracking tightens as type grows (<code>--tr-display</code> −0.03em) and opens on uppercase labels
+        Each theme picks its own faces: one for display, one for text, a mono for bytes, and sometimes a fourth for the
+        small uppercase labels. The theme cards above list them. Sizes are in rem so they follow the reader's text size.
+        Tracking tightens as type grows (<code>--tr-display</code> −0.03em) and opens on uppercase labels
         (<code>--tr-label</code> 0.08em); leading tightens from 1.6 on body to 1.0 on display.
       </p>
       <ul class="type-scale">
@@ -277,7 +277,7 @@ const curvePath = (v: string) => {
 
     <section aria-labelledby="elevation">
       <h2 id="elevation">Elevation</h2>
-      <p class="ds-note">Five levels. Shadows are short, warm and lit from above, with a highlight on the top edge; dark mode deepens them.</p>
+      <p class="ds-note">Five levels. Most themes use short shadows lit from above, with a highlight on the top edge, deeper in dark mode. Printed and drawn themes use rules or ink offsets instead.</p>
       <ul class="elev">
         {
           elevations.map(([k, name, t, use]) => (

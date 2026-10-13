@@ -10,15 +10,15 @@
   {
     "language": "JavaScript / TypeScript",
     "picks": [
-      { "repo": "djipco/webmidi", "task": "Web MIDI", "why": "A friendly layer over the Web MIDI API, with events and note names." },
+      { "repo": "djipco/webmidi", "task": "Web MIDI", "why": "Adds events and note names to the Web MIDI API." },
       { "repo": "Tonejs/Midi", "task": "Files", "why": "Parses .mid into JSON tracks and notes, and writes them back, in browsers and Node." }
     ]
   },
   {
     "language": "C++",
     "picks": [
-      { "repo": "thestk/rtmidi", "task": "Realtime I/O", "why": "Small, long-standing, cross-platform port access with a simple API." },
-      { "repo": "celtera/libremidi", "task": "Realtime I/O and MIDI 2.0", "why": "A modern C++20 take with UMP and more backends." },
+      { "repo": "thestk/rtmidi", "task": "Realtime I/O", "why": "Long-standing cross-platform port access with a small, simple API." },
+      { "repo": "celtera/libremidi", "task": "Realtime I/O and MIDI 2.0", "why": "Started from RtMidi; adds C++20, UMP and more backends." },
       { "repo": "juce-framework/JUCE", "task": "Plugins and apps", "why": "Full audio-app framework with MIDI devices, files and messages built in." }
     ]
   },
@@ -32,7 +32,7 @@
   {
     "language": "C#",
     "picks": [
-      { "repo": "melanchall/drywetmidi", "task": "Files and devices", "why": "Comprehensive: files, devices, playback and recording in one library." }
+      { "repo": "melanchall/drywetmidi", "task": "Files and devices", "why": "Files, devices, playback and recording, all in one library." }
     ]
   },
   {
@@ -44,7 +44,7 @@
   {
     "language": "Swift",
     "picks": [
-      { "repo": "orchetect/swift-midi", "task": "Core MIDI", "why": "A modern Swift layer over Core MIDI with MIDI 2.0 support." }
+      { "repo": "orchetect/swift-midi", "task": "Core MIDI", "why": "A Swift layer over Core MIDI, with MIDI 2.0 support." }
     ]
   },
   {

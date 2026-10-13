@@ -14,7 +14,7 @@ export const docGroups: DocGroup[] = [
   {
     title: 'Start here',
     items: [
-      { slug: 'intro', title: 'MIDI in five minutes', summary: 'What MIDI is (and isn’t), what travels down the cable, how gear connects, and where to go next.' },
+      { slug: 'intro', title: 'MIDI in five minutes', summary: 'What MIDI is (and isn’t), what travels down the cable, and how gear connects.' },
     ],
   },
   {
@@ -33,7 +33,7 @@ export const docGroups: DocGroup[] = [
     title: 'Files & Sounds',
     items: [
       { slug: 'smf', title: 'Standard MIDI Files', summary: 'Header and track chunks, delta times, variable-length quantities, meta events.' },
-      { slug: 'general-midi', title: 'General MIDI', summary: 'GM program list, percussion key map, and the GM/GS/XG landscape.' },
+      { slug: 'general-midi', title: 'General MIDI', summary: 'The GM program list, the percussion key map, and the GS, XG and GM2 extensions.' },
     ],
   },
   {
@@ -50,7 +50,7 @@ export const docGroups: DocGroup[] = [
       { slug: 'cookbook', title: 'Cookbook', summary: 'Short, runnable recipes in JavaScript, Python, C++ and Rust for everyday MIDI tasks.' },
       { slug: 'glossary', title: 'Glossary', summary: 'Plain-language definitions of MIDI terms, from Active Sensing to UMP.' },
       { slug: 'history', title: 'History of MIDI', summary: 'A timeline from the 1983 launch through General MIDI, USB, Web MIDI and MIDI 2.0.' },
-      { slug: 'resources', title: 'Specs & Resources', summary: 'Official MIDI Association and AMEI specifications, RFCs, and trusted references.' },
+      { slug: 'resources', title: 'Specs & Resources', summary: 'The official MIDI Association and AMEI specifications, RFCs, platform docs and other good references.' },
     ],
   },
 ];

@@ -3,7 +3,7 @@ import Tool from '../../layouts/Tool.astro';
 import CcMap from '../../components/CcMap.astro';
 ---
 
-<Tool slug="cc" wide shortcuts={[["← → ↑ ↓", "Move through the grid (when it has focus)"], ["Home / End", "CC 0 or CC 127"]]} description="Interactive MIDI Control Change map: all 128 CC numbers with MIDI 1.0, General MIDI and GM2 meanings, common synth usage, defaults, and the bytes to send. Connect a controller to identify CCs live.">
+<Tool slug="cc" wide shortcuts={[["← → ↑ ↓", "Move through the grid (when it has focus)"], ["Home / End", "CC 0 or CC 127"]]} description="All 128 MIDI Control Change numbers: what MIDI 1.0, GM and GM2 say, how synths use them, and the bytes to send. Move a knob on your controller to find its CC.">
   <Fragment slot="lede">
     What every Control Change number means: the MIDI 1.0 assignment, what General MIDI and GM2 require, and how
     synths commonly use it. Pick a controller to get its bytes on any channel, send it to a device, or connect a

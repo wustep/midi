@@ -4,7 +4,7 @@ import Callout from '../../components/Callout.astro';
 import ClockTester from '../../components/ClockTester.astro';
 ---
 
-<Tool slug="clock" description="Test MIDI clock and latency in your browser: measure the tempo and jitter of incoming MIDI clock, send clock to a device, and time round trips through a MIDI loopback.">
+<Tool slug="clock" description="Test MIDI clock and latency in your browser: measure incoming clock tempo and jitter, send clock to a device, and time round trips through a loopback.">
   <Fragment slot="lede">
     Is your clock steady, and how long does a message take to come back? Measure the tempo and jitter of an
     incoming MIDI clock, drive a device with clock from the browser, and time round trips through a cable or
@@ -17,8 +17,8 @@ import ClockTester from '../../components/ClockTester.astro';
         Times come from Web MIDI event timestamps, so they include the operating system's MIDI stack and the browser,
         not just the cable. At 120 BPM clocks arrive every 20.83 ms; a 5-pin DIN cable needs 0.32 ms to carry one
         clock byte and 0.96 ms for a three-byte message. Jitter under a millisecond is typical for USB MIDI; numbers
-        well above that point to a busy computer, a long chain of devices, or a struggling interface. Use the results
-        to compare setups on the same machine rather than as absolute truth.
+        well above that point to a busy computer, a long chain of devices, or a struggling interface. Use the results to
+        compare setups on the same machine; they aren't absolute truth.
       </p>
     </Callout>
   </Fragment>

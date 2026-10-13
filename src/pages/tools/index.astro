@@ -12,7 +12,7 @@ const slug = (g: string) => g.toLowerCase().replace(/[^a-z]+/g, '-');
 const legacy = Object.fromEntries(tools.filter((t) => t.href.startsWith('/tools/')).map((t) => [t.slug, t.href]));
 ---
 
-<Base title="Tools" section="/tools" description="Interactive MIDI tools that run in your browser: MIDI Reader, Web MIDI monitor, message decoder, clock and latency tester, SysEx and RPN builders, MPE playground, CC map, chords and scales, note table, tempo and VLQ calculators.">
+<Base title="Tools" section="/tools" description="MIDI tools that run in your browser: read MIDI files, watch live input, decode bytes, build SysEx and RPNs, and look up CCs, chords and notes.">
   <div class="page">
     <header class="page-head">
       <p class="eyebrow">Tools</p>

@@ -30,15 +30,15 @@ const context = Object.fromEntries(
 );
 ---
 
-<Base title="Libraries" section="/libraries" description={`${libraries.length} open-source MIDI libraries and tools, verified against their repositories: parsing, realtime I/O, Web MIDI, synthesis, firmware, DAWs, notation, ML and MIDI 2.0.`}>
+<Base title="Libraries" section="/libraries" description={`${libraries.length} open-source MIDI libraries and tools, each checked against its repository: file parsing, realtime I/O, Web MIDI, synths, firmware and MIDI 2.0.`}>
   <div class="page lib-page">
     <header class="page-head lib-header">
       <p class="eyebrow">Libraries</p>
       <h1>Open-source MIDI libraries</h1>
       <p class="lede">
-        {libraries.length} projects across {categories.length} categories. Every entry is checked against its repository (GitHub or Codeberg)
-        for existence, stars, license, and activity{verifiedAt && <> (last checked <time datetime={verifiedAt}>{verifiedAt}</time>)</>}.
-        Also available as a plain <a href="https://github.com/wustep/midi#readme">awesome list on GitHub</a>.
+        {libraries.length} projects in {categories.length} categories, each checked against its repository on GitHub or Codeberg,
+        so stars, licenses and activity are current{verifiedAt && <> (last checked <time datetime={verifiedAt}>{verifiedAt}</time>)</>}.
+        Also on GitHub as a plain <a href="https://github.com/wustep/midi#readme">awesome list</a>.
       </p>
     </header>
 
@@ -335,6 +335,10 @@ const context = Object.fromEntries(
   }
   .lib-header {
     margin-bottom: var(--s-6);
+  }
+  /* A date reads as one unit; don't break it at its hyphens. */
+  .lib-header time {
+    white-space: nowrap;
   }
   .filters {
     display: grid;

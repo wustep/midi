@@ -13,7 +13,7 @@ interface Props {
   section?: string;
 }
 
-const { title, description = 'The field guide to MIDI: protocol docs, interactive tools, and a curated catalog of open-source MIDI libraries.', section } = Astro.props;
+const { title, description = 'How MIDI works, down to the byte. Browser tools for MIDI files and gear, and a catalog of open-source MIDI libraries checked against their repositories.', section } = Astro.props;
 const fullTitle = title === 'MIDI Field Guide' ? title : `${title} · MIDI Field Guide`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 // One social card per section, rendered at build time from live counts (src/pages/og/[section].png.ts).

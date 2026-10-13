@@ -3,7 +3,7 @@ import Tool from '../../layouts/Tool.astro';
 import SysexBuilder from '../../components/SysexBuilder.astro';
 ---
 
-<Tool slug="sysex" description="Build MIDI System Exclusive messages: manufacturer IDs, Universal SysEx presets, Roland and XOR checksums, 7-bit and nibble value encoding, hex and decimal output.">
+<Tool slug="sysex" description="Build MIDI System Exclusive messages with manufacturer IDs, Universal SysEx presets, Roland and XOR checksums and 7-bit encoding, then copy or send them.">
   <Fragment slot="lede">
     Assemble System Exclusive messages byte by byte: pick a manufacturer, add a header and data, and let the builder
     frame the message, compute the checksum, and flag bytes that don't fit in 7 bits. Copy the result as hex, decimal

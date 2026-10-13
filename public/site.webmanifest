@@ -1,7 +1,7 @@
 {
   "name": "MIDI Field Guide",
   "short_name": "MIDI Guide",
-  "description": "The field guide to MIDI: protocol docs, interactive tools, and a curated catalog of open-source MIDI libraries.",
+  "description": "How MIDI works, down to the byte. Browser tools for MIDI files and gear, and a catalog of open-source MIDI libraries checked against their repositories.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

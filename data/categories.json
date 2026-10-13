@@ -63,7 +63,7 @@
     "id": "ml",
     "title": "Machine Learning & Generative",
     "short": "ML",
-    "blurb": "Symbolic-music models, tokenizers, datasets tooling, and transcription."
+    "blurb": "Symbolic-music models, tokenizers, dataset tools and transcription."
   },
   {
     "id": "datasets",

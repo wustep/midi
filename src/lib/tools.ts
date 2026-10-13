@@ -19,7 +19,7 @@ export interface Tool {
 const registry: Tool[] = [
   {
     slug: 'reader', href: '/reader/', title: 'MIDI Reader', group: 'Inspect',
-    blurb: 'Open a .mid file and see every part explained: tracks, tempo map, controllers, SysEx, a piano roll, and the raw bytes. Play it with sampled instruments.',
+    blurb: 'Open a .mid file and see every part explained, from tracks and tempo down to the raw bytes. Then play it with sampled instruments.',
     demo: ['song.mid', '4 tracks · 3:12 · 120 BPM'],
     docs: [{ label: 'Standard MIDI Files', href: '/docs/smf/' }, { label: 'General MIDI', href: '/docs/general-midi/' }, { label: 'Getting MIDI files', href: '/community/midi-files/' }],
   },
@@ -43,13 +43,13 @@ const registry: Tool[] = [
   },
   {
     slug: 'mpe', href: '/tools/mpe/', title: 'MPE playground', group: 'Build & send',
-    blurb: 'See per-note pitch bend, pressure and timbre from an MPE controller, or watch a simulated performance. Shows zones and every message.',
+    blurb: 'Watch each note’s pitch bend, pressure and timbre from an MPE controller or a simulated performance, with zones and every message.',
     demo: ['ch 2–16', 'C4 +1.25 st · pressure 96'],
     docs: [{ label: 'MPE', href: '/docs/mpe/' }],
   },
   {
     slug: 'rpn', href: '/tools/rpn/', title: 'RPN & NRPN builder', group: 'Build & send',
-    blurb: 'Build the Control Change sequence that sets a registered or non-registered parameter, with friendly units, and decode pasted parameter streams.',
+    blurb: 'Build the Control Change sequence that sets an RPN or NRPN from plain values, or paste a stream to decode it.',
     demo: ['Bend range ±12', 'B0 65 00 64 00 06 0C …'],
     docs: [{ label: 'RPN & NRPN', href: '/docs/rpn-nrpn/' }, { label: 'Control Change', href: '/docs/control-change/' }],
   },
@@ -79,13 +79,13 @@ const registry: Tool[] = [
   },
   {
     slug: 'tempo', href: '/tools/tempo/', title: 'Tempo calculator', group: 'Calculate',
-    blurb: 'BPM, microseconds per quarter note, ticks, and MIDI clock intervals.',
+    blurb: 'Convert between BPM, microseconds per quarter note, ticks and MIDI clock intervals.',
     demo: ['120 BPM', 'FF 51 03 07 A1 20'],
     docs: [{ label: 'Timing & Sync', href: '/docs/timing/' }],
   },
   {
     slug: 'notes', href: '/tools/notes/', title: 'Note table', group: 'Look up',
-    blurb: 'All 128 note numbers with names, frequencies and GM drum sounds. Click to hear.',
+    blurb: 'All 128 note numbers with names, frequencies and GM drum sounds. Click one to hear it.',
     demo: ['69 · A4', '440.00 Hz'],
     docs: [{ label: 'Notes & Pitch', href: '/docs/notes/' }, { label: 'General MIDI', href: '/docs/general-midi/' }],
   },

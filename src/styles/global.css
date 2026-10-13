@@ -55,6 +55,10 @@ body {
 :root[data-theme-switching] *::after {
   transition: none !important;
 }
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--d-base);
+}
 
 img,
 svg {

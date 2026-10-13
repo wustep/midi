@@ -44,6 +44,7 @@ Components use **semantic** tokens only (`--bg`, `--ink`, `--accent`, `--s-4`, `
 | `--focus` | Keyboard focus only |
 | `--sky`, `--olive` | Extra chart series (CC kinds) |
 | `--key-w`, `--key-b`, `--key-label` | Piano keys |
+| `--key-on`, `--key-on-label`, `--key-edge` | A pressed white key and its label, and the line between white keys. Worked out from the palette ([`src/themes/derive.ts`](../src/themes/derive.ts)): lit with the accent in dark mode, the soft accent in light |
 | `--highlight` | Light catching the top edge of raised things (keycaps) |
 
 Every theme and mode is tested against WCAG AA for each pairing the site draws: text colors on every surface, role colors on their soft chips, button labels, field borders and focus rings at 3:1 ([`tests/themes.test.ts`](../tests/themes.test.ts)). `prefers-contrast: more` strengthens lines and muted text and thickens the focus ring in every theme.

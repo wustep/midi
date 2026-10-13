@@ -34,7 +34,9 @@ export default {
     '--led-blur': '12px',
     '--texture': 'radial-gradient(circle at 70% 38%, rgb(255 79 216 / 0.2), transparent 55%), radial-gradient(circle at 92% 75%, rgb(62 230 255 / 0.14), transparent 50%)',
   },
-  css: `.hero h1 .hl{color:var(--accent);text-shadow:0 0 28px rgb(255 79 216 / .45)}`,
+  // The section rule is a strip of stage light, magenta into cyan, instead of a timeline's ticks.
+  css: `.hero h1 .hl{color:var(--accent);text-shadow:0 0 28px rgb(255 79 216 / .45)}
+.rule-beats{height:2px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--data));box-shadow:0 0 14px rgb(255 90 216 / .28);opacity:.75}`,
   dark: {
     bg: '#0d0b13',
     surface: '#15121e',

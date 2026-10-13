@@ -153,8 +153,10 @@ const curvePath = (v: string) => {
                 <p class="th-dir">{t.direction}</p>
                 <p class="th-fonts">{t.fontNames.join(' · ')}</p>
                 {themes.length > 1 && (
-                  <button type="button" class="btn btn-sm" data-use-theme={t.id}>
-                    Use {t.name}
+                  <button type="button" class="btn btn-sm th-use" data-use-theme={t.id} aria-label={`Use ${t.name}`} aria-pressed="false">
+                    <span class="led" aria-hidden="true"></span>
+                    <span class="th-use-off">Use {t.name}</span>
+                    <span class="th-use-on" aria-hidden="true">In use</span>
                   </button>
                 )}
               </div>
@@ -567,10 +569,15 @@ const curvePath = (v: string) => {
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refresh);
   addEventListener('resize', refresh);
 
-  // "Use" buttons drive the header picker, so the choice persists and everything stays in sync.
-  document.querySelectorAll<HTMLButtonElement>('[data-use-theme]').forEach((b) =>
+  // "Use" buttons drive the header picker, so the choice persists and everything stays in sync. The one
+  // that's on shows a lit LED and "In use", like the picker.
+  const useBtns = [...document.querySelectorAll<HTMLButtonElement>('[data-use-theme]')];
+  useBtns.forEach((b) =>
     b.addEventListener('click', () => document.querySelector<HTMLButtonElement>(`.tp-opt[data-id="${b.dataset.useTheme}"]`)?.click()),
   );
+  const markInUse = () => useBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.useTheme === root.dataset.theme)));
+  markInUse();
+  new MutationObserver(markInUse).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
 
   // Motion demos: toggling a class runs (or reverses) a transition.
   document.querySelectorAll<HTMLButtonElement>('[data-play]').forEach((b) =>
@@ -692,6 +699,33 @@ const curvePath = (v: string) => {
     font-family: var(--font-mono);
     font-size: var(--t-xs);
     color: var(--muted);
+  }
+  .th-use {
+    gap: var(--s-2);
+  }
+  .th-use .led,
+  .th-use-on,
+  .th-use[aria-pressed='true'] .th-use-off {
+    display: none;
+  }
+  .th-use[aria-pressed='true'] .led,
+  .th-use[aria-pressed='true'] .th-use-on {
+    display: inline-block;
+  }
+  /* The theme that's on: a lit LED, and nothing to press. */
+  .th-use[aria-pressed='true'] {
+    cursor: default;
+    background: var(--surface-sunken);
+    box-shadow: var(--shadow-inset);
+  }
+  .th-use[aria-pressed='true'] .led {
+    background: var(--led);
+    box-shadow: 0 0 var(--led-blur) var(--led);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .th-use[aria-pressed='true']:hover {
+      background: var(--surface-sunken);
+    }
   }
   .marks {
     display: grid;

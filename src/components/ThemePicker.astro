@@ -139,9 +139,11 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
     // The mode the reader wants: what they picked, or the system's. A one-mode theme overrides it.
     const want = () => wantedMode(pref(), sys.matches);
 
+    let latest = 0;
     function apply(id: string, animate: boolean) {
       const mode = modeFor(themes[id].m, want());
       if (root.dataset.theme === id && root.dataset.mode === mode) return sync();
+      const n = ++latest;
       const run = () => {
         // Components' own color transitions sit this one out (global.css), so the page changes as one
         // instead of in a ragged cascade.
@@ -152,10 +154,15 @@ const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'd
         sync();
         dispatchEvent(new CustomEvent('themechange', { detail: { id, mode } }));
       };
-      const settle = () => requestAnimationFrame(() => requestAnimationFrame(() => root.removeAttribute('data-theme-switching')));
+      // Arrowing through the list starts a switch before the last one ends; only the latest clears the flag.
+      const settle = () => requestAnimationFrame(() => requestAnimationFrame(() => n === latest && root.removeAttribute('data-theme-switching')));
       // A short crossfade, so a whole-page color change doesn't flash (none with reduced motion).
-      if (animate && !reduced.matches && 'startViewTransition' in document) document.startViewTransition(run).finished.finally(settle);
-      else {
+      if (animate && !reduced.matches && 'startViewTransition' in document) {
+        const vt = document.startViewTransition(run);
+        // A newer switch skips this one's animation; that's expected, not an error.
+        vt.ready.catch(() => {});
+        vt.finished.then(settle, settle);
+      } else {
         run();
         settle();
       }

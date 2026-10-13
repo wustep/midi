@@ -377,10 +377,12 @@ const kb = (n: number) => `${Math.round(n / 1024)} KB`;
     outline-offset: 2px;
   }
   .sp-family {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-2xs);
-    font-weight: 700;
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
     color: var(--muted);
   }
   .sp-meta {

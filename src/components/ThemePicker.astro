@@ -1,0 +1,457 @@
+---
+/**
+ * The theme picker in the header, laid out like a synth's patch browser: numbered programs, each with
+ * a swatch drawn in that theme's own colors and display face, a readout describing the focused one,
+ * and an Auto / Light / Dark switch. Choosing applies at once and persists (localStorage `theme`,
+ * `theme-mode`); the boot script in Base.astro applies it before first paint on the next page.
+ *
+ * With one registered theme there's nothing to pick: the picker isn't rendered, and a theme with both
+ * palettes gets a plain light/dark switch instead.
+ */
+import Icon from './Icon.astro';
+import { THEMES } from '../themes/registry.ts';
+import { themeSummary } from '../themes/css.ts';
+
+const themes = THEMES.map(themeSummary);
+const single = themes.length === 1;
+const data = JSON.stringify(Object.fromEntries(themes.map((t) => [t.id, { m: t.modes, c: Object.fromEntries(t.modes.map((m) => [m, t.swatch[m]!.bg])) }])));
+const pad = (n: number) => String(n).padStart(2, '0');
+const swatchVars = (t: (typeof themes)[number]) =>
+  [
+    ...(['light', 'dark'] as const).flatMap((m) => {
+      const s = t.swatch[m];
+      const k = m[0];
+      return s ? [`--sw-bg-${k}:${s.bg}`, `--sw-ink-${k}:${s.ink}`, `--sw-line-${k}:${s.line}`, `--sw-a-${k}:${s.accent}`, `--sw-d-${k}:${s.data}`, `--sw-m-${k}:${s.meta}`] : [];
+    }),
+    `--sw-font:${t.displayFont.replace(/'/g, '"')}`,
+  ].join(';');
+const modeNote = (m: string[]) => (m.length > 1 ? 'Light and dark' : m[0] === 'dark' ? 'Dark only' : 'Light only');
+---
+
+<div class="tp-host" data-theme-ui data-themes={data}>
+  {
+    single ? (
+      themes[0].modes.length > 1 && (
+        <button class="icon-btn mode-switch" type="button" data-mode-switch aria-label="Dark mode" aria-pressed="false" title="Light or dark">
+          <Icon name="sun" size={20} class="i-sun" />
+          <Icon name="moon" size={20} class="i-moon" />
+        </button>
+      )
+    ) : (
+      <>
+        <button class="icon-btn tp-btn" type="button" popovertarget="theme-picker" aria-label="Theme" aria-haspopup="dialog" title="Theme">
+          <Icon name="knob" size={20} />
+        </button>
+        <div id="theme-picker" class="tp" popover role="dialog" aria-labelledby="tp-title">
+          <div class="tp-head">
+            <p class="tp-title" id="tp-title">
+              Theme <span class="tp-count">{themes.length} programs</span>
+            </p>
+            <div class="seg tp-modes" role="radiogroup" aria-label="Light or dark">
+              <button type="button" role="radio" aria-checked="false" data-pref="auto">Auto</button>
+              <button type="button" role="radio" aria-checked="false" data-pref="light">Light</button>
+              <button type="button" role="radio" aria-checked="false" data-pref="dark">Dark</button>
+            </div>
+          </div>
+          <div class="tp-list" role="radiogroup" aria-labelledby="tp-title">
+            {themes.map((t, i) => (
+              <button type="button" class="tp-opt" role="radio" aria-checked="false" tabindex="-1" data-id={t.id} data-name={t.name} data-dir={t.direction} data-modes={modeNote(t.modes)} style={swatchVars(t)}>
+                <span class="tp-sw" aria-hidden="true">
+                  <span class="tp-aa">Aa</span>
+                  <span class="tp-dots"><i /><i /><i /></span>
+                </span>
+                <span class="tp-name">
+                  <span class="tp-n" aria-hidden="true">{pad(i + 1)}</span>
+                  {t.name}
+                </span>
+                <span class="visually-hidden">. {t.direction} {modeNote(t.modes)}.</span>
+              </button>
+            ))}
+          </div>
+          <p class="tp-readout" aria-hidden="true" data-readout>
+            <span class="tp-led" />
+            <span class="tp-r-name" data-r-name></span>
+            <span class="tp-r-dir" data-r-dir></span>
+          </p>
+        </div>
+      </>
+    )
+  }
+</div>
+
+<script>
+  type Mode = 'light' | 'dark';
+  const host = document.querySelector<HTMLElement>('[data-theme-ui]');
+  if (host) {
+    const themes: Record<string, { m: Mode[]; c: Partial<Record<Mode, string>> }> = JSON.parse(host.dataset.themes!);
+    const root = document.documentElement;
+    const sys = matchMedia('(prefers-color-scheme: dark)');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const store = {
+      get: (k: string) => {
+        try {
+          return localStorage.getItem(k);
+        } catch {
+          return null;
+        }
+      },
+      set: (k: string, v: string | null) => {
+        try {
+          if (v === null) localStorage.removeItem(k);
+          else localStorage.setItem(k, v);
+        } catch {}
+      },
+    };
+    const current = () => (themes[root.dataset.theme ?? ''] ? root.dataset.theme! : Object.keys(themes)[0]);
+    const pref = (): Mode | null => {
+      const p = store.get('theme-mode');
+      return p === 'light' || p === 'dark' ? p : null;
+    };
+    const resolve = (id: string, p: Mode | null): Mode => {
+      const m = themes[id].m;
+      return m.length < 2 ? m[0] : (p ?? (sys.matches ? 'dark' : 'light'));
+    };
+
+    function apply(id: string, animate: boolean) {
+      const mode = resolve(id, pref());
+      if (root.dataset.theme === id && root.dataset.mode === mode) return sync();
+      const run = () => {
+        root.dataset.theme = id;
+        root.dataset.mode = mode;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themes[id].c[mode] ?? '');
+        sync();
+        dispatchEvent(new CustomEvent('themechange', { detail: { id, mode } }));
+      };
+      // A short crossfade, so a whole-page color change doesn't flash (none with reduced motion).
+      if (animate && !reduced.matches && 'startViewTransition' in document) document.startViewTransition(run);
+      else run();
+    }
+    sys.addEventListener('change', () => apply(current(), true));
+
+    /* ---------- One theme: the light/dark switch ---------- */
+    const modeSwitch = host.querySelector<HTMLButtonElement>('[data-mode-switch]');
+    modeSwitch?.addEventListener('click', () => {
+      store.set('theme-mode', root.dataset.mode === 'dark' ? 'light' : 'dark');
+      apply(current(), true);
+    });
+
+    /* ---------- The picker ---------- */
+    const picker = host.querySelector<HTMLElement>('.tp');
+    const opts = [...host.querySelectorAll<HTMLButtonElement>('.tp-opt')];
+    const prefs = [...host.querySelectorAll<HTMLButtonElement>('[data-pref]')];
+    const rName = host.querySelector<HTMLElement>('[data-r-name]');
+    const rDir = host.querySelector<HTMLElement>('[data-r-dir]');
+    const readout = (o: HTMLElement | undefined) => {
+      if (!o || !rName || !rDir) return;
+      rName.textContent = o.dataset.name!;
+      rDir.textContent = `${o.dataset.dir} ${o.dataset.modes}.`;
+    };
+
+    function sync() {
+      const id = current();
+      const p = pref();
+      modeSwitch?.setAttribute('aria-pressed', String(root.dataset.mode === 'dark'));
+      opts.forEach((o) => {
+        const on = o.dataset.id === id;
+        o.setAttribute('aria-checked', String(on));
+        o.tabIndex = on ? 0 : -1;
+      });
+      const modes = themes[id].m;
+      prefs.forEach((b) => {
+        const v = b.dataset.pref!;
+        const fixed = modes.length < 2;
+        // A one-palette theme shows its only mode as chosen, and the switch is unavailable.
+        const on = fixed ? v === modes[0] : v === (p ?? 'auto');
+        b.setAttribute('aria-checked', String(on));
+        b.disabled = fixed && !on;
+      });
+      readout(opts.find((o) => o.dataset.id === id));
+    }
+
+    opts.forEach((o, i) => {
+      o.addEventListener('click', () => {
+        store.set('theme', o.dataset.id!);
+        apply(o.dataset.id!, true);
+      });
+      o.addEventListener('pointerenter', () => readout(o));
+      o.addEventListener('focus', () => readout(o));
+      // A radio group: arrows move and choose; Home and End jump.
+      o.addEventListener('keydown', (e) => {
+        const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+        const to = step ? (i + step + opts.length) % opts.length : e.key === 'Home' ? 0 : e.key === 'End' ? opts.length - 1 : -1;
+        if (to < 0) return;
+        e.preventDefault();
+        opts[to].focus();
+        opts[to].click();
+      });
+    });
+    host.querySelector('.tp-list')?.addEventListener('pointerleave', () => readout(opts.find((o) => o.dataset.id === current())));
+    prefs.forEach((b) =>
+      b.addEventListener('click', () => {
+        store.set('theme-mode', b.dataset.pref === 'auto' ? null : b.dataset.pref!);
+        apply(current(), true);
+      }),
+    );
+    // Opening the picker focuses the chosen theme, so arrow keys work straight away.
+    picker?.addEventListener('toggle', (e) => {
+      if ((e as ToggleEvent).newState === 'open') opts.find((o) => o.dataset.id === current())?.focus({ preventScroll: true });
+    });
+    sync();
+  }
+</script>
+
+<style>
+  .tp-host {
+    display: contents;
+  }
+  /* ---------- The light/dark switch (one theme) ---------- */
+  .mode-switch :global(.i-moon) {
+    display: none;
+  }
+  .mode-switch[aria-pressed='true'] :global(.i-sun) {
+    display: none;
+  }
+  .mode-switch[aria-pressed='true'] :global(.i-moon) {
+    display: block;
+  }
+  .mode-switch :global(svg),
+  .tp-btn :global(svg) {
+    transition: transform var(--d-slow) var(--ease-out);
+  }
+  .mode-switch[aria-pressed='true'] :global(svg) {
+    transform: rotate(-30deg);
+  }
+  /* The knob turns a little when the picker is open, like it's been grabbed. */
+  .tp-btn:has(+ .tp:popover-open) :global(svg) {
+    transform: rotate(40deg);
+  }
+
+  /* ---------- The picker: a popover anchored under the header's right edge ---------- */
+  .tp {
+    position: fixed;
+    inset: auto;
+    top: calc(var(--header-h) + var(--s-1));
+    right: max(var(--gutter), calc((100vw - var(--w-page)) / 2 + var(--gutter) - var(--s-2)));
+    width: min(30rem, calc(100vw - 2 * var(--s-2)));
+    max-height: calc(100dvh - var(--header-h) - var(--s-4));
+    margin: 0;
+    padding: var(--s-3);
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-lg);
+    background: var(--surface-raised);
+    color: var(--ink);
+    box-shadow: var(--shadow-3);
+    /* Origin-aware: it grows from the knob, and leaves faster than it arrives. */
+    transform-origin: top right;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity var(--d-base) var(--ease-out),
+      transform var(--d-base) var(--ease-out),
+      overlay var(--d-base) allow-discrete,
+      display var(--d-base) allow-discrete;
+  }
+  .tp:not(:popover-open) {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+    transition-duration: var(--d-exit);
+  }
+  @starting-style {
+    .tp:popover-open {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+  }
+  .tp-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-2);
+    padding: var(--s-1) var(--s-1) var(--s-3);
+  }
+  .tp-title {
+    margin: 0;
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    font-size: var(--t-xs);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+  }
+  .tp-count {
+    font-family: var(--font-mono);
+    font-weight: var(--w-regular);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--muted);
+  }
+  .tp-modes > button {
+    min-height: 1.75rem;
+    font-size: var(--t-sm);
+  }
+  .tp-modes > button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .tp-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-1);
+  }
+  .tp-opt {
+    /* Swatch colors for the mode the page is in; a one-palette theme shows its only palette. */
+    --sw-bg: var(--sw-bg-l, var(--sw-bg-d));
+    --sw-ink: var(--sw-ink-l, var(--sw-ink-d));
+    --sw-line: var(--sw-line-l, var(--sw-line-d));
+    --sw-a: var(--sw-a-l, var(--sw-a-d));
+    --sw-d: var(--sw-d-l, var(--sw-d-d));
+    --sw-m: var(--sw-m-l, var(--sw-m-d));
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    align-items: center;
+    gap: var(--s-3);
+    min-height: var(--h-lg);
+    padding: var(--s-1);
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    background: transparent;
+    color: var(--ink-2);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--d-fast) ease, border-color var(--d-fast) ease, color var(--d-fast) ease;
+  }
+  :global(:root[data-mode='dark']) .tp-opt {
+    --sw-bg: var(--sw-bg-d, var(--sw-bg-l));
+    --sw-ink: var(--sw-ink-d, var(--sw-ink-l));
+    --sw-line: var(--sw-line-d, var(--sw-line-l));
+    --sw-a: var(--sw-a-d, var(--sw-a-l));
+    --sw-d: var(--sw-d-d, var(--sw-d-l));
+    --sw-m: var(--sw-m-d, var(--sw-m-l));
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tp-opt:hover {
+      background: var(--surface-2);
+      color: var(--ink);
+    }
+  }
+  .tp-opt:active .tp-sw {
+    transform: scale(var(--press-scale));
+  }
+  .tp-opt[aria-checked='true'] {
+    border-color: var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-1);
+  }
+  .tp-opt:focus-visible {
+    outline-offset: 0;
+    border-radius: var(--r-md);
+  }
+  .tp-sw {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 2.5rem;
+    border-radius: var(--r-sm);
+    background: var(--sw-bg);
+    color: var(--sw-ink);
+    box-shadow: inset 0 0 0 1px var(--sw-line);
+    font-family: var(--sw-font);
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: transform var(--d-press) var(--ease-out);
+  }
+  .tp-aa {
+    margin-top: -0.4rem;
+  }
+  .tp-dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.3rem;
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+  }
+  .tp-dots i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--sw-a);
+  }
+  .tp-dots i:nth-child(2) {
+    background: var(--sw-d);
+  }
+  .tp-dots i:nth-child(3) {
+    background: var(--sw-m);
+  }
+  .tp-name {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    font-size: var(--t-md);
+    font-weight: var(--w-semibold);
+    line-height: 1.25;
+  }
+  .tp-n {
+    font-family: var(--font-mono);
+    font-size: var(--t-2xs);
+    font-weight: var(--w-regular);
+    color: var(--muted);
+  }
+  /* The readout: an LCD line under the programs that names the hovered or chosen theme. */
+  .tp-readout {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: var(--s-2);
+    margin: var(--s-3) 0 0;
+    padding: var(--s-2) var(--s-3);
+    min-height: 4.25rem;
+    border-radius: var(--r-sm);
+    background: var(--surface-sunken);
+    box-shadow: var(--shadow-inset);
+    font-size: var(--t-sm);
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .tp-led {
+    align-self: center;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--led);
+    box-shadow: 0 0 var(--led-blur) color-mix(in srgb, var(--led) 70%, transparent);
+  }
+  .tp-r-name {
+    font-weight: var(--w-bold);
+    color: var(--ink);
+  }
+  .tp-r-dir {
+    grid-column: 2;
+  }
+  @media (max-width: 560px) {
+    .tp {
+      left: var(--s-2);
+      right: var(--s-2);
+      width: auto;
+      transform-origin: top center;
+    }
+    .tp-opt {
+      grid-template-columns: 2.75rem minmax(0, 1fr);
+      gap: var(--s-2);
+    }
+  }
+  @media (pointer: coarse) {
+    .tp-modes > button {
+      min-height: var(--h-touch);
+    }
+  }
+</style>

@@ -1,4 +1,5 @@
 /** Small helpers shared by the tools that talk to Web MIDI devices. Browser-only. */
+import { activity } from './activity.ts';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -16,6 +17,12 @@ export function midiAccess(sysex = false): Promise<MIDIAccess> {
       const blocked = e?.name === 'SecurityError' || e?.name === 'NotAllowedError';
       throw new Error(blocked ? `MIDI${sysex ? ' (with SysEx)' : ''} access was blocked. Allow it in the site settings and try again.` : e?.message || 'MIDI access failed.');
     });
+    // Every input blinks the header's activity LED, whatever the page does with its messages.
+    p.then((access) => {
+      const watch = () => access.inputs.forEach((i) => i.addEventListener('midimessage', activity));
+      watch();
+      access.addEventListener('statechange', watch);
+    }, () => {});
     cache.set(sysex, p);
   }
   return p;

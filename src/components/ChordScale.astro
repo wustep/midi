@@ -339,7 +339,7 @@ const pitched = instruments.filter((i) => !i.drumMap);
   }
   .cs-symbol :global(strong) {
     font-family: var(--font-display);
-    font-stretch: 112%;
+    font-stretch: var(--heading-stretch);
     font-size: var(--t-2xl);
   }
   .cs-symbol :global(span) {
@@ -349,9 +349,12 @@ const pitched = instruments.filter((i) => !i.drumMap);
     margin: var(--s-2) 0 var(--s-4);
   }
   .cs-notes :global(th) {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
     width: 5.5rem;
     background: var(--surface-2);

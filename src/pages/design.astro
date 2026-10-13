@@ -475,7 +475,7 @@ const curvePath = (v: string) => {
   };
   const refresh = () => document.querySelectorAll<HTMLElement>('[data-value]').forEach(fmt);
   refresh();
-  new MutationObserver(refresh).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  new MutationObserver(refresh).observe(root, { attributes: true, attributeFilter: ['data-theme', 'data-mode'] });
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', refresh);
   addEventListener('resize', refresh);
 
@@ -559,7 +559,7 @@ const curvePath = (v: string) => {
     display: block;
     color: var(--ink);
     font-family: var(--font-display);
-    font-stretch: 112%;
+    font-stretch: var(--heading-stretch);
     margin-bottom: var(--s-1);
   }
 
@@ -654,9 +654,9 @@ const curvePath = (v: string) => {
   }
   .ts-display {
     font-family: var(--font-display);
-    font-weight: 800;
-    font-stretch: 125%;
-    letter-spacing: var(--tr-display);
+    font-weight: var(--h1-weight);
+    font-stretch: var(--h1-stretch);
+    letter-spacing: var(--h1-tracking);
     line-height: var(--lh-display);
   }
   .ts-label {

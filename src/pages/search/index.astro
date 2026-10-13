@@ -72,9 +72,12 @@ import Base from '../../layouts/Base.astro';
     margin-top: var(--s-3);
   }
   [data-results] :global(h2) {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-sm);
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
     margin: var(--s-6) 0 var(--s-2);
   }

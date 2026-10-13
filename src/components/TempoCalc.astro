@@ -83,9 +83,12 @@ const Heading = `h${level}`;
     margin: var(--s-4) 0 0;
   }
   .tempo-out :global(dt) {
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    text-transform: uppercase;
-    letter-spacing: var(--tr-label);
     color: var(--muted);
   }
   .tempo-out :global(dd) {

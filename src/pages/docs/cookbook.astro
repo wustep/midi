@@ -972,12 +972,12 @@ print(round(note_to_freq(60), 2), note_name(69), parse_note('C#4'), round(freq_t
     margin-bottom: var(--s-1);
   }
   .code-lang {
-    font-family: var(--font-display);
-    font-stretch: 112%;
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    font-weight: 700;
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
     color: var(--muted);
   }
   .panel pre {

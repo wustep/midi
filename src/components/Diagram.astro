@@ -105,12 +105,12 @@ const { caption, minWidth, maxWidth = Math.round(minWidth * 1.2) } = Astro.props
     font-family: var(--font-mono);
   }
   .diagram :global(svg .disp) {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-stretch: 112%;
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
   }
   .diagram :global(svg .sm) {
     font-size: var(--t-xs);

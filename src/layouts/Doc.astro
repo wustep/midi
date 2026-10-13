@@ -177,12 +177,12 @@ const related = relatedForDoc(slug);
     margin-bottom: var(--s-4);
   }
   .nav-group-title {
-    font-family: var(--font-display);
-    font-stretch: 118%;
-    font-weight: 700;
+    font-family: var(--font-label);
+    font-stretch: var(--label-stretch);
+    font-weight: var(--label-weight);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     font-size: var(--t-xs);
-    letter-spacing: var(--tr-label);
-    text-transform: uppercase;
     color: var(--muted);
     margin: 0 0 var(--s-1);
   }
@@ -288,7 +288,7 @@ const related = relatedForDoc(slug);
     display: block;
     font-weight: var(--w-bold);
     font-family: var(--font-display);
-    font-stretch: 110%;
+    font-stretch: var(--heading-stretch);
   }
   .pager-link span {
     display: block;

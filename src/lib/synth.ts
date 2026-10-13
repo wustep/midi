@@ -5,6 +5,7 @@
  */
 import type { SmfFile, TempoMap } from './smf.ts';
 import { buildTempoMap } from './smf.ts';
+import { activity } from './activity.ts';
 
 interface Voice {
   osc: OscillatorNode[];
@@ -417,6 +418,8 @@ export class Player {
       this.cursor++;
       if (e.isNote && this.muted.has(e.track) && !((e.bytes[0] & 0xf0) === 0x80 || e.bytes[2] === 0)) continue;
       this.sink.send(e.bytes, Math.max(at, this.ctx.currentTime));
+      // Events go out up to 200 ms ahead of the audio clock; blink when each note is due.
+      if (e.isNote) setTimeout(activity, Math.max(0, (at - this.ctx.currentTime) * 1000));
     }
     if (this.cursor >= this.events.length && this.position >= this.duration) {
       clearInterval(this.timer);

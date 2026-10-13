@@ -2,6 +2,7 @@
  * A tiny lazy-loading sampler: a handful of recorded notes per instrument, repitched to fill the range.
  * Samples are fetched only when an instrument is first selected or played, then cached.
  */
+import { activity } from './activity.ts';
 
 export interface Instrument {
   id: string;
@@ -147,6 +148,7 @@ export class Sampler {
     const buffer = buffers.get(pick.sample);
     if (!buffer) return;
     const t = Math.max(when ?? 0, this.ctx.currentTime);
+    if (t - this.ctx.currentTime < 0.05) activity();
     // Retriggering the same key: fade the previous voice quickly (except drums, which can overlap).
     if (!inst.drumMap) for (const v of this.voices.get(note) ?? []) this.fade(v, 0.05, t);
     const src = this.ctx.createBufferSource();

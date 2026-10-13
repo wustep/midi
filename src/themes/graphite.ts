@@ -13,11 +13,11 @@ export default {
   vars: {
     '--display-weight': '600',
     '--display-stretch': '100%',
-    '--display-tracking': '-0.06em',
+    '--display-tracking': '-0.05em',
     '--display-leading': '0.95',
     '--h1-weight': '600',
     '--h1-stretch': '100%',
-    '--h1-tracking': '-0.045em',
+    '--h1-tracking': '-0.04em',
     '--heading-weight': '600',
     '--heading-stretch': '100%',
     '--heading-tracking': '-0.025em',

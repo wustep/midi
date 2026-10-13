@@ -25,6 +25,7 @@ That's all. What follows from the list:
 - **The picker:** lists exactly the registered themes, numbered in order. With **one theme** the picker isn't rendered at all; if that theme has both a light and a dark palette, a plain light/dark switch takes its place in the header. With a one-mode theme, there's nothing in the header to switch.
 - **Saved choices:** a visitor whose saved theme was removed gets the default theme. The old `theme=light|dark` setting from before themes is read as a light/dark preference.
 - **/design/** shows a card for each registered theme, and the contrast tests run for each.
+- **Social cards** (`/og/*.png`) take their colors from the default theme's palette (light, if it has one). Their fonts and the favicons stay the brand's.
 
 ## How it applies
 

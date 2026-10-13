@@ -35,7 +35,7 @@ export default {
   },
   // The wordmark in the panel legend face, and the ruler as the three-stripe band across the top of the case.
   css: `.wordmark-text{font-family:var(--font-label);font-weight:400;letter-spacing:.06em;font-size:var(--t-base)}
-.rule-beats{height:9px;background:linear-gradient(var(--accent) 0 3px,var(--warn) 3px 6px,var(--olive) 6px 9px)}`,
+.rule-beats{height:9px;background:linear-gradient(#c8561c 0 3px,#dea22c 3px 6px,#6a4527 6px 9px)}`,
   light: {
     bg: '#efe6d2',
     surface: '#f8f1e1',

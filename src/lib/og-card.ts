@@ -11,6 +11,7 @@ import { join } from 'node:path';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 import { iconDocument } from './icons.mjs';
+import { DEFAULT_THEME } from '../themes/registry.ts';
 
 export const SECTIONS = ['home', 'docs', 'tools', 'reader', 'libraries', 'samples', 'community'] as const;
 export type Section = (typeof SECTIONS)[number];
@@ -105,18 +106,22 @@ export function cardFor(section: Section, c: Counts): Card {
 const W = 1200;
 const H = 630;
 const PAD_X = 72;
-const INK = '#1a1915';
-const MUTED = '#645e52';
-const RULE = '#d9d2c1';
-const BG = '#f2efe6';
+// Colors follow the default theme (its light palette, if it has one), so the cards match the site.
+const P = (DEFAULT_THEME.light ?? DEFAULT_THEME.dark)!;
+const INK = P.ink;
+const INK_2 = P['ink-2'];
+const MUTED = P.muted;
+const RULE = P.line;
+const BG = P.bg;
+const ACCENT = P.accent;
 const BYTE: Record<ByteKind, { bg: string; fg: string }> = {
-  status: { bg: '#f6dccd', fg: '#a83508' },
-  data: { bg: '#d2ebe7', fg: '#0b6b63' },
-  meta: { bg: '#e6ddf6', fg: '#6b4bb0' },
+  status: { bg: P['accent-soft'], fg: P.accent },
+  data: { bg: P['data-soft'], fg: P.data },
+  meta: { bg: P['meta-soft'], fg: P.meta },
 };
 
 // The DIN-5 socket mark from the icon set, with pin 2 in the accent color as in the site header.
-const DIN = iconDocument('din', INK).replace(/(<circle class="pin2"[^>]*fill=")[^"]*/, '$1#a83508');
+const DIN = iconDocument('din', INK).replace(/(<circle class="pin2"[^>]*fill=")[^"]*/, `$1${ACCENT}`);
 
 /** Minimal element factory in the shape satori expects (no JSX in .ts files). */
 type Node = { type: string; props: Record<string, unknown> };
@@ -160,9 +165,9 @@ function tree(card: Card): Node {
       h(
         'div',
         { display: 'flex', flexDirection: 'column', width: 720 },
-        h('div', { fontFamily: 'Archivo SemiExpanded', fontWeight: 700, fontSize: 22, letterSpacing: '0.14em', color: '#a83508' }, card.kicker.toUpperCase()),
+        h('div', { fontFamily: 'Archivo SemiExpanded', fontWeight: 700, fontSize: 22, letterSpacing: '0.14em', color: ACCENT }, card.kicker.toUpperCase()),
         h('div', { marginTop: 14, fontFamily: 'Archivo Expanded', fontWeight: 900, fontSize: 72, lineHeight: 1, letterSpacing: '-0.03em' }, card.title),
-        h('div', { marginTop: 22, fontSize: 27, lineHeight: 1.35, color: '#3d3a33', width: 660 }, card.sub),
+        h('div', { marginTop: 22, fontSize: 27, lineHeight: 1.35, color: INK_2, width: 660 }, card.sub),
       ),
       h(
         'div',

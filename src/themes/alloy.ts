@@ -31,7 +31,9 @@ export default {
     '--led-blur': '5px',
     '--texture': dots,
   },
-  css: `.hero h1 .hl{color:var(--ink);text-decoration:underline;text-decoration-color:var(--led);text-decoration-thickness:.09em;text-underline-offset:.08em}`,
+  // The highlighted word is underlined in the orange, and the beat ruler is a row of perforations.
+  css: `.hero h1 .hl{color:var(--ink);text-decoration:underline;text-decoration-color:var(--led);text-decoration-thickness:.09em;text-underline-offset:.08em}
+.rule-beats{height:5px;background:radial-gradient(circle,var(--line-strong) 1.5px,transparent 2px) 0 50%/10px 5px repeat-x}`,
   light: {
     bg: '#e8e8e5',
     surface: '#f3f3f1',
